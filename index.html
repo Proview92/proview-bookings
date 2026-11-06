@@ -588,6 +588,14 @@ html .app .side .side-me.side-me,html .side .side-foot [data-act=logout],html .s
 .side .nav>a>span:not(.bell-dot),.side .nav>button .lbl{font-size:14px!important}
 .side .nav-sec,.side .nav-sep,.side .nav .nav-group{padding-top:10px!important;padding-bottom:3px!important;line-height:13px!important;min-height:0!important;height:auto!important}
 }
+/* New party: floating button bottom-right instead of the header */
+#top [data-act=newParty]{display:none!important}
+.fab{display:inline-flex!important;align-items:center;justify-content:center;gap:8px;position:fixed;right:24px;bottom:24px!important;width:auto!important;height:52px!important;padding:0 22px 0 18px;border-radius:26px!important;border:0;background:var(--grad);color:#fff;font-family:inherit;font-size:15px;font-weight:600;box-shadow:0 8px 24px rgba(74,108,208,.4);z-index:36;cursor:pointer}
+.fab svg{width:20px;height:20px}
+.fab:hover{filter:brightness(1.06)}
+#drawer.open~.fab,.modal-bg.show~.fab,body.gate .fab{display:none!important}
+#content,.content{padding-bottom:96px!important}
+@media (max-width:700px){.fab{width:56px!important;height:56px!important;padding:0!important;border-radius:50%!important;right:16px;bottom:calc(20px + env(safe-area-inset-bottom))!important}.fab .fab-l{display:none}}
 </style>
 </head>
 <body class="gate">
@@ -610,7 +618,7 @@ html .app .side .side-me.side-me,html .side .side-foot [data-act=logout],html .s
 <div id="navScrim" data-act="navToggle"></div>
 <aside id="drawer"></aside>
 <div class="modal-bg" id="modal"></div>
-<button class="fab" data-act="newParty" title="Add a party" aria-label="Add a party"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+<button class="fab" data-act="newParty" title="Add a party" aria-label="Add a party"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="fab-l">New party</span></button>
 <div id="toast"></div>
 
 <script>
@@ -2210,7 +2218,7 @@ document.addEventListener('click',e=>{const a=$('#app');if(!a||!a.classList.cont
 document.addEventListener('change',e=>{if(e.target.closest('.side .client-pick'))$('#app')?.classList.remove('navopen')},true);
 
 
-function topMe(act){const t=document.getElementById('top'),vc=document.getElementById('venueCard');if(!t)return;t.querySelector('.top-me')?.remove();const a=vc&&vc.querySelector('.side-av');if(!a)return;const nm=vc.querySelector('.side-me-t b')?.textContent||'',sub=vc.querySelector('.side-me-t span')?.textContent||'';const w=document.createElement('div');w.className='top-me';w.innerHTML=`<button class="top-av" title="${esc(nm+(sub?' · '+sub:''))}" aria-label="My account">${esc(a.textContent)}</button><button class="icon-btn top-out" data-act="${act}" title="Sign out" aria-label="Sign out">${ic('out',18)}</button>`;w.querySelector('.top-av').onclick=e=>{e.stopPropagation();vc.click()};t.appendChild(w)}
+function topMe(act){const t=document.getElementById('top'),vc=document.getElementById('venueCard');if(!t)return;const a=vc&&vc.querySelector('.side-av');if(!a)return;t.querySelector('.top-me')?.remove();const nm=vc.querySelector('.side-me-t b')?.textContent||'',sub=vc.querySelector('.side-me-t span')?.textContent||'';const w=document.createElement('div');w.className='top-me';w.innerHTML=`<button class="top-av" title="${esc(nm+(sub?' · '+sub:''))}" aria-label="My account">${esc(a.textContent)}</button><button class="icon-btn top-out" data-act="${act}" title="Sign out" aria-label="Sign out">${ic('out',18)}</button>`;w.querySelector('.top-av').onclick=e=>{e.stopPropagation();vc.click()};t.appendChild(w)}
 {const _rt=renderTop,_rn=renderNav;renderTop=function(){const r=_rt.apply(this,arguments);topMe('logout');return r};renderNav=function(){const r=_rn.apply(this,arguments);topMe('logout');return r}}
 load();if(innerWidth<=700)U.showSide=false;render();
 
