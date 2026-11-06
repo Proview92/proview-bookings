@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
   if (evt.type === "checkout.session.completed") {
     const s = evt.data.object;
     const booking = JSON.parse(s.metadata?.booking || "{}");
-    await db("inbox", {
+    await db("bk_inbox", {
       method: "POST",
       body: JSON.stringify({ venue: s.metadata?.venue, kind: "booking", payload: { ...booking, deposit_paid: (s.amount_total || 0) / 100, deposit_ref: s.id } }),
     });

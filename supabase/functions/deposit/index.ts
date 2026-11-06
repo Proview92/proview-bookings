@@ -6,7 +6,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
     const { venue, booking, return_url } = await req.json();
-    const rows = await db(`venue_public?id=eq.${encodeURIComponent(venue)}&select=data`);
+    const rows = await db(`bk_venue_public?id=eq.${encodeURIComponent(venue)}&select=data`);
     const pub = rows?.[0]?.data;
     if (!pub) return json({ error: "Unknown venue" }, 404);
     const B = pub.settings.bookings;

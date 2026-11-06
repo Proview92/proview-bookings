@@ -27,6 +27,6 @@ export async function userFrom(req: Request) {
   return r.ok ? await r.json() : null;
 }
 export async function isStaff(userId: string, venue: string) {
-  const rows = await db(`staff_profiles?user_id=eq.${userId}&venue=eq.${encodeURIComponent(venue)}&select=user_id`);
+  const rows = await db(`bk_staff_profiles?user_id=eq.${userId}&venue=eq.${encodeURIComponent(venue)}&select=user_id`);
   return Array.isArray(rows) && rows.length > 0;
 }

@@ -57,8 +57,8 @@ async function makeAdapter(){
  let c=null;try{const r=await fetch('../cloud.json',{cache:'no-store'});if(r.ok)c=await r.json()}catch(e){}
  if(!c||!c.url||!c.anonKey)return null;VENUE=Q.get('v')||c.venue;
  await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js');const sb=supabase.createClient(c.url,c.anonKey,{auth:{persistSession:false}});
- return{async pub(){const r=await sb.from('venue_public').select('data').eq('id',VENUE).maybeSingle();if(r.error)throw r.error;return r.data?.data||null},
-  async send(kind,payload,id){const r=await sb.from('inbox').insert({...(id?{id}:{}),venue:VENUE,kind,payload});if(r.error)throw r.error},
+ return{async pub(){const r=await sb.from('bk_venue_public').select('data').eq('id',VENUE).maybeSingle();if(r.error)throw r.error;return r.data?.data||null},
+  async send(kind,payload,id){const r=await sb.from('bk_inbox').insert({...(id?{id}:{}),venue:VENUE,kind,payload});if(r.error)throw r.error},
   async invoke(n,b){const r=await sb.functions.invoke(n,{body:b});if(r.error)throw r.error;return r.data}}}
 /* ---- availability (mirrors the staff app) ---- */
 const typeById=id=>P.types.find(t=>t.id===id)||P.types[0];

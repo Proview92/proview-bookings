@@ -17,6 +17,6 @@ Deno.serve(async (req) => {
   const venue = new URL(req.url).searchParams.get("venue") || "";
   const params = new URLSearchParams(await req.text());
   if (!(await validTwilio(req, params))) return new Response("Forbidden", { status: 403 });
-  await db("inbox", { method: "POST", body: JSON.stringify({ venue, kind: "sms", payload: { from: params.get("From"), body: params.get("Body") } }) });
+  await db("bk_inbox", { method: "POST", body: JSON.stringify({ venue, kind: "sms", payload: { from: params.get("From"), body: params.get("Body") } }) });
   return new Response("<Response></Response>", { headers: { "Content-Type": "text/xml" } });
 });

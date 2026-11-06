@@ -1616,17 +1616,17 @@ async function SupabaseAdapter(c){
   async signUp(e,p){const r=await sb.auth.signUp({email:e,password:p});if(r.error)throw r.error;return r.data.user},
   async reset(e){const r=await sb.auth.resetPasswordForEmail(e,{redirectTo:location.origin+location.pathname});if(r.error)throw r.error},
   async signOut(){await sb.auth.signOut()},
-  async get(v){return one(await sb.from('venue_state').select('data,updated_at').eq('id',v).maybeSingle())},
+  async get(v){return one(await sb.from('bk_venue_state').select('data,updated_at').eq('id',v).maybeSingle())},
   async put(v,data,prev){const now=new Date().toISOString();const u=(await sb.auth.getUser()).data.user;
-   if(prev==null){const r=await sb.from('venue_state').insert({id:v,data,updated_at:now,updated_by:u?.id}).select('updated_at');if(r.error){if(r.error.code==='23505')return null;throw r.error}return r.data[0].updated_at}
-   const r=await sb.from('venue_state').update({data,updated_at:now,updated_by:u?.id}).eq('id',v).eq('updated_at',prev).select('updated_at');if(r.error)throw r.error;return r.data.length?r.data[0].updated_at:null},
-  onChange(v,cb){sb.channel('vs-'+v).on('postgres_changes',{event:'*',schema:'public',table:'venue_state',filter:'id=eq.'+v},()=>cb()).subscribe()},
-  async inbox(v){return one(await sb.from('inbox').select('*').eq('venue',v).eq('processed',false).order('created_at'))},
-  async claim(id){const r=await sb.from('inbox').update({processed:true}).eq('id',id).eq('processed',false).select('id');if(r.error)throw r.error;return r.data.length>0},
-  onInbox(v,cb){sb.channel('ib-'+v).on('postgres_changes',{event:'INSERT',schema:'public',table:'inbox',filter:'venue=eq.'+v},()=>cb()).subscribe()},
-  async publish(v,data){const r=await sb.from('venue_public').upsert({id:v,data,updated_at:new Date().toISOString()});if(r.error)throw r.error},
+   if(prev==null){const r=await sb.from('bk_venue_state').insert({id:v,data,updated_at:now,updated_by:u?.id}).select('updated_at');if(r.error){if(r.error.code==='23505')return null;throw r.error}return r.data[0].updated_at}
+   const r=await sb.from('bk_venue_state').update({data,updated_at:now,updated_by:u?.id}).eq('id',v).eq('updated_at',prev).select('updated_at');if(r.error)throw r.error;return r.data.length?r.data[0].updated_at:null},
+  onChange(v,cb){sb.channel('vs-'+v).on('postgres_changes',{event:'*',schema:'public',table:'bk_venue_state',filter:'id=eq.'+v},()=>cb()).subscribe()},
+  async inbox(v){return one(await sb.from('bk_inbox').select('*').eq('venue',v).eq('processed',false).order('created_at'))},
+  async claim(id){const r=await sb.from('bk_inbox').update({processed:true}).eq('id',id).eq('processed',false).select('id');if(r.error)throw r.error;return r.data.length>0},
+  onInbox(v,cb){sb.channel('ib-'+v).on('postgres_changes',{event:'INSERT',schema:'public',table:'bk_inbox',filter:'venue=eq.'+v},()=>cb()).subscribe()},
+  async publish(v,data){const r=await sb.from('bk_venue_public').upsert({id:v,data,updated_at:new Date().toISOString()});if(r.error)throw r.error},
   async invoke(name,body){const r=await sb.functions.invoke(name,{body});if(r.error)throw r.error;return r.data},
-  async invite(email,v,role){const r=await sb.from('staff_invites').upsert({email:email.toLowerCase(),venue:v,role});if(r.error)throw r.error}}}
+  async invite(email,v,role){const r=await sb.from('bk_staff_invites').upsert({email:email.toLowerCase(),venue:v,role});if(r.error)throw r.error}}}
 function MockAdapter(){
  const K=k=>'mockcloud:'+k,rd=k=>{try{return JSON.parse(localStorage.getItem(K(k))||'null')}catch(e){return null}},wr=(k,v)=>localStorage.setItem(K(k),JSON.stringify(v));
  const subs=[];addEventListener('storage',e=>{if(e.key&&e.key.startsWith('mockcloud:'))subs.forEach(f=>f(e.key))});
