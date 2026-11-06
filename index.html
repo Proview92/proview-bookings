@@ -119,6 +119,14 @@ body.gate .boot-wait{display:grid}
 @media (max-width:900px){.top-pick select{padding:7px 28px 7px 10px;font-size:15px;background-color:#fff;color:var(--ink);border:1px solid var(--line);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23555' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")}.top-pick select option,.top-pick select optgroup{background:#fff;color:var(--ink)}}
 @media (hover:none) and (pointer:coarse){.client-pick select{font-size:16px}}
 @media (max-width:700px){.top:has(.top-pick){flex-wrap:wrap!important;row-gap:8px!important;height:auto}.top .top-pick{order:20;flex:1 0 100%;max-width:none;margin:0 0 2px}}
+.side .venue{cursor:pointer;margin:10px 10px 8px}.side .venue:hover{background:#25252c}
+.side .venue .av{border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:12.5px}
+.side-foot .sf-link{flex:none;background:none!important;border:0!important;color:#8b8b95;letter-spacing:.06em;font-size:12px;font-weight:600;padding:6px 8px;display:flex;align-items:center;gap:6px}
+.side-foot .sf-link:hover{color:#fff}
+.app:not(.collapsed) .brand .collapse-btn{display:none}
+.app.collapsed .side-foot{flex-direction:column;align-items:center}.app.collapsed .side-foot .sf-link{margin:0!important}.app.collapsed .side-foot [data-act=collapse] svg{transform:rotate(180deg)}
+.app.collapsed .side .venue{display:none}
+@media (min-width:701px) and (max-width:900px){.side-foot{flex-direction:column;align-items:center}.side-foot .sf-link{margin:0!important}.side-foot [data-act=collapse]{display:none!important}}
 /* main */
 .main{display:flex;flex-direction:column;min-width:0;overflow:hidden}
 .top{display:flex;align-items:center;gap:12px;padding:12px 22px;background:var(--card);border-bottom:1px solid var(--line);min-height:62px}
@@ -769,11 +777,13 @@ const TITLES={parties:'Bookings',tables:'Table status',planner:'Timeline',floor:
 function renderNav(){
  {const sp=$('#sitePick');if(sp)sp.innerHTML=sitePickHtml()}
  const up=S.parties.filter(p=>p.date===today()&&['booked','arrived','waiting'].includes(p.status)).length;
- $('#nav').innerHTML=`<button class="nav-more" data-act="moreMenu" title="More">${ic('list',19)}<span class="lbl">More</span></button>`+NAV.map(n=>n[0]==='sec'?`<div class="nav-sec">${n[1]}</div>`:`<button class="${U.view===n[0]?'on':''} ${['parties','tables','planner','floor'].includes(n[0])?'nav-core':'nav-extra'}" data-act="go" data-v="${n[0]}" title="${n[1]}">${ic(n[2],19)}<span class="lbl">${n[1]}</span><span class="slbl">${SHORT[n[0]]||n[1]}</span>${n[0]==='parties'&&up?`<span class="cnt">${up}</span>`:''}</button>`).join('');
+  $('#nav').innerHTML=`<button class="nav-more" data-act="moreMenu" title="More">${ic('list',19)}<span class="lbl">More</span></button>`+NAV.map(n=>n[0]==='sec'?`<div class="nav-sec">${n[1]}</div>`:`<button class="${U.view===n[0]?'on':''} ${['parties','tables','planner','floor'].includes(n[0])?'nav-core':'nav-extra'}" data-act="go" data-v="${n[0]}" title="${n[1]}">${ic(n[2],19)}<span class="lbl">${n[1]}</span><span class="slbl">${SHORT[n[0]]||n[1]}</span>${n[0]==='parties'&&up?`<span class="cnt">${up}</span>`:''}</button>`).join('');
+ $('#nav').insertAdjacentHTML('beforeend',`<button class="nav-extra ${U.view==='help'?'on':''}" data-act="help" title="Help">${ic('help',19)}<span class="lbl">Help</span><span class="slbl">Help</span></button>`);
  const open=isOpenNow();
- $('#venueCard').innerHTML=`<b>${esc(S.venue.name)}</b><span style="color:#8b8b95">${esc(S.venue.area)}</span><div style="margin-top:8px"><span class="dot" style="background:${open?'#34d399':'#f87171'}"></span>${open?'Open now':'Closed'} · ${esc(S.venue.user)}</div>`;
+ const em=(CLOUD.user?.email||S.venue.me?.email||'').toLowerCase(),stf=(S.staff||[]).find(x=>(x.email||'').toLowerCase()===em&&em),myName=stf?.name||S.venue.me?.name||em.split('@')[0]||'Me';
+ $('#venueCard').innerHTML=`<div class="row" style="flex-wrap:nowrap"><div class="av" style="width:34px;height:34px;flex:none;background:${stf?.color||'var(--pri)'}">${esc(initials(myName))}</div><div style="flex:1;min-width:0"><b>${esc(myName)}</b><span style="color:#8b8b95;font-size:11.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span class="dot" style="background:${open?'#34d399':'#f87171'}"></span>${esc(S.venue.name)}</span></div>${ic('right',16)}</div>`;$('#venueCard').dataset.act=LOC.cloud?'myAccount':'locations';$('#venueCard').title=LOC.cloud?'Your account and venue settings':'Switch location';
  document.querySelector('.collapse-btn').innerHTML=ic('left',18);
- $('#sideFoot').innerHTML=`<button class="loc-btn" data-act="locations" title="Switch location">${ic('store',16)}<span class="slbl">Venue</span></button><button data-act="help" title="Help">${ic('help',16)}<span class="lbl">Help</span><span class="slbl">Help</span></button><button data-act="logout" title="Sign out">${ic('out',16)}<span class="lbl">Sign out</span><span class="slbl">Sign out</span></button>`;
+ $('#sideFoot').innerHTML=`<button class="sf-link" data-act="collapse" title="${$('#app').classList.contains('collapsed')?'Expand menu':'Collapse menu'}">${ic('left',14)}<span class="lbl">COLLAPSE</span></button><button class="sf-link" data-act="logout" title="Sign out" style="margin-left:auto">${ic('out',14)}<span class="lbl">SIGN OUT</span></button>`;
 }
 function renderTop(){
  const dated=['parties','planner','floor','staff','kitchen'].includes(U.view)&&!(U.view==='staff'&&(U.stTab==='team'||(U.stTab==='checklists'&&S.settings.prefs.showTasks)));
@@ -1261,7 +1271,8 @@ function sugHtml(sug){return sug.length?`<div class="sug">${sug.map(x=>`<div dat
 const A={};
 A.moreMenu=()=>{const m=$('#modal');const items=NAV.filter(n=>n[0]!=='sec'&&!['parties','tables','planner','floor'].includes(n[0]));m.innerHTML=`<div class="modal card" style="max-width:420px;margin-top:auto"><div class="pad row between" style="border-bottom:1px solid var(--line)"><b>${esc(S.venue.name)}</b><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div>${items.map(n=>`<div class="sres" style="padding:14px 18px" data-act="moreGo" data-v="${n[0]}">${ic(n[2],20)}<b>${n[1]}</b></div>`).join('')}<div class="sres" style="padding:14px 18px" data-act="locations">${ic('store',20)}<b>Switch location</b></div><div class="sres" style="padding:14px 18px" data-act="help">${ic('help',20)}<b>Help</b></div><div class="sres" style="padding:14px 18px" data-act="logout">${ic('out',20)}<b>Sign out</b></div></div>`;m.classList.add('show')};
 A.moreGo=el=>{A.closeModal();A.go(el)};
-A.collapse=()=>$('#app').classList.toggle('collapsed');
+A.collapse=()=>{$('#app').classList.toggle('collapsed');renderNav()};
+A.myAccount=()=>{U.view='settings';render()};
 A.day=el=>{const n=+el.dataset.n;U.date=n===0?today():addDays(U.date,n);U.floorSel=null;render()};
 A.set=el=>{const k=el.dataset.k;let v=el.dataset.v;if(k==='revFilter')v=+v;U[k]=v;render()};
 A.toggle=el=>{U[el.dataset.k]=!U[el.dataset.k];render()};
