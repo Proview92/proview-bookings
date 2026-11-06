@@ -2041,12 +2041,12 @@ function showLicenceLock(){document.body.classList.add('gate');const s=CLOUD.sit
 A.lockRetry=()=>location.reload();
 
 /* --- banner inside the app when the licence needs attention --- */
-function licBannerHtml(){if(!CLOUD.site||U.view==='admin')return'';const s=CLOUD.site,L=licState(s),who=isMaster()?'Renew it in Businesses & sites.':`Call Proview on ${PROVIEW_PHONE} to renew.`;
+function licBannerHtml(){if(!CLOUD.site||U.view==='admin')return'';const s=CLOUD.site,L=licState(s),who=isMaster()?'Renew it at license.proviewcrm.co.uk.':`Call Proview on ${PROVIEW_PHONE} to renew.`;
  let t='';if(L.state==='grace')t=`This venue's licence expired on ${licDate(L.expires)}. It keeps working for ${plural(L.graceLeft,'more day')}, then it stops. ${who}`;
  else if(L.state==='expiring')t=`${L.type==='trial'?'Your free trial':'This venue\'s licence'} ends on ${licDate(L.expires)} (${plural(L.daysLeft,'day')}). ${L.type==='trial'?`Call Proview on ${PROVIEW_PHONE} to keep using Proview Bookings.`:who}`;
  else if(isMaster()&&['expired','none'].includes(L.state))t=`${esc(s.name)} has ${L.state==='none'?'no licence':'an expired licence'}. Staff are locked out and online booking is paused. You can still open it as the Proview admin.`;
  if(!t)return'';const bad=['grace','expired','none'].includes(L.state);
- return`<div class="card pad row noprint licbar" style="margin-bottom:14px;${bad?'background:var(--badl);border-color:#f2b8be':'background:var(--warnl);border-color:#f0d08a'}">${ic('clock',16)}<span style="flex:1">${t}</span>${isMaster()?`<button class="btn sm" data-act="admLicence" data-id="${esc(s.id)}">Licence…</button>`:''}</div>`}
+ return`<div class="card pad row noprint licbar" style="margin-bottom:14px;${bad?'background:var(--badl);border-color:#f2b8be':'background:var(--warnl);border-color:#f0d08a'}">${ic('clock',16)}<span style="flex:1">${t}</span>${isMaster()?`<button class="btn sm" data-act="admLicence">Licence portal ↗</button>`:''}</div>`}
 
 /* --- master admin page --- */
 U.adm=null;
@@ -2062,11 +2062,11 @@ VIEWS.admin=()=>{
  const trial=D.sites.filter(s=>s.license_type==='trial'&&licWorks(s)).length;
  const needs=D.sites.map(s=>({s,L:licState(s)})).filter(x=>['none','expiring','grace','expired'].includes(x.L.state)).sort((a,b)=>(a.L.expires??0)-(b.L.expires??0));
  const siteRow=s=>`<tr><td><b>${esc(s.name)}</b>${s.id===CLOUD.vid?' <span class="chip blue">Open now</span>':''}<div class="small mut">${esc(bn[s.business_id]||'No business')} · ${esc(s.id)}</div></td><td>${licChip(s)}${s.license_notes?`<div class="small mut">${esc(s.license_notes)}</div>`:''}</td><td class="small mut">${plural(users(s.id),'login')}</td>
-  <td><div class="row" style="justify-content:flex-end;flex-wrap:nowrap;gap:6px"><button class="btn sm" data-act="admLicence" data-id="${esc(s.id)}">Licence</button><button class="btn sm" data-act="admCopyLink" data-id="${esc(s.id)}" title="Copy the online booking link">${ic('link',14)} Link</button><button class="btn sm" data-act="openSite" data-id="${esc(s.id)}">Open</button></div></td></tr>`;
+  <td><div class="row" style="justify-content:flex-end;flex-wrap:nowrap;gap:6px"><button class="btn sm" data-act="admLicence" title="Manage this licence at license.proviewcrm.co.uk">Licence ↗</button><button class="btn sm" data-act="admCopyLink" data-id="${esc(s.id)}" title="Copy the online booking link">${ic('link',14)} Link</button><button class="btn sm" data-act="openSite" data-id="${esc(s.id)}">Open</button></div></td></tr>`;
  return`<div class="row between" style="margin-bottom:14px"><div><h2 style="margin:0">Businesses &amp; sites</h2><div class="mut">${plural(D.biz.length,'business').replace('businesss','businesses')} · ${plural(D.sites.length,'site')} · ${paid} paid · ${trial} on trial</div></div>
   <div class="row"><button class="btn" data-act="admRefresh">Refresh</button><button class="btn pri" data-act="admBiz">${ic('plus',15)} New business</button></div></div>
  ${needs.length?`<div class="card" style="margin-bottom:14px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><b>Licences needing attention</b><span class="chip amber">${needs.length}</span></div>
-  <table class="t adm-t"><tbody>${needs.map(({s})=>`<tr><td><b>${esc(s.name)}</b><div class="small mut">${esc(bn[s.business_id]||'No business')}</div></td><td>${licChip(s)}</td><td style="text-align:right"><button class="btn sm pri" data-act="admLicence" data-id="${esc(s.id)}">Renew…</button></td></tr>`).join('')}</tbody></table></div>`:''}
+  <table class="t adm-t"><tbody>${needs.map(({s})=>`<tr><td><b>${esc(s.name)}</b><div class="small mut">${esc(bn[s.business_id]||'No business')}</div></td><td>${licChip(s)}</td><td style="text-align:right"><button class="btn sm pri" data-act="admLicence">Renew ↗</button></td></tr>`).join('')}</tbody></table></div>`:''}
  <div class="card" style="margin-bottom:14px"><div class="pad" style="border-bottom:1px solid var(--line)"><b>Businesses</b></div>
   ${D.biz.length?`<table class="t adm-t"><tbody>${D.biz.map(b=>{const bs=D.sites.filter(s=>s.business_id===b.id);const u=new Set(D.prof.filter(p=>bs.some(s=>s.id===p.venue)).map(p=>p.user_id)).size;
    return`<tr><td><b>${esc(b.name)}</b> ${b.self_signup?'<span class="chip purple">Signed up online</span>':''}<div class="small mut">${[b.contact_email,b.phone,plural(bs.length,'site'),plural(u,'login'),b.notes&&b.notes!=='Signed up online'?b.notes.slice(0,60):null].filter(Boolean).map(esc).join(' · ')}</div></td>
@@ -2084,7 +2084,7 @@ A.admCopyLink=el=>{const u=bookUrl(el.dataset.id);(navigator.clipboard?navigator
 
 function admModal(title,body,foot){const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:520px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>${title}</h3><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div class="pad">${body}<div id="admErr"></div></div><div class="pad row between" style="border-top:1px solid var(--line)">${foot}</div></div>`;m.classList.add('show')}
 const admErr=e=>{const m=$('#admErr');if(m)m.innerHTML=`<div class="small" style="color:var(--bad);margin-top:10px">${esc(authErr(e))}</div>`};
-const licSelect=(id,v)=>`<select class="inp" id="${id}">${LIC_TYPES.map(([k,l])=>`<option value="${k}" ${k===v?'selected':''}>${l}</option>`).join('')}</select>`;
+
 
 A.admBiz=el=>{const b=el?.dataset?.id?U.adm.biz.find(x=>x.id===el.dataset.id):null;
  admModal(b?'Edit business':'New business',`
@@ -2092,7 +2092,7 @@ A.admBiz=el=>{const b=el?.dataset?.id?U.adm.biz.find(x=>x.id===el.dataset.id):nu
   <label class="f">Contact email</label><input class="inp" id="abEmail" type="email" value="${esc(b?.contact_email||'')}" placeholder="owner@business.com"><div class="small mut">This person gets Admin access to every site you add for the business. They sign in with this email.</div>
   <label class="f">Phone</label><input class="inp" id="abPhone" value="${esc(b?.phone||'')}">
   ${b?`<div class="row between" style="margin-top:12px"><span class="mut small">${plural(U.adm.sites.filter(s=>s.business_id===b.id).length,'site')}</span><button class="btn sm" data-act="admSites" data-id="${b.id}">Manage sites…</button></div>`
-   :`<label class="f">Sites</label><textarea class="inp" id="abSites" rows="3" placeholder="One per line, e.g.&#10;Bella High Street&#10;Bella Station Road"></textarea><label class="f">Licence for these sites</label>${licSelect('abLic','trial')}`}
+   :`<label class="f">Sites</label><textarea class="inp" id="abSites" rows="3" placeholder="One per line, e.g.&#10;Bella High Street&#10;Bella Station Road"></textarea><div class="small mut" style="margin-top:6px">New sites start on a 3-day trial. Set their licence at <a href="https://license.proviewcrm.co.uk" target="_blank" rel="noopener">license.proviewcrm.co.uk</a>.</div>`}
   <label class="f">Notes (only Proview sees this)</label><textarea class="inp" id="abNotes" rows="2" placeholder="Contract, invoice, address…">${esc(b?.notes||'')}</textarea>`,
   `${b?`<button class="btn danger" data-act="admBizDel" data-id="${b.id}">Delete business</button>`:'<span></span>'}<div class="row"><button class="btn" data-act="closeModal">Cancel</button><button class="btn pri" data-act="admBizSave" data-id="${b?.id||''}">${b?'Save':'Create business'}</button></div>`);
  setTimeout(()=>$('#abName')?.focus(),50)};
@@ -2100,8 +2100,7 @@ A.admBizSave=async el=>{const id=el.dataset.id,name=$('#abName').value.trim(),em
  if(name.length<2)return admErr('Enter the business name.');if(email&&!/^\S+@\S+\.\S+$/.test(email))return admErr('Enter a valid email address.');
  const row={name,contact_email:email||null,phone:$('#abPhone').value.trim()||null,notes:$('#abNotes').value.trim()||null};el.disabled=true;
  try{if(id){await CLOUD.ad.upd('bk_businesses',row,id);toast('Business saved')}
-  else{const nb=await CLOUD.ad.ins('bk_businesses',row);const names=[...new Set($('#abSites').value.split('\n').map(x=>x.trim()).filter(Boolean))];const lic=$('#abLic').value==='custom'?'m1':$('#abLic').value;
-   for(const n of names)await CLOUD.ad.rpc('bk_add_site',{p_business:nb.id,p_name:n,p_license:lic});
+  else{const nb=await CLOUD.ad.ins('bk_businesses',row);const names=[...new Set($('#abSites').value.split('\n').map(x=>x.trim()).filter(Boolean))];for(const n of names)await CLOUD.ad.rpc('bk_add_site',{p_business:nb.id,p_name:n});
    toast(`${name} created${names.length?' with '+plural(names.length,'site'):''}`)}
   A.closeModal();await admReload()}catch(e){el.disabled=false;admErr(e)}};
 A.admBizDel=el=>{const b=U.adm.biz.find(x=>x.id===el.dataset.id);const n=U.adm.sites.filter(s=>s.business_id===b.id).length;
@@ -2110,30 +2109,16 @@ A.admBizDel=el=>{const b=U.adm.biz.find(x=>x.id===el.dataset.id);const n=U.adm.s
 A.admSites=el=>{const b=U.adm.biz.find(x=>x.id===el.dataset.id);const bs=U.adm.sites.filter(s=>s.business_id===b.id);
  admModal(`Sites — ${esc(b.name)}`,`<p class="small mut" style="margin-top:0">Each site is a venue with its own bookings, tables, staff logins and licence.</p>
   ${bs.map(s=>`<div class="row" style="flex-wrap:nowrap;margin-bottom:8px"><input class="inp" style="flex:1" value="${esc(s.name)}" onchange="admRenameSite('${esc(s.id)}',this.value)">${licChip(s)}<button class="icon-btn" style="color:var(--bad)" data-act="admSiteDel" data-id="${esc(s.id)}" title="Delete site">${ic('trash',16)}</button></div>`).join('')||'<div class="small mut">No sites yet.</div>'}
-  <div class="row" style="flex-wrap:nowrap;margin-top:12px"><input class="inp" id="asNew" style="flex:1" placeholder="New site name, e.g. Bella Station Road" onkeydown="if(event.key==='Enter')A.admSiteAdd({dataset:{id:'${b.id}'}})">${licSelect('asLic','trial').replace('<select','<select style="width:150px"')}<button class="btn pri" data-act="admSiteAdd" data-id="${b.id}">${ic('plus',14)} Add</button></div>`,
+  <div class="row" style="flex-wrap:nowrap;margin-top:12px"><input class="inp" id="asNew" style="flex:1" placeholder="New site name, e.g. Bella Station Road" onkeydown="if(event.key==='Enter')A.admSiteAdd({dataset:{id:'${b.id}'}})"><button class="btn pri" data-act="admSiteAdd" data-id="${b.id}">${ic('plus',14)} Add</button></div>`,
   `<span class="small mut">${b.contact_email?`New sites give ${esc(b.contact_email)} Admin access.`:'Add a contact email to the business to give the owner access.'}</span><button class="btn pri" data-act="closeModal">Done</button>`)};
 async function admRenameSite(id,v){v=v.trim();if(!v)return;try{await CLOUD.ad.upd('bk_sites',{name:v},id);toast('Site renamed');await admReload()}catch(e){toast(authErr(e))}}
-A.admSiteAdd=async el=>{const v=$('#asNew').value.trim();if(v.length<2)return admErr('Enter the site name.');const lic=$('#asLic').value==='custom'?'m1':$('#asLic').value;
- try{await CLOUD.ad.rpc('bk_add_site',{p_business:el.dataset.id,p_name:v,p_license:lic});toast('Site added');await admReload();A.admSites(el)}catch(e){admErr(e)}};
+A.admSiteAdd=async el=>{const v=$('#asNew').value.trim();if(v.length<2)return admErr('Enter the site name.');try{await CLOUD.ad.rpc('bk_add_site',{p_business:el.dataset.id,p_name:v});toast('Site added on a 3-day trial. Set its licence in the licence portal.');await admReload();A.admSites(el)}catch(e){admErr(e)}};
 A.admSiteDel=el=>{const s=U.adm.sites.find(x=>x.id===el.dataset.id);const bid=s.business_id;
  ask(`Delete ${esc(s.name)}? Its bookings, guests and logins are deleted for good.`,async()=>{try{await CLOUD.ad.del('bk_sites',s.id);toast('Site deleted');await admReload();if(s.id===CLOUD.vid){LOC.list=LOC.list.filter(x=>x.id!==s.id);LOC.current=LOC.list[0]?.id||'';localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload()}}catch(e){toast(authErr(e))}},'Delete site')};
 
-A.admLicence=async el=>{if(!U.adm)await admLoad();const s=U.adm.sites.find(x=>x.id===el.dataset.id);if(!s)return;const cur=licState(s),canExtend=['active','expiring'].includes(cur.state);
- const curText=cur.state==='none'?'No licence':cur.state==='lifetime'?'Lifetime':`${licLabel(s.license_type)} · ${cur.daysLeft>=0?'ends':'ended'} ${licDate(cur.expires)}`;
- admModal(`Licence: ${esc(s.name)}`,`<div class="row between small"><span class="mut">Current</span><b>${esc(curText)}</b></div>
-  <label class="f">New licence</label>${licSelect('alType','m12')}
-  <div id="alCustomW" style="display:none"><label class="f">Licence ends on</label><input class="inp" type="date" id="alCustom" min="${today()}"></div>
-  <div id="alExtW">${canExtend?`<label class="row small" style="font-weight:600;margin-top:10px"><input type="checkbox" id="alExt" checked> Add on top of the current end date (${licDate(cur.expires)})</label>`:'<div class="small mut" style="margin-top:8px">The new licence starts today.</div>'}</div>
-  <label class="f">Notes</label><input class="inp" id="alNotes" value="${esc(s.license_notes||'')}" placeholder="e.g. Invoice #1042, paid by card">
-  <div class="licprev" id="alPrev"></div>`,
-  `<span></span><div class="row"><button class="btn" data-act="closeModal">Cancel</button><button class="btn pri" data-act="admLicSave" data-id="${esc(s.id)}">Save licence</button></div>`);
- const paint=()=>{const t=$('#alType').value,ext=$('#alExt')?.checked&&!['lifetime','custom'].includes(t);$('#alCustomW').style.display=t==='custom'?'':'none';$('#alExtW').style.display=['lifetime','custom'].includes(t)?'none':'';
-  const exp=licPreview(t,{extend:ext,current:s.license_expires_at,custom:$('#alCustom').value});
-  $('#alPrev').innerHTML=`<span class="chip blue">NEW</span><div><b>${licLabel(t)}</b><div class="small mut">${exp===null?'Never expires':exp?'Ends '+licDate(exp):'Pick an end date'}</div></div>`};
- ['alType','alCustom','alExt'].forEach(i=>$('#'+i)?.addEventListener('input',paint));$('#alType').addEventListener('change',paint);paint()};
-A.admLicSave=async el=>{const t=$('#alType').value,c=$('#alCustom').value;if(t==='custom'&&!c)return admErr('Pick an end date.');el.disabled=true;
- try{const s=await CLOUD.ad.rpc('bk_set_license',{p_site:el.dataset.id,p_type:t,p_extend:!!($('#alExt')?.checked)&&!['lifetime','custom'].includes(t),p_expires:t==='custom'?new Date(c+'T23:59:59').toISOString():null,p_notes:$('#alNotes').value.trim()||null});
-  A.closeModal();toast('Licence saved: '+licSummary(Array.isArray(s)?s[0]:s).text);await admReload()}catch(e){el.disabled=false;admErr(e)}};
+/* licences are managed in the Proview licence portal */
+const LIC_PORTAL='https://license.proviewcrm.co.uk';
+A.admLicence=()=>window.open(LIC_PORTAL,'_blank','noopener');
 load();if(innerWidth<=700)U.showSide=false;render();
 
 
