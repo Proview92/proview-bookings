@@ -53,11 +53,12 @@ let AD=null,VENUE=null,P=null,ST={mode:Q.get('enquiry')?'enquiry':Q.get('queue')
 function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
 async function makeAdapter(){
  if(Q.get('cloud')==='mock'){const K=k=>'mockcloud:'+k,rd=k=>{try{return JSON.parse(localStorage.getItem(K(k))||'null')}catch(e){return null}},wr=(k,v)=>localStorage.setItem(K(k),JSON.stringify(v));VENUE=Q.get('v')||'demo-venue';
-  return{async pub(){return rd('pub:'+VENUE)?.data||null},async send(kind,payload,id){const L=rd('inbox')||[];L.push({id:id||uuid(),venue:VENUE,kind,payload,created_at:new Date().toISOString(),processed:false});wr('inbox',L)},async invoke(n,b){return{url:null}}}}
+  return{async status(){const d=rd('db');const x=d&&d.sites.find(y=>y.id===VENUE);if(!x)return{ok:true};if(!x.license_type)return{ok:false};if(x.license_type==='lifetime'||!x.license_expires_at)return{ok:true};return{ok:new Date(x.license_expires_at).getTime()+(x.license_type==='trial'?0:7*864e5)>Date.now()}},async pub(){return rd('pub:'+VENUE)?.data||null},async send(kind,payload,id){const L=rd('inbox')||[];L.push({id:id||uuid(),venue:VENUE,kind,payload,created_at:new Date().toISOString(),processed:false});wr('inbox',L)},async invoke(n,b){return{url:null}}}}
  let c=null;try{const r=await fetch('../cloud.json',{cache:'no-store'});if(r.ok)c=await r.json()}catch(e){}
  if(!c||!c.url||!c.anonKey)return null;VENUE=Q.get('v')||c.venue;
  await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js');const sb=supabase.createClient(c.url,c.anonKey,{auth:{persistSession:false}});
- return{async pub(){const r=await sb.from('bk_venue_public').select('data').eq('id',VENUE).maybeSingle();if(r.error)throw r.error;return r.data?.data||null},
+ return{async status(){const r=await sb.rpc('bk_site_status',{p_site:VENUE});if(r.error)return{ok:true};return r.data&&r.data.exists===false?{ok:true}:r.data},
+  async pub(){const r=await sb.from('bk_venue_public').select('data').eq('id',VENUE).maybeSingle();if(r.error)throw r.error;return r.data?.data||null},
   async send(kind,payload,id){const r=await sb.from('bk_inbox').insert({...(id?{id}:{}),venue:VENUE,kind,payload});if(r.error)throw r.error},
   async invoke(n,b){const r=await sb.functions.invoke(n,{body:b});if(r.error)throw r.error;return r.data}}}
 /* ---- availability (mirrors the staff app) ---- */
@@ -154,6 +155,8 @@ async function cancelB(){try{await AD.send('cancel',{id:Q.get('cancel'),email:Q.
 (async()=>{try{AD=await makeAdapter()}catch(e){AD=null}
  if(!AD){$('#app').innerHTML='<div class="pad"><b>Online booking isn\'t set up yet.</b><p class="mut">Please contact the restaurant directly.</p></div>';return}
  try{P=await AD.pub()}catch(e){P=null}
+ let lic={ok:true};try{lic=await AD.status()||{ok:true}}catch(e){}
+ if(!lic.ok&&!Q.get('q')){const ph=P&&P.venue&&P.venue.phone;$('#app').innerHTML=`<div class="pad"><b>Online booking isn't available right now.</b><p class="mut">Please contact ${P&&P.venue?esc(P.venue.name):'the restaurant'} directly${ph?` on <a href="tel:${esc(ph)}">${esc(ph)}</a>`:''}.</p></div>`;return}
  if(!P){$('#app').innerHTML='<div class="pad"><b>We couldn\'t load availability.</b><p class="mut">Please try again in a moment, or contact the restaurant.</p></div>';return}
  if(Q.get('paid'))return done("You're booked!",'Your deposit has been paid. We\'ll email your confirmation shortly.');
  if(Q.get('q'))return queueStatus(Q.get('q'));

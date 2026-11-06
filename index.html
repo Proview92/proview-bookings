@@ -100,6 +100,11 @@ body.gate .boot-wait{display:grid}
 @keyframes bootp{50%{opacity:.35}}
 @media (max-width:1300px) and (min-width:821px){.auth-art .tv{width:300px;right:-80px;bottom:140px}}
 @media (max-width:820px){.auth{grid-template-columns:1fr}.auth-art{display:none}.auth-form{padding:24px 14px;align-content:start;min-height:100vh;box-sizing:border-box}.auth-form form{padding:26px 20px;border-radius:18px;margin-top:4vh}.auth label.af input{font-size:16px}.auth-brand .logo{width:76px;height:52px}.auth-brand .wordmark{font-size:17px}}
+.lockcard{background:#fff;border:1px solid var(--line);border-radius:20px;padding:34px 32px;width:min(460px,100%);box-sizing:border-box;display:flex;flex-direction:column;gap:14px;box-shadow:0 18px 50px -18px rgba(20,20,30,.18)}
+.licprev{display:flex;align-items:center;gap:12px;margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--bg);border:1px solid var(--line)}
+.card>table.t.adm-t{min-width:0!important;width:100%}.adm-t td{vertical-align:middle}.adm-t td:first-child{width:38%}
+@media (max-width:700px){.adm-t td .row{justify-content:flex-start!important;flex-wrap:wrap!important}.adm-t td:first-child{width:auto}}
+@media (max-width:700px){.adm-t tr{display:grid;grid-template-columns:1fr;gap:6px;padding:12px 14px;border-bottom:1px solid var(--line)}.adm-t td{padding:0!important;border:0!important;text-align:left!important}.lockcard{padding:26px 20px}}
 /* main */
 .main{display:flex;flex-direction:column;min-width:0;overflow:hidden}
 .top{display:flex;align-items:center;gap:12px;padding:12px 22px;background:var(--card);border-bottom:1px solid var(--line);min-height:62px}
@@ -743,12 +748,12 @@ const NAV=[
  ['sec','Grow'],['guests','Guests & marketing','guests'],['reviews','Reviews','star'],['preorders','Pre-orders','menu'],['reports','Insights','chart'],
  ['sec','Team'],['staff','Staff & rota','users'],['kitchen','Kitchen','chef'],
  ['sec','Manage'],['settings','Settings','cog']];
-const SHORT={"parties": "Bookings", "tables": "Tables", "planner": "Timeline", "floor": "Floor", "guests": "Guests", "reviews": "Reviews", "preorders": "Pre-orders", "reports": "Insights", "staff": "Staff", "kitchen": "Kitchen", "settings": "Settings"};
-const TITLES={parties:'Bookings',tables:'Table status',planner:'Timeline',floor:'Floor view',guests:'Guests & marketing',reviews:'Reviews',preorders:'Pre-orders',reports:'Insights',settings:'Settings',staff:'Staff & rota',kitchen:'Kitchen'};
+const SHORT={"admin":"Admin","parties": "Bookings", "tables": "Tables", "planner": "Timeline", "floor": "Floor", "guests": "Guests", "reviews": "Reviews", "preorders": "Pre-orders", "reports": "Insights", "staff": "Staff", "kitchen": "Kitchen", "settings": "Settings"};
+const TITLES={admin:'Businesses & sites',parties:'Bookings',tables:'Table status',planner:'Timeline',floor:'Floor view',guests:'Guests & marketing',reviews:'Reviews',preorders:'Pre-orders',reports:'Insights',settings:'Settings',staff:'Staff & rota',kitchen:'Kitchen'};
 
 function renderNav(){
  const up=S.parties.filter(p=>p.date===today()&&['booked','arrived','waiting'].includes(p.status)).length;
- $('#nav').innerHTML=`<button class="nav-more" data-act="moreMenu" title="More">${ic('list',19)}<span class="lbl">More</span></button>`+NAV.map(n=>n[0]==='sec'?`<div class="nav-sec">${n[1]}</div>`:`<button class="${U.view===n[0]?'on':''} ${['parties','tables','planner','floor'].includes(n[0])?'nav-core':'nav-extra'}" data-act="go" data-v="${n[0]}" title="${n[1]}">${ic(n[2],19)}<span class="lbl">${n[1]}</span><span class="slbl">${SHORT[n[0]]||n[1]}</span>${n[0]==='parties'&&up?`<span class="cnt">${up}</span>`:''}</button>`).join('');
+ $('#nav').innerHTML=`<button class="nav-more" data-act="moreMenu" title="More">${ic('list',19)}<span class="lbl">More</span></button>`+(isMaster()?[...NAV,['sec','Proview'],['admin','Businesses & sites','store']]:NAV).map(n=>n[0]==='sec'?`<div class="nav-sec">${n[1]}</div>`:`<button class="${U.view===n[0]?'on':''} ${['parties','tables','planner','floor'].includes(n[0])?'nav-core':'nav-extra'}" data-act="go" data-v="${n[0]}" title="${n[1]}">${ic(n[2],19)}<span class="lbl">${n[1]}</span><span class="slbl">${SHORT[n[0]]||n[1]}</span>${n[0]==='parties'&&up?`<span class="cnt">${up}</span>`:''}</button>`).join('');
  const open=isOpenNow();
  $('#venueCard').innerHTML=`<b>${esc(S.venue.name)}</b><span style="color:#8b8b95">${esc(S.venue.area)}</span><div style="margin-top:8px"><span class="dot" style="background:${open?'#34d399':'#f87171'}"></span>${open?'Open now':'Closed'} · ${esc(S.venue.user)}</div>`;
  document.querySelector('.collapse-btn').innerHTML=ic('left',18);
@@ -766,7 +771,7 @@ function renderTop(){
  <button class="icon-btn" data-act="notifs" title="Notifications">${ic('bell')}${unreadN?`<span class="badge">${unreadN}</span>`:''}</button>
  <button class="btn pri" data-act="newParty" title="Add a party">${ic('plus',16)} <span class="lbl-np">New party</span></button>`;
 }
-function render(){document.body.classList.toggle('dark',!!S.settings.prefs.dark);renderNav();renderTop();const c=$('#content');c.innerHTML=(VIEWS[U.view]||VIEWS.parties)();if(AFTER[U.view])AFTER[U.view]()}
+function render(){document.body.classList.toggle('dark',!!S.settings.prefs.dark);renderNav();renderTop();const c=$('#content');if(U.view==='admin'&&!isMaster())U.view='parties';c.innerHTML=licBannerHtml()+(VIEWS[U.view]||VIEWS.parties)();if(AFTER[U.view])AFTER[U.view]()}
 
 /* ================= views ================= */
 const VIEWS={},AFTER={};
@@ -1444,7 +1449,7 @@ A.importCsv=el=>{const f=el.files[0];if(!f)return;const r=new FileReader();r.onl
 A.showQR=el=>{const url=el.dataset.v,t=el.dataset.t||'Booking link';const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:380px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><b>${esc(t)}</b><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div class="pad" style="text-align:center"><div id="qrBox" style="display:inline-block;padding:12px;background:#fff;border-radius:12px"></div><div class="code" style="margin-top:12px">${esc(url)}</div><div class="small mut" style="margin-top:8px">Right-click or long-press the code to save it for printing.</div></div></div>`;m.classList.add('show');
  loadQR(err=>{const box=$('#qrBox');if(!box)return;if(err||!window.QRCode){box.innerHTML='<div class="small mut" style="padding:20px">QR code needs an internet connection.</div>';return}new QRCode(box,{text:url,width:220,height:220,colorDark:'#141418',colorLight:'#ffffff'});setTimeout(()=>{const c=box.querySelector('canvas'),i=box.querySelector('img');if(c&&i){i.src=c.toDataURL();i.style.display='block';c.style.display='none'}},50)})};
 A.signupTest=()=>{const n=$('#suName').value.trim(),e=$('#suEmail').value.trim().toLowerCase();if(!n||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){toast('Enter a name and a valid email');return}if(!$('#suOk').checked){toast('Tick the box to agree to marketing');return}let g=S.guests.find(x=>x.email.toLowerCase()===e);if(g){g.marketing=true}else{g={id:uid(),name:n,phone:$('#suPhone')?.value.trim()||'',email:e,tags:[],notes:'',marketing:true,created:today(),birthday:$('#suBday')?.value||''};S.guests.push(g)}S.signup.signups++;notify('user',`${n} joined your guest list`);save();render();toast(`${n} added to your guest book`)};
-A.locations=()=>{const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:460px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Your locations</h3><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div>${LOC.list.map(l=>`<div class="sres" data-act="switchLoc" data-id="${l.id}"><div class="av">${initials(l.name)}</div><div style="flex:1"><b>${esc(l.name)}</b>${l.id===LOC.current?'<div class="small mut">Current location</div>':''}</div>${l.id===LOC.current?ic('check',16):''}</div>`).join('')}</div><div class="pad row" style="border-top:1px solid var(--line)"><input class="inp" id="newLoc" placeholder="New location name" style="flex:1"><button class="btn sm pri" data-act="addLoc">${ic('plus',14)} Add</button></div></div>`;m.classList.add('show')};
+A.locations=()=>{if(LOC.cloud){const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:460px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Your venues</h3><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div style="max-height:60vh;overflow:auto">${LOC.list.map(l=>`<div class="sres" data-act="switchLoc" data-id="${esc(l.id)}"><div class="av">${initials(l.name)}</div><div style="flex:1"><b>${esc(l.name)}</b><div class="small mut">${l.id===LOC.current?'Current venue':esc(l.business||'')}</div></div>${l.id===LOC.current?ic('check',16):''}</div>`).join('')}</div><div class="pad small mut" style="border-top:1px solid var(--line)">${isMaster()?'Add businesses and venues in <a href="#" data-act="go" data-v="admin">Businesses &amp; sites</a>.':`To add another venue, call Proview on ${PROVIEW_PHONE}.`}</div></div>`;m.classList.add('show');return}const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:460px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Your locations</h3><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div>${LOC.list.map(l=>`<div class="sres" data-act="switchLoc" data-id="${l.id}"><div class="av">${initials(l.name)}</div><div style="flex:1"><b>${esc(l.name)}</b>${l.id===LOC.current?'<div class="small mut">Current location</div>':''}</div>${l.id===LOC.current?ic('check',16):''}</div>`).join('')}</div><div class="pad row" style="border-top:1px solid var(--line)"><input class="inp" id="newLoc" placeholder="New location name" style="flex:1"><button class="btn sm pri" data-act="addLoc">${ic('plus',14)} Add</button></div></div>`;m.classList.add('show')};
 A.switchLoc=el=>{const id=el.dataset.id;if(id===LOC.current){A.closeModal();return}save();LOC.current=id;if(CLOUD.cfg){localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload();return}KEY='proview-bookings-v3:'+id;load();if(!S.venue.name||S.venue.name==='Proview Kitchen'){const l=LOC.list.find(x=>x.id===id);if(l&&l.fresh){S.venue.name=l.name;delete l.fresh}}save();U.area=S.areas[0].id;U.date=today();U.view='parties';A.closeModal();render();toast('Switched to '+S.venue.name)};
 A.addLoc=()=>{const n=$('#newLoc').value.trim();if(!n){toast('Name the location');return}const id=uid();LOC.list.push({id,name:n});save();const keep=S;const s=upgrade(seed());s.venue.name=n;s.venue.area='';s.parties=[];s.guests=[];s.reviews=[];s.chats=[];s.notes=[];s.dirty={};try{localStorage.setItem('proview-bookings-v3:'+id,JSON.stringify(s))}catch(e){}S=keep;A.switchLoc({dataset:{id}})};
 function seatAt(pid,tid){const p=S.parties.find(x=>x.id===pid);const t=S.tables.find(x=>x.id===tid);
@@ -1694,7 +1699,7 @@ A.markOffer=el=>{const g=guestById(el.dataset.id);if(CLOUD.on&&g.email&&el.tagNa
 /* ================= cloud sync (Supabase) ================= */
 const CLOUD={cfg:null,ad:null,on:false,user:null,vid:null,snap:null,ver:null,pushT:null,busy:false,again:false,status:'off',pubJson:'',offline:false};
 function cloudLocalCfg(){try{return JSON.parse(localStorage.getItem('proview-cloud')||'null')}catch(e){return null}}
-function venueIdFor(c){return LOC.current==='main'?c.venue:c.venue+'-'+LOC.current}
+function venueIdFor(c){if(LOC.cloud)return LOC.current;return LOC.current==='main'?c.venue:c.venue+'-'+LOC.current}
 function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
 async function SupabaseAdapter(c){
  if(!window.supabase)await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js');
@@ -1717,7 +1722,13 @@ async function SupabaseAdapter(c){
   onInbox(v,cb){sb.channel('ib-'+v).on('postgres_changes',{event:'INSERT',schema:'public',table:'bk_inbox',filter:'venue=eq.'+v},()=>cb()).subscribe()},
   async publish(v,data){const r=await sb.from('bk_venue_public').upsert({id:v,data,updated_at:new Date().toISOString()});if(r.error)throw r.error},
   async invoke(name,body){const r=await sb.functions.invoke(name,{body});if(r.error)throw r.error;return r.data},
-  async invite(email,v,role){const r=await sb.from('bk_staff_invites').upsert({email:email.toLowerCase(),venue:v,role});if(r.error)throw r.error}}}
+  async invite(email,v,role){const r=await sb.from('bk_staff_invites').upsert({email:email.toLowerCase(),venue:v,role});if(r.error)throw r.error},
+  async whoami(){const r=await sb.rpc('bk_whoami');if(r.error){if(r.error.code==='PGRST202'||/bk_whoami/.test(r.error.message||''))return null;throw r.error}return r.data},
+  async rpc(fn,args){const r=await sb.rpc(fn,args);if(r.error)throw r.error;return r.data},
+  async sel(t,c){return one(await sb.from(t).select(c))},
+  async ins(t,row){return one(await sb.from(t).insert(row).select().single())},
+  async upd(t,row,id){const d=one(await sb.from(t).update(row).eq('id',id).select());if(!d.length)throw new Error('Not allowed');return d[0]},
+  async del(t,id){one(await sb.from(t).delete().eq('id',id).select())}}}
 function MockAdapter(){
  const K=k=>'mockcloud:'+k,rd=k=>{try{return JSON.parse(localStorage.getItem(K(k))||'null')}catch(e){return null}},wr=(k,v)=>localStorage.setItem(K(k),JSON.stringify(v));
  const subs=[];addEventListener('storage',e=>{if(e.key&&e.key.startsWith('mockcloud:'))subs.forEach(f=>f(e.key))});
@@ -1731,7 +1742,28 @@ function MockAdapter(){
   onInbox(v,cb){subs.push(k=>{if(k===K('inbox'))cb()})},
   async publish(v,data){wr('pub:'+v,{data,updated_at:new Date().toISOString()})},
   async invoke(name,body){const L=rd('sent')||[];L.push({name,body,at:Date.now()});wr('sent',L);return{ok:true}},
-  async invite(email,v,role){const L=rd('invites')||[];L.push({email,venue:v,role});wr('invites',L)}}}
+  async invite(email,v,role){const L=rd('invites')||[];L.push({email,venue:v,role});wr('invites',L)},
+  // businesses, sites and licences (mirrors supabase/002_sites_licences.sql)
+  _db(){let d=rd('db');if(!d){d={biz:[{id:'b-demo',name:'Demo Kitchen',contact_email:'manager@test.co',self_signup:false,created_at:new Date().toISOString()}],sites:[{id:'demo-venue',business_id:'b-demo',name:'Demo Kitchen',license_type:'lifetime',license_expires_at:null}],prof:[],inv:[]};wr('db',d)}return d},
+  _me(){const u=rd('user'),d=this._db(),em=(u?.email||'').toLowerCase(),master=/admin/.test(em);
+   if(u&&!master&&!/^new/.test(em)&&!d.prof.some(p=>p.email===em)&&!d.inv.some(p=>p.email===em)){d.prof.push({email:em,venue:'demo-venue',role:'Admin'});wr('db',d)}
+   d.inv.filter(i=>i.email===em&&!d.prof.some(p=>p.email===em&&p.venue===i.venue)).forEach(i=>d.prof.push({email:em,venue:i.venue,role:i.role}));wr('db',d);return{u,d,em,master}},
+  async whoami(){const{u,d,em,master}=this._me();if(!u)return null;const bn=Object.fromEntries(d.biz.map(b=>[b.id,b.name]));
+   return{email:em,is_master:master,sites:d.sites.filter(s=>master||d.prof.some(p=>p.email===em&&p.venue===s.id)).map(s=>({...s,business:bn[s.business_id],role:'Admin'}))}},
+  async rpc(fn,a){const{d,em,master}=this._me();const save=()=>wr('db',d);const iv={trial:3*864e5};
+   const newId=n=>{let b=(n||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,50)||'venue',c=b,i=1;while(d.sites.some(s=>s.id===c))c=b+'-'+(++i);return c};
+   const setLic=(s,t,ext,expires,notes)=>{let e=null;if(t==='custom')e=expires;else if(t!=='lifetime'){const base=ext&&s.license_expires_at&&new Date(s.license_expires_at)>new Date()?new Date(s.license_expires_at):new Date();e=new Date(t==='trial'?base.getTime()+iv.trial:licPreview(t,{extend:ext,current:s.license_expires_at})).toISOString()}
+    Object.assign(s,{license_type:t,license_expires_at:e,license_notes:notes||s.license_notes||null,license_updated_at:new Date().toISOString()});return s};
+   if(fn==='bk_set_license'){if(!master)throw new Error('Only the Proview administrator can change licences.');const s=d.sites.find(x=>x.id===a.p_site);setLic(s,a.p_type,a.p_extend,a.p_expires,a.p_notes);save();return s}
+   if(fn==='bk_add_site'){if(!master)throw new Error('Only the Proview administrator can add sites.');const b=d.biz.find(x=>x.id===a.p_business);const s={id:newId(a.p_name),business_id:b.id,name:a.p_name};d.sites.push(s);if(a.p_license)setLic(s,a.p_license);if(b.contact_email)d.inv.push({email:b.contact_email,venue:s.id,role:'Admin'});save();return s}
+   if(fn==='bk_create_my_business'){if(d.prof.some(p=>p.email===em))throw new Error('Your account already belongs to a business.');if(d.biz.some(b=>b.self_signup&&b.contact_email===em))throw new Error('This email address has already used its free trial. Call Proview to buy a licence.');
+    const b={id:'b-'+Math.random().toString(36).slice(2,8),name:a.p_business,contact_email:em,phone:a.p_phone||null,self_signup:true,notes:'Signed up online',created_at:new Date().toISOString()};d.biz.push(b);
+    const s={id:newId(a.p_site||a.p_business),business_id:b.id,name:a.p_site||a.p_business};setLic(s,'trial');d.sites.push(s);d.prof.push({email:em,venue:s.id,role:'Admin'});save();return s.id}
+   throw new Error('Unknown function '+fn)},
+  async sel(t){const{d}=this._me();return JSON.parse(JSON.stringify(t==='bk_businesses'?d.biz:t==='bk_sites'?d.sites:t==='bk_staff_profiles'?d.prof.map(p=>({user_id:p.email,venue:p.venue})):d.inv))},
+  async ins(t,row){const{d,master}=this._me();if(!master)throw new Error('Not allowed');const r={id:'b-'+Math.random().toString(36).slice(2,8),created_at:new Date().toISOString(),self_signup:false,...row};d.biz.push(r);wr('db',d);return r},
+  async upd(t,row,id){const{d,master}=this._me();if(!master)throw new Error('Not allowed');const L=t==='bk_sites'?d.sites:d.biz;Object.assign(L.find(x=>x.id===id),row);wr('db',d)},
+  async del(t,id){const{d,master}=this._me();if(!master)throw new Error('Not allowed');const gone=t==='bk_sites'?[id]:d.sites.filter(s=>s.business_id===id).map(s=>s.id);if(t==='bk_businesses')d.biz=d.biz.filter(b=>b.id!==id);d.sites=d.sites.filter(s=>!gone.includes(s.id));d.prof=d.prof.filter(p=>!gone.includes(p.venue));d.inv=d.inv.filter(p=>!gone.includes(p.venue));gone.forEach(v=>localStorage.removeItem(K('vs:'+v)));wr('db',d)}}}
 async function cloudInit(){
  let c=cloudLocalCfg();
  if(!c){try{const r=await fetch('cloud.json',{cache:'no-store'});if(r.ok){const j=await r.json();if(j.url&&j.anonKey&&j.venue)c=j}}catch(e){}}
@@ -1741,7 +1773,7 @@ async function cloudInit(){
  try{CLOUD.ad=c.mock?MockAdapter():await SupabaseAdapter(c)}catch(e){hideAuth();cloudStatus('error','Couldn\'t reach the cloud — working offline');return}
  const u=await CLOUD.ad.user().catch(()=>null);
  if(!u){showLogin();return}
- CLOUD.user=u;await cloudStart();
+ CLOUD.user=u;await afterSignIn();
 }
 const ID_ARRAYS=new Set(['parties','guests','tables','decor','staff','shifts','tasks','taskTemplates','chats','notes','reviews','menus','channels','schedules','overrides','combos','guestTags','partyTags']);
 function stampChanges(){
@@ -1772,7 +1804,7 @@ async function cloudStart(){hideAuth();
   const fk='proview-synced:'+KEY;const linked=localStorage.getItem(fk)===CLOUD.vid;
   if(r&&r.data){S=upgrade(linked?mergeState(S,r.data):r.data);if(!S._m)S._m={};if(!S._del)S._del={};CLOUD.ver=r.updated_at;CLOUD.snap=linked?JSON.stringify(r.data):JSON.stringify(S);localSave();localStorage.setItem(fk,CLOUD.vid);
    if(linked&&JSON.stringify(S)!==JSON.stringify(r.data))schedulePush(50)}
-  else{const choice=await firstConnectChoice();if(choice==='fresh')freshVenue();CLOUD.ver=null;CLOUD.snap=null;S._m=S._m||{};S._del=S._del||{};await cloudPush();localStorage.setItem(fk,CLOUD.vid)}
+  else{const nb=sessionStorage.getItem('pv-newsite');const choice=LOC.cloud?'fresh':await firstConnectChoice();if(choice==='fresh')freshVenue();if(LOC.cloud){S.venue.name=nb||CLOUD.site?.name||S.venue.name;Object.assign(S.venue,{area:'',address:'',phone:'',email:CLOUD.user?.email||'',line1:'',line2:'',city:'',postcode:'',description:'',photo:'',me:{name:(CLOUD.user?.email||'Owner').split('@')[0],email:CLOUD.user?.email||'',phone:''}});sessionStorage.removeItem('pv-newsite');save()}CLOUD.ver=null;CLOUD.snap=null;S._m=S._m||{};S._del=S._del||{};await cloudPush();localStorage.setItem(fk,CLOUD.vid)}
   CLOUD.ad.onChange(CLOUD.vid,()=>cloudPull());CLOUD.ad.onInbox(CLOUD.vid,()=>processInbox());
   setInterval(()=>{cloudPull();processInbox()},45000);
   addEventListener('online',()=>{cloudPull();schedulePush(100)});
@@ -1877,7 +1909,7 @@ async function authSubmit(ev){ev&&ev.preventDefault();const e=$('#lgEmail').valu
  go.disabled=true;go.textContent=AUTHMODE==='signup'?'Creating account…':'Signing in…';
  try{if(AUTHMODE==='signup'){const u=await CLOUD.ad.signUp(e,p);if(!(u&&await CLOUD.ad.user())){AUTHMODE='signin';showLogin('Account created — check your email for a confirmation link, then sign in here.','ok');return false}CLOUD.user=u}
   else CLOUD.user=await CLOUD.ad.signIn(e,p);
-  AUTHMODE='signin';await cloudStart();toast('Signed in — syncing')}
+  AUTHMODE='signin';await afterSignIn();if(CLOUD.on)toast('Signed in — syncing')}
  catch(err){go.disabled=false;go.textContent=AUTHMODE==='signup'?'Create account':'Sign in';authNote(authErr(err))}
  return false}
 A.cloudSignIn=()=>authSubmit();
@@ -1928,7 +1960,183 @@ document.addEventListener('input',e=>{const el=e.target;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#modal').classList.contains('show'))A.closeModal();else if($('#drawer').classList.contains('open'))closeDrawer()}if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();A.search()}});
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')A.closeModal()});
 
+/* ================= sites, licences & master admin ================= */
+// Same rules as Proview Signage: per-site licence, 7-day grace after a paid licence ends, trials stop when they end.
+const LIC_TYPES=[['trial','3-day trial'],['m1','1 month'],['m3','3 months'],['m6','6 months'],['m12','12 months'],['m24','24 months'],['m36','36 months'],['lifetime','Lifetime'],['custom','Custom end date']];
+const LIC_GRACE=7,DAYMS=864e5,LIC_MONTHS={m1:1,m3:3,m6:6,m12:12,m24:24,m36:36};
+const PROVIEW_PHONE='020 8935 5495';
+const licLabel=t=>(LIC_TYPES.find(x=>x[0]===t)||[0,'No licence'])[1];
+const licDate=t=>new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+function licState(s,now=Date.now()){
+ const type=s?.license_type;if(!type)return{state:'none',type};
+ if(type==='lifetime'||!s.license_expires_at)return{state:'lifetime',type};
+ const exp=new Date(s.license_expires_at).getTime(),daysLeft=Math.ceil((exp-now)/DAYMS);
+ if(now<exp)return{state:daysLeft<=14?'expiring':'active',type,daysLeft,expires:exp};
+ const graceEnd=exp+(type==='trial'?0:LIC_GRACE)*DAYMS;
+ if(now<graceEnd)return{state:'grace',type,daysLeft,graceLeft:Math.ceil((graceEnd-now)/DAYMS),expires:exp};
+ return{state:'expired',type,daysLeft,expires:exp}}
+function licSummary(s){const L=licState(s),trial=L.type==='trial';
+ switch(L.state){case'none':return{text:'No licence',tone:'red',L};case'lifetime':return{text:'Lifetime licence',tone:'green',L};
+  case'active':return{text:`${trial?'Trial':'Licensed'} · until ${licDate(L.expires)}`,tone:trial?'amber':'green',L};
+  case'expiring':return{text:`${trial?'Trial':'Licence'} ends in ${plural(L.daysLeft,'day')}`,tone:'amber',L};
+  case'grace':return{text:`Expired · ${plural(L.graceLeft,'day')} grace left`,tone:'red',L};
+  default:return{text:trial?'Trial ended':'Licence expired',tone:'red',L}}}
+const licChip=s=>{const{text,tone}=licSummary(s);return`<span class="chip ${tone}" title="${esc(licLabel(s.license_type))}">${esc(text)}</span>`};
+const licWorks=s=>!['none','expired'].includes(licState(s).state);
+function licPreview(type,{extend,current,custom}={}){
+ if(type==='lifetime')return null;if(type==='custom')return custom?new Date(custom+'T23:59:59'):undefined;
+ const now=new Date(),base=extend&&current&&new Date(current)>now?new Date(current):now,d=new Date(base);
+ if(type==='trial')d.setDate(d.getDate()+3);else{const day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+LIC_MONTHS[type]);d.setDate(Math.min(day,new Date(d.getFullYear(),d.getMonth()+1,0).getDate()))}
+ return d}
+const isMaster=()=>!!(CLOUD.me&&CLOUD.me.is_master);
+const bookUrl=id=>location.origin+location.pathname.replace(/[^/]*$/,'')+'book/?v='+encodeURIComponent(id);
+
+/* --- after sign-in: pick the site this login can open --- */
+async function afterSignIn(){
+ let me=null;try{me=CLOUD.ad.whoami?await CLOUD.ad.whoami():null}catch(e){console.error('whoami',e)}
+ if(!me){await cloudStart();return}                      // database without sites yet: old single-venue mode
+ CLOUD.me=me;const sites=me.sites||[];
+ if(!sites.length){if(me.is_master){hideAuth();U.view='admin';render();return}showBusinessSetup();return}
+ const want=LOC.cloud&&sites.some(s=>s.id===LOC.current)?LOC.current:sites[0].id;
+ const wasKey=KEY;LOC={cloud:true,current:want,list:sites.map(s=>({id:s.id,name:s.name,business:s.business}))};
+ try{localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}
+ if(wasKey!=='proview-bookings-v3:'+want){location.reload();return}
+ CLOUD.vid=want;CLOUD.site=sites.find(s=>s.id===want);
+ if(!isMaster()&&!licWorks(CLOUD.site)){showLicenceLock();return}
+ await cloudStart();
+}
+
+/* --- online sign-up: set up the business (3-day trial) --- */
+function showBusinessSetup(msg){document.body.classList.add('gate');const a=$('#auth');
+ a.innerHTML=`<div class="auth-form" style="grid-column:1/-1"><form novalidate onsubmit="return bizSetupSubmit(event)">
+  <div class="auth-brand"><div class="logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span></div>
+  <h1>Set up your business</h1><p class="muted">Start your free 3-day trial for one venue. No card needed.</p>
+  <div id="authMsg">${msg?`<div class="notice bad">${esc(msg)}</div>`:''}</div>
+  <label class="af">Business name<input id="bzName" placeholder="e.g. Bella Pizza" autocomplete="organization"></label>
+  <label class="af">Venue name<input id="bzSite" placeholder="e.g. Bella Pizza High Street"></label>
+  <label class="af">Phone (optional)<input id="bzPhone" type="tel" autocomplete="tel" placeholder="So we can help you get set up"></label>
+  <button class="go" type="submit" id="authGo">Start my free trial</button>
+  <div class="small mut" style="text-align:center">Signed in as ${esc(CLOUD.user?.email||'')} · <a href="#" data-act="authSignOut">Sign out</a></div>
+ </form></div>`;a.hidden=false;setTimeout(()=>$('#bzName')?.focus(),50)}
+async function bizSetupSubmit(ev){ev&&ev.preventDefault();const n=$('#bzName').value.trim(),s=$('#bzSite').value.trim()||n,go=$('#authGo');
+ if(n.length<2){authNote('Enter your business name.');$('#bzName').focus();return false}
+ go.disabled=true;go.textContent='Setting up…';
+ try{const sid=await CLOUD.ad.rpc('bk_create_my_business',{p_business:n,p_site:s,p_phone:$('#bzPhone').value.trim()});
+  LOC={cloud:true,current:sid,list:[{id:sid,name:s,business:n}]};localStorage.setItem(LOCKEY,JSON.stringify(LOC));sessionStorage.setItem('pv-newsite',s);location.reload()}
+ catch(e){go.disabled=false;go.textContent='Start my free trial';authNote(authErr(e))}
+ return false}
+A.authSignOut=async(el,ev)=>{ev&&ev.preventDefault();try{await CLOUD.ad.signOut()}catch(e){}try{localStorage.removeItem(LOCKEY)}catch(e){}location.reload()};
+
+/* --- licence ended: lock the app (staff) --- */
+function showLicenceLock(){document.body.classList.add('gate');const s=CLOUD.site,L=licState(s),a=$('#auth');const others=(LOC.list||[]).filter(x=>x.id!==s.id);
+ a.innerHTML=`<div class="auth-form" style="grid-column:1/-1"><div class="lockcard">
+  <div class="auth-brand"><div class="logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span></div>
+  <h1>${L.type==='trial'?'Your free trial has ended':L.state==='none'?'No licence for this venue':'Your licence has expired'}</h1>
+  <p class="muted"><b>${esc(s.name)}</b>${L.expires?` · ended ${licDate(L.expires)}`:''}. Bookings are kept safe, but this venue can't be used and online booking is paused until it's renewed.</p>
+  <div class="notice">Call Proview on <b>${PROVIEW_PHONE}</b> to ${L.type==='trial'?'buy a licence':'renew'}.</div>
+  ${others.length?`<label class="af">Open another venue<select class="inp" style="height:44px" onchange="A.openSite({dataset:{id:this.value}})"><option value="">Choose…</option>${others.map(o=>`<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('')}</select></label>`:''}
+  <div class="alinks"><button type="button" data-act="lockRetry">I've renewed — check again</button><button type="button" data-act="authSignOut">Sign out</button></div>
+ </div></div>`;a.hidden=false}
+A.lockRetry=()=>location.reload();
+
+/* --- banner inside the app when the licence needs attention --- */
+function licBannerHtml(){if(!CLOUD.site||U.view==='admin')return'';const s=CLOUD.site,L=licState(s),who=isMaster()?'Renew it in Businesses & sites.':`Call Proview on ${PROVIEW_PHONE} to renew.`;
+ let t='';if(L.state==='grace')t=`This venue's licence expired on ${licDate(L.expires)}. It keeps working for ${plural(L.graceLeft,'more day')}, then it stops. ${who}`;
+ else if(L.state==='expiring')t=`${L.type==='trial'?'Your free trial':'This venue\'s licence'} ends on ${licDate(L.expires)} (${plural(L.daysLeft,'day')}). ${L.type==='trial'?`Call Proview on ${PROVIEW_PHONE} to keep using Proview Bookings.`:who}`;
+ else if(isMaster()&&['expired','none'].includes(L.state))t=`${esc(s.name)} has ${L.state==='none'?'no licence':'an expired licence'}. Staff are locked out and online booking is paused. You can still open it as the Proview admin.`;
+ if(!t)return'';const bad=['grace','expired','none'].includes(L.state);
+ return`<div class="card pad row noprint licbar" style="margin-bottom:14px;${bad?'background:var(--badl);border-color:#f2b8be':'background:var(--warnl);border-color:#f0d08a'}">${ic('clock',16)}<span style="flex:1">${t}</span>${isMaster()?`<button class="btn sm" data-act="admLicence" data-id="${esc(s.id)}">Licence…</button>`:''}</div>`}
+
+/* --- master admin page --- */
+U.adm=null;
+async function admLoad(){const ad=CLOUD.ad;
+ const [biz,sites,prof,inv]=await Promise.all([ad.sel('bk_businesses','*'),ad.sel('bk_sites','*'),ad.sel('bk_staff_profiles','user_id,venue'),ad.sel('bk_staff_invites','email,venue')]);
+ biz.sort((a,b)=>a.name.localeCompare(b.name));sites.sort((a,b)=>a.name.localeCompare(b.name));U.adm={biz,sites,prof,inv,at:Date.now()};return U.adm}
+VIEWS.admin=()=>{
+ if(!isMaster())return`<div class="empty">${ic('ban',40)}<div><b>Only the Proview administrator can open this page.</b></div></div>`;
+ const D=U.adm;if(!D)return`<div class="empty">${ic('store',40)}<div><b>Loading businesses and sites…</b></div></div>`;
+ const bn=Object.fromEntries(D.biz.map(b=>[b.id,b.name]));
+ const users=v=>new Set(D.prof.filter(p=>p.venue===v).map(p=>p.user_id)).size;
+ const paid=D.sites.filter(s=>['active','expiring','lifetime'].includes(licState(s).state)&&s.license_type!=='trial').length;
+ const trial=D.sites.filter(s=>s.license_type==='trial'&&licWorks(s)).length;
+ const needs=D.sites.map(s=>({s,L:licState(s)})).filter(x=>['none','expiring','grace','expired'].includes(x.L.state)).sort((a,b)=>(a.L.expires??0)-(b.L.expires??0));
+ const siteRow=s=>`<tr><td><b>${esc(s.name)}</b>${s.id===CLOUD.vid?' <span class="chip blue">Open now</span>':''}<div class="small mut">${esc(bn[s.business_id]||'No business')} · ${esc(s.id)}</div></td><td>${licChip(s)}${s.license_notes?`<div class="small mut">${esc(s.license_notes)}</div>`:''}</td><td class="small mut">${plural(users(s.id),'login')}</td>
+  <td><div class="row" style="justify-content:flex-end;flex-wrap:nowrap;gap:6px"><button class="btn sm" data-act="admLicence" data-id="${esc(s.id)}">Licence</button><button class="btn sm" data-act="admCopyLink" data-id="${esc(s.id)}" title="Copy the online booking link">${ic('link',14)} Link</button><button class="btn sm" data-act="openSite" data-id="${esc(s.id)}">Open</button></div></td></tr>`;
+ return`<div class="row between" style="margin-bottom:14px"><div><h2 style="margin:0">Businesses &amp; sites</h2><div class="mut">${plural(D.biz.length,'business').replace('businesss','businesses')} · ${plural(D.sites.length,'site')} · ${paid} paid · ${trial} on trial</div></div>
+  <div class="row"><button class="btn" data-act="admRefresh">Refresh</button><button class="btn pri" data-act="admBiz">${ic('plus',15)} New business</button></div></div>
+ ${needs.length?`<div class="card" style="margin-bottom:14px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><b>Licences needing attention</b><span class="chip amber">${needs.length}</span></div>
+  <table class="t adm-t"><tbody>${needs.map(({s})=>`<tr><td><b>${esc(s.name)}</b><div class="small mut">${esc(bn[s.business_id]||'No business')}</div></td><td>${licChip(s)}</td><td style="text-align:right"><button class="btn sm pri" data-act="admLicence" data-id="${esc(s.id)}">Renew…</button></td></tr>`).join('')}</tbody></table></div>`:''}
+ <div class="card" style="margin-bottom:14px"><div class="pad" style="border-bottom:1px solid var(--line)"><b>Businesses</b></div>
+  ${D.biz.length?`<table class="t adm-t"><tbody>${D.biz.map(b=>{const bs=D.sites.filter(s=>s.business_id===b.id);const u=new Set(D.prof.filter(p=>bs.some(s=>s.id===p.venue)).map(p=>p.user_id)).size;
+   return`<tr><td><b>${esc(b.name)}</b> ${b.self_signup?'<span class="chip purple">Signed up online</span>':''}<div class="small mut">${[b.contact_email,b.phone,plural(bs.length,'site'),plural(u,'login'),b.notes&&b.notes!=='Signed up online'?b.notes.slice(0,60):null].filter(Boolean).map(esc).join(' · ')}</div></td>
+   <td>${bs.map(s=>licChip(s)).join(' ')}</td>
+   <td><div class="row" style="justify-content:flex-end;flex-wrap:nowrap;gap:6px"><button class="btn sm" data-act="admSites" data-id="${b.id}">Sites</button><button class="btn sm" data-act="admBiz" data-id="${b.id}" title="Edit business">${ic('edit',14)} Edit</button>${bs[0]?`<button class="btn sm" data-act="openSite" data-id="${esc(bs[0].id)}">Open</button>`:''}</div></td></tr>`}).join('')}</tbody></table>`
+  :`<div class="empty"><div><b>Add your first business</b></div><div class="small">Each business gets its own venues, bookings, guests and logins.</div><button class="btn pri" data-act="admBiz" style="margin-top:10px">${ic('plus',15)} New business</button></div>`}</div>
+ <div class="card"><div class="pad" style="border-bottom:1px solid var(--line)"><b>All sites</b></div>
+  ${D.sites.length?`<table class="t adm-t"><tbody>${D.sites.map(siteRow).join('')}</tbody></table>`:'<div class="empty">No sites yet.</div>'}</div>`};
+AFTER.admin=()=>{if(isMaster()&&(!U.adm||Date.now()-U.adm.at>60000)&&!U.admBusy){U.admBusy=true;admLoad().then(()=>{U.admBusy=false;if(U.view==='admin')render()}).catch(e=>{U.admBusy=false;toast(authErr(e))})}};
+A.admRefresh=()=>{U.adm=null;render()};
+A.goAdmin=(el,ev)=>{ev&&ev.preventDefault();A.closeModal();U.view='admin';render()};
+async function admReload(){U.adm=null;await admLoad();if(U.view==='admin')render();if(CLOUD.me){try{const me=await CLOUD.ad.whoami();CLOUD.me=me;const cur=(me.sites||[]).find(s=>s.id===CLOUD.vid);if(cur)CLOUD.site=cur;LOC.list=(me.sites||[]).map(s=>({id:s.id,name:s.name,business:s.business}));localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}}render()}
+A.openSite=el=>{const id=el.dataset.id;if(!id)return;if(id===CLOUD.vid){U.view='parties';render();return}save();LOC.current=id;if(!LOC.list.some(x=>x.id===id)){const s=U.adm?.sites.find(x=>x.id===id);LOC.list.push({id,name:s?.name||id})}LOC.cloud=true;localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload()};
+A.admCopyLink=el=>{const u=bookUrl(el.dataset.id);(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>toast('Booking link copied')).catch(()=>prompt('Online booking link',u))};
+
+function admModal(title,body,foot){const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:520px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>${title}</h3><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div class="pad">${body}<div id="admErr"></div></div><div class="pad row between" style="border-top:1px solid var(--line)">${foot}</div></div>`;m.classList.add('show')}
+const admErr=e=>{const m=$('#admErr');if(m)m.innerHTML=`<div class="small" style="color:var(--bad);margin-top:10px">${esc(authErr(e))}</div>`};
+const licSelect=(id,v)=>`<select class="inp" id="${id}">${LIC_TYPES.map(([k,l])=>`<option value="${k}" ${k===v?'selected':''}>${l}</option>`).join('')}</select>`;
+
+A.admBiz=el=>{const b=el?.dataset?.id?U.adm.biz.find(x=>x.id===el.dataset.id):null;
+ admModal(b?'Edit business':'New business',`
+  <label class="f" style="margin-top:0">Business name</label><input class="inp" id="abName" value="${esc(b?.name||'')}" placeholder="e.g. Bella Pizza">
+  <label class="f">Contact email</label><input class="inp" id="abEmail" type="email" value="${esc(b?.contact_email||'')}" placeholder="owner@business.com"><div class="small mut">This person gets Admin access to every site you add for the business. They sign in with this email.</div>
+  <label class="f">Phone</label><input class="inp" id="abPhone" value="${esc(b?.phone||'')}">
+  ${b?`<div class="row between" style="margin-top:12px"><span class="mut small">${plural(U.adm.sites.filter(s=>s.business_id===b.id).length,'site')}</span><button class="btn sm" data-act="admSites" data-id="${b.id}">Manage sites…</button></div>`
+   :`<label class="f">Sites</label><textarea class="inp" id="abSites" rows="3" placeholder="One per line, e.g.&#10;Bella High Street&#10;Bella Station Road"></textarea><label class="f">Licence for these sites</label>${licSelect('abLic','trial')}`}
+  <label class="f">Notes (only Proview sees this)</label><textarea class="inp" id="abNotes" rows="2" placeholder="Contract, invoice, address…">${esc(b?.notes||'')}</textarea>`,
+  `${b?`<button class="btn danger" data-act="admBizDel" data-id="${b.id}">Delete business</button>`:'<span></span>'}<div class="row"><button class="btn" data-act="closeModal">Cancel</button><button class="btn pri" data-act="admBizSave" data-id="${b?.id||''}">${b?'Save':'Create business'}</button></div>`);
+ setTimeout(()=>$('#abName')?.focus(),50)};
+A.admBizSave=async el=>{const id=el.dataset.id,name=$('#abName').value.trim(),email=$('#abEmail').value.trim().toLowerCase();
+ if(name.length<2)return admErr('Enter the business name.');if(email&&!/^\S+@\S+\.\S+$/.test(email))return admErr('Enter a valid email address.');
+ const row={name,contact_email:email||null,phone:$('#abPhone').value.trim()||null,notes:$('#abNotes').value.trim()||null};el.disabled=true;
+ try{if(id){await CLOUD.ad.upd('bk_businesses',row,id);toast('Business saved')}
+  else{const nb=await CLOUD.ad.ins('bk_businesses',row);const names=[...new Set($('#abSites').value.split('\n').map(x=>x.trim()).filter(Boolean))];const lic=$('#abLic').value==='custom'?'m1':$('#abLic').value;
+   for(const n of names)await CLOUD.ad.rpc('bk_add_site',{p_business:nb.id,p_name:n,p_license:lic});
+   toast(`${name} created${names.length?' with '+plural(names.length,'site'):''}`)}
+  A.closeModal();await admReload()}catch(e){el.disabled=false;admErr(e)}};
+A.admBizDel=el=>{const b=U.adm.biz.find(x=>x.id===el.dataset.id);const n=U.adm.sites.filter(s=>s.business_id===b.id).length;
+ ask(`Delete ${esc(b.name)}? This permanently deletes its ${plural(n,'site')}, with all their bookings, guests and logins.`,async()=>{try{await CLOUD.ad.del('bk_businesses',b.id);toast('Business deleted');await admReload()}catch(e){toast(authErr(e))}},'Delete business')};
+
+A.admSites=el=>{const b=U.adm.biz.find(x=>x.id===el.dataset.id);const bs=U.adm.sites.filter(s=>s.business_id===b.id);
+ admModal(`Sites — ${esc(b.name)}`,`<p class="small mut" style="margin-top:0">Each site is a venue with its own bookings, tables, staff logins and licence.</p>
+  ${bs.map(s=>`<div class="row" style="flex-wrap:nowrap;margin-bottom:8px"><input class="inp" style="flex:1" value="${esc(s.name)}" onchange="admRenameSite('${esc(s.id)}',this.value)">${licChip(s)}<button class="icon-btn" style="color:var(--bad)" data-act="admSiteDel" data-id="${esc(s.id)}" title="Delete site">${ic('trash',16)}</button></div>`).join('')||'<div class="small mut">No sites yet.</div>'}
+  <div class="row" style="flex-wrap:nowrap;margin-top:12px"><input class="inp" id="asNew" style="flex:1" placeholder="New site name, e.g. Bella Station Road" onkeydown="if(event.key==='Enter')A.admSiteAdd({dataset:{id:'${b.id}'}})">${licSelect('asLic','trial').replace('<select','<select style="width:150px"')}<button class="btn pri" data-act="admSiteAdd" data-id="${b.id}">${ic('plus',14)} Add</button></div>`,
+  `<span class="small mut">${b.contact_email?`New sites give ${esc(b.contact_email)} Admin access.`:'Add a contact email to the business to give the owner access.'}</span><button class="btn pri" data-act="closeModal">Done</button>`)};
+async function admRenameSite(id,v){v=v.trim();if(!v)return;try{await CLOUD.ad.upd('bk_sites',{name:v},id);toast('Site renamed');await admReload()}catch(e){toast(authErr(e))}}
+A.admSiteAdd=async el=>{const v=$('#asNew').value.trim();if(v.length<2)return admErr('Enter the site name.');const lic=$('#asLic').value==='custom'?'m1':$('#asLic').value;
+ try{await CLOUD.ad.rpc('bk_add_site',{p_business:el.dataset.id,p_name:v,p_license:lic});toast('Site added');await admReload();A.admSites(el)}catch(e){admErr(e)}};
+A.admSiteDel=el=>{const s=U.adm.sites.find(x=>x.id===el.dataset.id);const bid=s.business_id;
+ ask(`Delete ${esc(s.name)}? Its bookings, guests and logins are deleted for good.`,async()=>{try{await CLOUD.ad.del('bk_sites',s.id);toast('Site deleted');await admReload();if(s.id===CLOUD.vid){LOC.list=LOC.list.filter(x=>x.id!==s.id);LOC.current=LOC.list[0]?.id||'';localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload()}}catch(e){toast(authErr(e))}},'Delete site')};
+
+A.admLicence=async el=>{if(!U.adm)await admLoad();const s=U.adm.sites.find(x=>x.id===el.dataset.id);if(!s)return;const cur=licState(s),canExtend=['active','expiring'].includes(cur.state);
+ const curText=cur.state==='none'?'No licence':cur.state==='lifetime'?'Lifetime':`${licLabel(s.license_type)} · ${cur.daysLeft>=0?'ends':'ended'} ${licDate(cur.expires)}`;
+ admModal(`Licence: ${esc(s.name)}`,`<div class="row between small"><span class="mut">Current</span><b>${esc(curText)}</b></div>
+  <label class="f">New licence</label>${licSelect('alType','m12')}
+  <div id="alCustomW" style="display:none"><label class="f">Licence ends on</label><input class="inp" type="date" id="alCustom" min="${today()}"></div>
+  <div id="alExtW">${canExtend?`<label class="row small" style="font-weight:600;margin-top:10px"><input type="checkbox" id="alExt" checked> Add on top of the current end date (${licDate(cur.expires)})</label>`:'<div class="small mut" style="margin-top:8px">The new licence starts today.</div>'}</div>
+  <label class="f">Notes</label><input class="inp" id="alNotes" value="${esc(s.license_notes||'')}" placeholder="e.g. Invoice #1042, paid by card">
+  <div class="licprev" id="alPrev"></div>`,
+  `<span></span><div class="row"><button class="btn" data-act="closeModal">Cancel</button><button class="btn pri" data-act="admLicSave" data-id="${esc(s.id)}">Save licence</button></div>`);
+ const paint=()=>{const t=$('#alType').value,ext=$('#alExt')?.checked&&!['lifetime','custom'].includes(t);$('#alCustomW').style.display=t==='custom'?'':'none';$('#alExtW').style.display=['lifetime','custom'].includes(t)?'none':'';
+  const exp=licPreview(t,{extend:ext,current:s.license_expires_at,custom:$('#alCustom').value});
+  $('#alPrev').innerHTML=`<span class="chip blue">NEW</span><div><b>${licLabel(t)}</b><div class="small mut">${exp===null?'Never expires':exp?'Ends '+licDate(exp):'Pick an end date'}</div></div>`};
+ ['alType','alCustom','alExt'].forEach(i=>$('#'+i)?.addEventListener('input',paint));$('#alType').addEventListener('change',paint);paint()};
+A.admLicSave=async el=>{const t=$('#alType').value,c=$('#alCustom').value;if(t==='custom'&&!c)return admErr('Pick an end date.');el.disabled=true;
+ try{const s=await CLOUD.ad.rpc('bk_set_license',{p_site:el.dataset.id,p_type:t,p_extend:!!($('#alExt')?.checked)&&!['lifetime','custom'].includes(t),p_expires:t==='custom'?new Date(c+'T23:59:59').toISOString():null,p_notes:$('#alNotes').value.trim()||null});
+  A.closeModal();toast('Licence saved: '+licSummary(Array.isArray(s)?s[0]:s).text);await admReload()}catch(e){el.disabled=false;admErr(e)}};
 load();if(innerWidth<=700)U.showSide=false;render();
+
+
 cloudInit().catch(e=>{console.error(e);hideAuth()});
 try{if('serviceWorker' in navigator&&/^https:$/.test(location.protocol)&&/(proviewcrm\.co\.uk|github\.io)$/.test(location.hostname))navigator.serviceWorker.register('sw.js')}catch(e){}
 function netBanner(){let b=$('#offline');if(navigator.onLine){b&&b.remove();return}if(!b){b=document.createElement('div');b.id='offline';b.textContent='You\'re offline — changes are saved on this device';document.body.appendChild(b)}}
