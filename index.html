@@ -2034,19 +2034,34 @@ function showLicenceLock(){document.body.classList.add('gate');const s=CLOUD.sit
   <div class="auth-brand"><div class="logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span></div>
   <h1>${L.type==='trial'?'Your free trial has ended':L.state==='none'?'No licence for this venue':'Your licence has expired'}</h1>
   <p class="muted"><b>${esc(s.name)}</b>${L.expires?` · ended ${licDate(L.expires)}`:''}. Bookings are kept safe, but this venue can't be used and online booking is paused until it's renewed.</p>
-  <div class="notice">Call Proview on <b>${PROVIEW_PHONE}</b> to ${L.type==='trial'?'buy a licence':'renew'}.</div>
+  ${canBuy()?`<button class="go" type="button" data-act="buyOnline">${L.type==='trial'||L.state==='none'?'Buy a licence online':'Renew online'}</button><div class="notice">Or call Proview on <b>${PROVIEW_PHONE}</b>.</div>`:`<div class="notice">${CLOUD.me?'Ask your manager to renew it, or call':'Call'} Proview on <b>${PROVIEW_PHONE}</b> to ${L.type==='trial'?'buy a licence':'renew'}.</div>`}
   ${others.length?`<label class="af">Open another venue<select class="inp" style="height:44px" onchange="A.openSite({dataset:{id:this.value}})"><option value="">Choose…</option>${others.map(o=>`<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('')}</select></label>`:''}
   <div class="alinks"><button type="button" data-act="lockRetry">I've renewed — check again</button><button type="button" data-act="authSignOut">Sign out</button></div>
  </div></div>`;a.hidden=false}
 A.lockRetry=()=>location.reload();
 
+/* --- buy or renew this venue's licence online (prices and Stripe links come from the Proview licence portal) --- */
+const canBuy=()=>!!(CLOUD.site&&CLOUD.me&&!isMaster()&&((CLOUD.me.sites||[]).find(x=>x.id===CLOUD.site.id)?.role==='Admin'));
+const BUY_ORDER=['m1','m3','m6','m12','m24','m36','lifetime'];
+const buyMoney=p=>new Intl.NumberFormat('en-GB',{style:'currency',currency:(p.currency||'gbp').toUpperCase()}).format(p.amount/100);
+A.buyOnline=async()=>{let plans={};try{plans=await CLOUD.ad.rpc('licence_buy_plans')||{}}catch(e){}
+ const s=CLOUD.site,list=Object.entries(plans).sort((a,b)=>BUY_ORDER.indexOf(a[0])-BUY_ORDER.indexOf(b[0]));
+ if(!list.length){toast(`Online payment isn’t available yet. Call Proview on ${PROVIEW_PHONE}.`);return}
+ const pick=(list.find(([k])=>k==='m12')||list[0])[0],buying=!s.license_type||s.license_type==='trial';
+ const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:440px;margin-top:8vh"><div class="pad"><div class="row between"><b style="font-size:17px">${buying?'Buy a licence':'Renew licence'}: ${esc(s.name)}</b><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div>
+  <p class="small mut" style="margin:6px 0 12px">${buying?'Choose a plan. You’ll pay securely with Stripe, and the venue is licensed within about 5 minutes.':'Choose a plan. Time is added on top of your current licence. You’ll pay securely with Stripe; it updates within about 5 minutes.'}</p>
+  ${list.map(([k,p])=>`<label class="row card pad" style="font-weight:600;padding:12px 14px;margin-bottom:8px;cursor:pointer"><input type="radio" name="buyPlan" value="${esc(k)}" ${k===pick?'checked':''}><span style="flex:1">${esc(p.label||k)}</span>${esc(buyMoney(p))}</label>`).join('')}
+  <div class="row" style="justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn" data-act="closeModal">Cancel</button><button class="btn pri" data-act="buyGo">Pay with card</button></div></div></div>`;m.classList.add('show');
+ A.buyGo=()=>{const k=m.querySelector('input[name=buyPlan]:checked')?.value,p=plans[k];if(!p)return;const u=new URL(p.link);
+  u.searchParams.set('client_reference_id',`${p.ref||'pvb'}__${s.id}__${k}`);const em=CLOUD.user?.email||CLOUD.me?.email;if(em)u.searchParams.set('prefilled_email',em);
+  window.open(u.toString(),'_blank','noopener');A.closeModal();toast('Finish paying in the Stripe tab. Your licence updates within about 5 minutes.')}};
 /* --- banner inside the app when the licence needs attention --- */
 function licBannerHtml(){if(!CLOUD.site||U.view==='admin')return'';const s=CLOUD.site,L=licState(s),who=isMaster()?'Renew it at license.proviewcrm.co.uk.':`Call Proview on ${PROVIEW_PHONE} to renew.`;
  let t='';if(L.state==='grace')t=`This venue's licence expired on ${licDate(L.expires)}. It keeps working for ${plural(L.graceLeft,'more day')}, then it stops. ${who}`;
  else if(L.state==='expiring')t=`${L.type==='trial'?'Your free trial':'This venue\'s licence'} ends on ${licDate(L.expires)} (${plural(L.daysLeft,'day')}). ${L.type==='trial'?`Call Proview on ${PROVIEW_PHONE} to keep using Proview Bookings.`:who}`;
  else if(isMaster()&&['expired','none'].includes(L.state))t=`${esc(s.name)} has ${L.state==='none'?'no licence':'an expired licence'}. Staff are locked out and online booking is paused. You can still open it as the Proview admin.`;
  if(!t)return'';const bad=['grace','expired','none'].includes(L.state);
- return`<div class="card pad row noprint licbar" style="margin-bottom:14px;${bad?'background:var(--badl);border-color:#f2b8be':'background:var(--warnl);border-color:#f0d08a'}">${ic('clock',16)}<span style="flex:1">${t}</span>${isMaster()?`<button class="btn sm" data-act="admLicence">Licence portal ↗</button>`:''}</div>`}
+ return`<div class="card pad row noprint licbar" style="margin-bottom:14px;${bad?'background:var(--badl);border-color:#f2b8be':'background:var(--warnl);border-color:#f0d08a'}">${ic('clock',16)}<span style="flex:1">${t}</span>${isMaster()?`<button class="btn sm" data-act="admLicence">Licence portal ↗</button>`:canBuy()?`<button class="btn sm pri" data-act="buyOnline">${L.type==='trial'||L.state==='none'?'Buy licence online':'Renew online'}</button>`:''}</div>`}
 
 /* --- master admin page --- */
 U.adm=null;
