@@ -501,14 +501,47 @@ body.dark .stars span{color:#4a4a55!important}
  .side .client-pick{display:block!important}.side .nav-sec{display:block!important}.side .venue{display:block!important}
  .side .side-foot{display:flex!important;flex-direction:row!important;padding:0 10px 14px!important}.side .side-foot [data-act=collapse]{display:none!important}.side .side-foot .lbl{display:inline!important}
  .side .nav{flex-direction:column!important;justify-content:flex-start!important;overflow-y:auto!important;overflow-x:hidden!important;padding:6px 10px!important;gap:0!important;flex:1;min-height:0}
- .side .nav button{flex:none!important;flex-direction:row!important;justify-content:flex-start!important;padding:9px 12px!important;gap:12px!important;font-size:14px!important}
- .side .nav button .lbl{display:inline!important;font-size:14px!important}.side .nav button.on::before{display:block}
+ .side .nav button{flex:none!important;flex-direction:row!important;justify-content:flex-start!important;padding:9px 12px!important;gap:11px!important;font-size:15px!important}
+ .side .nav button .lbl{display:inline!important;font-size:15px!important}.side .nav button.on::before{display:block}
  .side .nav .nav-extra{display:flex!important}.side .nav .nav-more{display:none!important}
  .main{padding-bottom:0!important}
  .fab{bottom:calc(20px + env(safe-area-inset-bottom))!important}
  .top .top-pick{display:none!important}
  .top .icon-btn{width:36px!important;height:36px!important}
 }
+/* ===== Proview theme v2: font style and sizes from Proview Signage, same profile box and footer in all apps ===== */
+body{font-size:15px;line-height:1.45}
+.side .brand{gap:10px}
+.side .brand .logo,.side .brand .brand-mark{width:36px;height:26px}
+.side .wordmark{font-size:15px;letter-spacing:.04em;font-weight:500;line-height:20px}
+.side .wordmark b{font-weight:500;margin-right:0}
+.side .client-pick select{font-size:15px;font-weight:400;line-height:20px}
+.side .nav button,.side .nav a{font-size:15px;font-weight:550;gap:11px;padding:9px 12px;line-height:22px}
+.side .nav button .lbl,.side .nav a>span:not(.bell-dot):not(.cnt){font-size:15px;font-weight:550}
+.side .nav svg{width:18px;height:18px;flex:none}
+.side .nav-sec,.side .nav-sep,.side .nav .nav-group{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6e6e78}
+.top h2{font-size:18px;font-weight:700;letter-spacing:-.015em}
+/* profile box (identical in Bookings, Employee and Signage) */
+.side .side-me{margin:10px 10px 8px!important;display:flex;align-items:center;gap:10px;padding:12px!important;border-radius:12px;background:#1f1f25;border:1px solid #26262e;color:#fff;text-decoration:none;min-width:0;font-size:12px;cursor:pointer;box-sizing:border-box}
+.side .side-me:hover{background:#25252c}
+.side .side-av{width:34px;height:34px;border-radius:50%;flex:none;display:grid;place-items:center;background:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);color:#fff;font-weight:700;font-size:12.5px}
+.side .side-me-t{flex:1;min-width:0;display:flex;flex-direction:column}
+.side .side-me-t b{font-size:13px;font-weight:700;line-height:18px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side .side-me-t span{font-size:11.5px;line-height:16px;color:#8b8b95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side .side-me>svg{width:16px;height:16px;color:#8b8b95;flex:none}
+/* footer: COLLAPSE and SIGN OUT */
+.side .side-foot .sf-link,.side .side-foot button[data-act=collapse],.side .side-foot button[data-act=signOut]{font-size:12px;font-weight:600;letter-spacing:.06em;line-height:17px;padding:6px 8px;color:#8b8b95;background:none;border:0}
+.side .side-foot svg{width:14px;height:14px}
+/* collapsed menu: just the avatar (iPad's narrow menu hides the box, as before) */
+@media (min-width:901px){.app.collapsed .side .side-me{display:flex!important;justify-content:center;padding:8px 0!important;background:none;border-color:transparent}.app.collapsed .side .side-me-t,.app.collapsed .side .side-me>svg{display:none!important}}
+.side .nav-sec,.side .nav-sep{line-height:15px!important;padding:14px 10px 6px!important;margin:0!important}
+.side .nav .gs-ring{width:18px!important;height:18px!important;flex:none}
+
+@media (min-width:901px),(max-width:700px){.side .nav>button:not(.nav-group):not(.nav-more),.side .nav>a{height:40px;box-sizing:border-box}}
+
+@media (max-width:700px){.app .side .side-me{display:flex!important}.side .client-pick select{font-size:15px!important}}
+@media (max-width:700px) and (hover:none) and (pointer:coarse){.side .client-pick select{font-size:16px!important}}
+
 </style>
 </head>
 <body class="gate">
@@ -516,7 +549,7 @@ body.dark .stars span{color:#4a4a55!important}
 <div class="auth" id="auth" hidden></div>
 <div class="app" id="app">
   <aside class="side">
-    <div class="brand"><div class="logo" role="img" aria-label="Proview logo"></div><span class="wordmark">PROVIEW <span>BOOKINGS</span></span><button class="collapse-btn" data-act="collapse" title="Collapse menu"></button></div>
+    <div class="brand"><div class="logo" role="img" aria-label="Proview logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span><button class="collapse-btn" data-act="collapse" title="Collapse menu"></button></div>
     <div class="client-pick" id="sitePick"></div>
     <nav class="nav" id="nav"></nav>
     <div class="venue" id="venueCard" data-act="locations" title="Switch location" style="cursor:pointer"></div>
@@ -593,7 +626,7 @@ const ICON={
  plug:'<path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4"/>',
  store:'<path d="M3 9 4.5 4h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/>',
  help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/>',
- out:'<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/>',
+ out:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
  send:'<path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/>',
  download:'<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>',
  walk:'<circle cx="13" cy="4" r="2"/><path d="m9 21 2-6 3 3v3M7 12l3-4 4 1 2 4 3 1"/>',
@@ -801,7 +834,8 @@ function renderNav(){
  $('#nav').insertAdjacentHTML('beforeend',`<button class="nav-extra ${U.view==='help'?'on':''}" data-act="help" title="Help">${ic('help',19)}<span class="lbl">Help</span><span class="slbl">Help</span></button>`);
  const open=isOpenNow();
  const em=(CLOUD.user?.email||S.venue.me?.email||'').toLowerCase(),stf=(S.staff||[]).find(x=>(x.email||'').toLowerCase()===em&&em),myName=stf?.name||S.venue.me?.name||em.split('@')[0]||'Me';
- $('#venueCard').innerHTML=`<div class="row" style="flex-wrap:nowrap"><div class="av" style="width:34px;height:34px;flex:none;background:${stf?.color||'var(--pri)'}">${esc(initials(myName))}</div><div style="flex:1;min-width:0"><b>${esc(myName)}</b><span style="color:#8b8b95;font-size:11.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span class="dot" style="background:${open?'#34d399':'#f87171'}"></span>${esc(S.venue.name)}</span></div>${ic('right',16)}</div>`;$('#venueCard').dataset.act=LOC.cloud?'myAccount':'locations';$('#venueCard').title=LOC.cloud?'Your account and venue settings':'Switch location';
+ const myRole=isMaster()?'Proview admin':(CLOUD.site?.role||S.venue.user||'Manager');
+ $('#venueCard').className='venue side-me';$('#venueCard').innerHTML=`<span class="side-av">${esc(initials(myName))}</span><span class="side-me-t"><b>${esc(myName)}</b><span>${esc(myRole)} · ${esc(S.venue.name)}</span></span>${ic('right',16)}`;$('#venueCard').dataset.act=LOC.cloud?'myAccount':'locations';$('#venueCard').title=LOC.cloud?'Your account and venue settings':'Switch location';
  document.querySelector('.collapse-btn').innerHTML=ic('left',18);
  $('#sideFoot').innerHTML=`<button class="sf-link" data-act="collapse" title="${$('#app').classList.contains('collapsed')?'Expand menu':'Collapse menu'}">${ic('left',14)}<span class="lbl">COLLAPSE</span></button><button class="sf-link" data-act="logout" title="Sign out" style="margin-left:auto">${ic('out',14)}<span class="lbl">SIGN OUT</span></button>`;
 }
