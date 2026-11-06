@@ -56,10 +56,10 @@ Install the [Supabase CLI](https://supabase.com/docs/guides/cli), then run these
 ```bash
 supabase login
 supabase link --project-ref YOURPROJECTREF
-supabase functions deploy notify
-supabase functions deploy sms-in --no-verify-jwt
-supabase functions deploy deposit --no-verify-jwt
-supabase functions deploy stripe-webhook --no-verify-jwt
+supabase functions deploy bk-notify
+supabase functions deploy bk-sms-in --no-verify-jwt
+supabase functions deploy bk-deposit --no-verify-jwt
+supabase functions deploy bk-stripe-webhook --no-verify-jwt
 ```
 
 Add the keys under **Project Settings → Edge Functions → Secrets**. Only add the ones for the services you use.
@@ -74,10 +74,10 @@ Add the keys under **Project Settings → Edge Functions → Secrets**. Only add
 | `STRIPE_WEBHOOK_SECRET` | From the webhook you create in Stripe, below |
 
 **Twilio replies:** in Twilio → Phone Numbers → your number → *A message comes in*, set the webhook to:
-`https://YOURPROJECT.supabase.co/functions/v1/sms-in?venue=proview-kitchen`
+`https://YOURPROJECT.supabase.co/functions/v1/bk-sms-in?venue=proview-kitchen`
 
 **Stripe deposits:**
-1. In Stripe → Developers → Webhooks, add the endpoint `https://YOURPROJECT.supabase.co/functions/v1/stripe-webhook` for the event `checkout.session.completed`.
+1. In Stripe → Developers → Webhooks, add the endpoint `https://YOURPROJECT.supabase.co/functions/v1/bk-stripe-webhook` for the event `checkout.session.completed`.
 2. Copy its signing secret into `STRIPE_WEBHOOK_SECRET`.
 3. In the app, turn on **Settings → Integrations → Stripe deposits**.
 4. Choose **Take a deposit per guest** under **Settings → Bookings → Policies**.

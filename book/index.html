@@ -120,7 +120,7 @@ async function submit(){ST.name=$('#nm').value.trim();ST.email=$('#em').value.tr
  const payload={type:ST.type,size:ST.size,date:ST.date,time:ST.time,area:ST.area,name:ST.name,email:ST.email,phone:ST.phone,notes:ST.notes,tags:ST.tags,mkt:ST.mkt,channel:ST.channel};
  $('#go').disabled=true;$('#go').textContent='Sending…';
  try{const dep=!isEnq&&B.policy==='deposit'&&ST.size>=+B.policyFrom&&P.settings.payments;
-  if(dep){const r=await AD.invoke('deposit',{venue:VENUE,booking:payload,return_url:location.href.split('?')[0]});if(r&&r.url){location.href=r.url;return}throw new Error('Payments are not available right now')}
+  if(dep){const r=await AD.invoke('bk-deposit',{venue:VENUE,booking:payload,return_url:location.href.split('?')[0]});if(r&&r.url){location.href=r.url;return}throw new Error('Payments are not available right now')}
   await AD.send(isEnq?'enquiry':'booking',payload);
   done(isEnq?'Enquiry sent!':"You're booked!",isEnq?`Thanks ${esc(ST.name.split(' ')[0])} — we'll be in touch about your group of ${ST.size} on ${fmt(ST.date)}.`:`${fmt(ST.date)} at ${ST.time} for ${ST.size}.<br>We'll email a confirmation to ${esc(ST.email)}.`)
  }catch(e){$('#go').disabled=false;$('#go').textContent='Try again';$('#er').textContent=e.message||'Something went wrong. Please try again.'}}
