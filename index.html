@@ -49,6 +49,13 @@ a{color:var(--pri)}
 .app.collapsed .side-foot{flex-direction:column}
 .app.collapsed .brand{flex-direction:column}
 .app.collapsed .collapse-btn{margin:0;transform:rotate(180deg)}
+.slbl{display:none}
+.app.collapsed .nav button{flex-direction:column;gap:4px;padding:8px 2px 7px}
+.app.collapsed .slbl{display:block;font-size:10.5px;line-height:1.15;font-weight:500;text-align:center;white-space:nowrap;letter-spacing:-.1px}
+.app.collapsed .side-foot button{flex-direction:column;gap:3px;padding:7px 2px}
+.app.collapsed .side-foot .slbl{font-size:10px}
+@media (min-width:701px) and (max-width:900px){.app .nav button{flex-direction:column;gap:4px;padding:8px 2px 7px;justify-content:center}.app .slbl{display:block;font-size:10.5px;line-height:1.15;font-weight:500;text-align:center;white-space:nowrap;letter-spacing:-.1px}.app .side-foot button{flex-direction:column;gap:3px;padding:7px 2px}.app .side-foot .slbl{font-size:10px}}
+@media (max-width:700px){.slbl,.app.collapsed .slbl{display:none!important}}
 /* main */
 .main{display:flex;flex-direction:column;min-width:0;overflow:hidden}
 .top{display:flex;align-items:center;gap:12px;padding:12px 22px;background:var(--card);border-bottom:1px solid var(--line);min-height:62px}
@@ -654,15 +661,16 @@ const NAV=[
  ['sec','Grow'],['guests','Guests & marketing','guests'],['reviews','Reviews','star'],['preorders','Pre-orders','menu'],['reports','Insights','chart'],
  ['sec','Team'],['staff','Staff & rota','users'],['kitchen','Kitchen','chef'],
  ['sec','Manage'],['settings','Settings','cog']];
+const SHORT={"parties": "Bookings", "tables": "Tables", "planner": "Timeline", "floor": "Floor", "guests": "Guests", "reviews": "Reviews", "preorders": "Pre-orders", "reports": "Insights", "staff": "Staff", "kitchen": "Kitchen", "settings": "Settings"};
 const TITLES={parties:'Bookings',tables:'Table status',planner:'Timeline',floor:'Floor view',guests:'Guests & marketing',reviews:'Reviews',preorders:'Pre-orders',reports:'Insights',settings:'Settings',staff:'Staff & rota',kitchen:'Kitchen'};
 
 function renderNav(){
  const up=S.parties.filter(p=>p.date===today()&&['booked','arrived','waiting'].includes(p.status)).length;
- $('#nav').innerHTML=`<button class="nav-more" data-act="moreMenu" title="More">${ic('list',19)}<span class="lbl">More</span></button>`+NAV.map(n=>n[0]==='sec'?`<div class="nav-sec">${n[1]}</div>`:`<button class="${U.view===n[0]?'on':''} ${['parties','tables','planner','floor'].includes(n[0])?'nav-core':'nav-extra'}" data-act="go" data-v="${n[0]}" title="${n[1]}">${ic(n[2],19)}<span class="lbl">${n[1]}</span>${n[0]==='parties'&&up?`<span class="cnt">${up}</span>`:''}</button>`).join('');
+ $('#nav').innerHTML=`<button class="nav-more" data-act="moreMenu" title="More">${ic('list',19)}<span class="lbl">More</span></button>`+NAV.map(n=>n[0]==='sec'?`<div class="nav-sec">${n[1]}</div>`:`<button class="${U.view===n[0]?'on':''} ${['parties','tables','planner','floor'].includes(n[0])?'nav-core':'nav-extra'}" data-act="go" data-v="${n[0]}" title="${n[1]}">${ic(n[2],19)}<span class="lbl">${n[1]}</span><span class="slbl">${SHORT[n[0]]||n[1]}</span>${n[0]==='parties'&&up?`<span class="cnt">${up}</span>`:''}</button>`).join('');
  const open=isOpenNow();
  $('#venueCard').innerHTML=`<b>${esc(S.venue.name)}</b><span style="color:#8b8b95">${esc(S.venue.area)}</span><div style="margin-top:8px"><span class="dot" style="background:${open?'#34d399':'#f87171'}"></span>${open?'Open now':'Closed'} · ${esc(S.venue.user)}</div>`;
  document.querySelector('.collapse-btn').innerHTML=ic('left',18);
- $('#sideFoot').innerHTML=`<button class="loc-btn" data-act="locations" title="Switch location">${ic('store',16)}</button><button data-act="help" title="Help">${ic('help',16)}<span class="lbl">Help</span></button><button data-act="logout" title="Sign out">${ic('out',16)}<span class="lbl">Sign out</span></button>`;
+ $('#sideFoot').innerHTML=`<button class="loc-btn" data-act="locations" title="Switch location">${ic('store',16)}<span class="slbl">Venue</span></button><button data-act="help" title="Help">${ic('help',16)}<span class="lbl">Help</span><span class="slbl">Help</span></button><button data-act="logout" title="Sign out">${ic('out',16)}<span class="lbl">Sign out</span><span class="slbl">Sign out</span></button>`;
 }
 function renderTop(){
  const dated=['parties','planner','floor','staff','kitchen'].includes(U.view)&&!(U.view==='staff'&&(U.stTab==='team'||(U.stTab==='checklists'&&S.settings.prefs.showTasks)));
