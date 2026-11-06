@@ -6,7 +6,7 @@ import { env, db } from "../_shared.ts";
 async function verify(payload: string, header: string) {
   const parts = Object.fromEntries(header.split(",").map((p) => p.split("=") as [string, string]));
   if (!parts.t || !parts.v1 || Math.abs(Date.now() / 1000 - +parts.t) > 300) return false;
-  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(env("STRIPE_WEBHOOK_SECRET")), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(env("BK_STRIPE_WEBHOOK_SECRET")), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const mac = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${parts.t}.${payload}`)));
   const hex = [...mac].map((b) => b.toString(16).padStart(2, "0")).join("");
   return hex === parts.v1;

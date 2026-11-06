@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
       "metadata[booking]": JSON.stringify(small).slice(0, 500),
     });
     const r = await fetch("https://api.stripe.com/v1/checkout/sessions", {
-      method: "POST", headers: { Authorization: `Bearer ${env("STRIPE_SECRET_KEY")}`, "Content-Type": "application/x-www-form-urlencoded" }, body: form,
+      method: "POST", headers: { Authorization: `Bearer ${env("BK_STRIPE_SECRET_KEY")}`, "Content-Type": "application/x-www-form-urlencoded" }, body: form,
     });
     const s = await r.json();
     if (!r.ok) return json({ error: s.error?.message || "Stripe error" }, 400);

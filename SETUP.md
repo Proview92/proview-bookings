@@ -66,19 +66,19 @@ Add the keys under **Project Settings → Edge Functions → Secrets**. Only add
 
 | Secret | Where to find it |
 |---|---|
-| `RESEND_API_KEY` | Resend → API Keys |
-| `FROM_EMAIL` | An address on a domain you've verified in Resend, e.g. `bookings@proviewcrm.co.uk` |
-| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | Twilio Console home page |
-| `TWILIO_FROM` | Your Twilio UK mobile number, e.g. `+447...` |
-| `STRIPE_SECRET_KEY` | Stripe → Developers → API keys (start with the `sk_test_` key) |
-| `STRIPE_WEBHOOK_SECRET` | From the webhook you create in Stripe, below |
+| `BK_RESEND_API_KEY` | Resend → API Keys |
+| `BK_FROM_EMAIL` | An address on a domain you've verified in Resend, e.g. `bookings@proviewcrm.co.uk` |
+| `BK_TWILIO_ACCOUNT_SID`, `BK_TWILIO_AUTH_TOKEN` | Twilio Console home page |
+| `BK_TWILIO_FROM` | Your Twilio UK mobile number, e.g. `+447...` |
+| `BK_STRIPE_SECRET_KEY` | Stripe → Developers → API keys (start with the `sk_test_` key) |
+| `BK_STRIPE_WEBHOOK_SECRET` | From the webhook you create in Stripe, below |
 
 **Twilio replies:** in Twilio → Phone Numbers → your number → *A message comes in*, set the webhook to:
 `https://YOURPROJECT.supabase.co/functions/v1/bk-sms-in?venue=proview-kitchen`
 
 **Stripe deposits:**
 1. In Stripe → Developers → Webhooks, add the endpoint `https://YOURPROJECT.supabase.co/functions/v1/bk-stripe-webhook` for the event `checkout.session.completed`.
-2. Copy its signing secret into `STRIPE_WEBHOOK_SECRET`.
+2. Copy its signing secret into `BK_STRIPE_WEBHOOK_SECRET`.
 3. In the app, turn on **Settings → Integrations → Stripe deposits**.
 4. Choose **Take a deposit per guest** under **Settings → Bookings → Policies**.
 

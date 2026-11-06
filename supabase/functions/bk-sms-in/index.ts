@@ -8,7 +8,7 @@ async function validTwilio(req: Request, params: URLSearchParams) {
   const u = new URL(req.url);
   const url = `${env("SUPABASE_URL")}/functions/v1/bk-sms-in${u.search}`; // the public URL Twilio signed
   const data = url + [...params.keys()].sort().map((k) => k + params.get(k)).join("");
-  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(env("TWILIO_AUTH_TOKEN")), { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(env("BK_TWILIO_AUTH_TOKEN")), { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
   const mac = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(data));
   return btoa(String.fromCharCode(...new Uint8Array(mac))) === sig;
 }
