@@ -570,6 +570,17 @@ label.f,.frow>label:first-child,.field2{font-size:13px;font-weight:600}
 .content h2,#drawer h2{font-size:18px;font-weight:700}
 .content h3,#drawer h3{font-size:15px;font-weight:650}
 .stat .k{font-size:13px;font-weight:600}
+/* profile + sign out in the top-right of the header (all Proview apps) */
+.top-me{display:flex;align-items:center;gap:4px;margin-left:6px;padding-left:10px;border-left:1px solid var(--line,#e4e2dc);flex:none}
+.top-av{width:34px;height:34px;border-radius:50%;border:0;padding:0;flex:none;display:grid;place-items:center;background:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);color:#fff;font-family:inherit;font-weight:700;font-size:12.5px;line-height:1;cursor:pointer;text-decoration:none}
+.top-av:hover{filter:brightness(1.08)}
+.top-me .top-out svg{width:18px;height:18px}
+html .app .side .side-me.side-me,html .side .side-foot [data-act=logout],html .side .side-foot [data-act=signOut],html .side .side-foot [title="Sign out"]{display:none!important}
+@media (max-width:900px){html .app .side .side-foot{display:none!important}}
+@media (max-width:700px){.top-me{margin-left:2px;padding-left:6px;gap:2px}.top-av{width:32px;height:32px;font-size:12px}}
+@media (max-width:900px){#top{gap:6px}#top .top-pick{min-width:110px;flex:0 1 auto}#top [data-act=newParty] .lbl-np{display:none}#top [data-act=newParty]{padding-left:10px;padding-right:10px}}
+@media (max-width:700px){#top .top-me{border-left:0;padding-left:0;margin-left:0}#top{gap:1px}#top .icon-btn{width:30px;min-width:30px}#top .menu-btn{width:34px}}
+@media (max-width:400px){#top [data-act=goPage]{display:none}}
 </style>
 </head>
 <body class="gate">
@@ -2191,6 +2202,9 @@ A.navToggle=()=>$('#app').classList.toggle('navopen');
 document.addEventListener('click',e=>{const a=$('#app');if(!a||!a.classList.contains('navopen'))return;const t=e.target.closest('.side [data-act],.side [data-v]');if(t&&t.dataset.act!=='navToggle'&&t.dataset.act!=='collapse')setTimeout(()=>a.classList.remove('navopen'),0)},true);
 document.addEventListener('change',e=>{if(e.target.closest('.side .client-pick'))$('#app')?.classList.remove('navopen')},true);
 
+
+function topMe(act){const t=document.getElementById('top'),vc=document.getElementById('venueCard');if(!t)return;t.querySelector('.top-me')?.remove();const a=vc&&vc.querySelector('.side-av');if(!a)return;const nm=vc.querySelector('.side-me-t b')?.textContent||'',sub=vc.querySelector('.side-me-t span')?.textContent||'';const w=document.createElement('div');w.className='top-me';w.innerHTML=`<button class="top-av" title="${esc(nm+(sub?' · '+sub:''))}" aria-label="My account">${esc(a.textContent)}</button><button class="icon-btn top-out" data-act="${act}" title="Sign out" aria-label="Sign out">${ic('out',18)}</button>`;w.querySelector('.top-av').onclick=e=>{e.stopPropagation();vc.click()};t.appendChild(w)}
+{const _rt=renderTop,_rn=renderNav;renderTop=function(){const r=_rt.apply(this,arguments);topMe('logout');return r};renderNav=function(){const r=_rn.apply(this,arguments);topMe('logout');return r}}
 load();if(innerWidth<=700)U.showSide=false;render();
 
 
