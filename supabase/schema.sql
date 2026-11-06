@@ -112,6 +112,16 @@ create policy "admins manage invites" on public.bk_staff_invites for all to auth
 drop policy if exists "see own profile" on public.bk_staff_profiles;
 create policy "see own profile" on public.bk_staff_profiles for select to authenticated using (user_id = auth.uid());
 
+-- 3b. Table access (row level security above still decides which rows) -------
+grant usage on schema public to anon, authenticated;
+grant select on public.bk_venue_public to anon, authenticated;
+grant insert on public.bk_inbox to anon, authenticated;
+grant select, insert, update on public.bk_venue_state, public.bk_venue_public, public.bk_inbox to authenticated;
+grant select, insert, update, delete on public.bk_staff_invites to authenticated;
+grant select on public.bk_staff_profiles to authenticated;
+grant all on public.bk_venue_state, public.bk_venue_public, public.bk_inbox, public.bk_staff_invites, public.bk_staff_profiles to service_role;
+grant execute on function public.bk_is_staff(text), public.bk_is_admin(text) to anon, authenticated;
+
 -- Light rate limit on public requests: max 20 per venue per minute.
 create or replace function public.bk_inbox_rate_limit() returns trigger
 language plpgsql security definer set search_path = public as $$
