@@ -1613,7 +1613,7 @@ async function SupabaseAdapter(c){
  return{kind:'supabase',sb,
   async user(){return(await sb.auth.getSession()).data.session?.user||null},
   async signIn(e,p){const r=await sb.auth.signInWithPassword({email:e,password:p});if(r.error)throw r.error;return r.data.user},
-  async signUp(e,p){const r=await sb.auth.signUp({email:e,password:p});if(r.error)throw r.error;return r.data.user},
+  async signUp(e,p){const r=await sb.auth.signUp({email:e,password:p,options:{emailRedirectTo:location.origin+location.pathname}});if(r.error)throw r.error;return r.data.user},
   async reset(e){const r=await sb.auth.resetPasswordForEmail(e,{redirectTo:location.origin+location.pathname});if(r.error)throw r.error},
   async signOut(){await sb.auth.signOut()},
   async get(v){return one(await sb.from('bk_venue_state').select('data,updated_at').eq('id',v).maybeSingle())},
