@@ -1,7 +1,9 @@
 # Proview Bookings
 
-Restaurant reservations and table management by Proview Tech.
+Restaurant reservations, table management, staff rota and guest marketing by Proview Tech.
 
-Live at https://bookings.proviewcrm.co.uk
+- **Staff app:** https://bookings.proviewcrm.co.uk (`index.html`)
+- **Guest booking, queue and sign-up page:** https://bookings.proviewcrm.co.uk/book/ (`book/index.html`)
+- **Cloud sync, logins, texts, emails and deposits:** see [SETUP.md](SETUP.md) (`cloud.json`, `supabase/`)
 
-Single-file app: `index.html`. Pushing to `main` redeploys via GitHub Pages.
+Pushing to `main` redeploys through GitHub Pages. Without `cloud.json` filled in, the app runs on each device on its own.

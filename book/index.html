@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Book a table</title>
+<meta name="theme-color" content="#141418">
+<link rel="icon" type="image/png" href="../icon-192.png">
+<style>
+:root{--pri:#4a6cd0;--grad:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);--bg:#f4f3ef;--card:#fff;--ink:#17171c;--mut:#55555f;--line:#e4e2dc;--ok:#12a150;--okl:#e7f6ed;--bad:#d92d20;--badl:#fdf0ef;--pril:#edf2fd}
+body.dark{--bg:#0e0e11;--card:#18181d;--ink:#ececf1;--mut:#9a9aa5;--line:#2a2a32;--pril:#232a45;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45;padding:20px 12px calc(30px + env(safe-area-inset-bottom))}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:480px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(20,20,30,.06)}
+.head{background:var(--grad);color:#fff;padding:22px;background-size:cover;background-position:center}
+.head.light{background:var(--card);color:var(--ink);border-bottom:1px solid var(--line)}
+.head h1{font-size:22px;margin:2px 0 4px}.head .s{font-size:13px;opacity:.85}
+.logo{width:40px;height:28px;background:url(../icon-192.png) center/contain no-repeat;flex:none}
+.row{display:flex;align-items:center;gap:10px}.between{justify-content:space-between}
+.pad{padding:18px}
+.tabs{display:flex;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}.tabs button{flex:1;white-space:nowrap;border:0;background:none;padding:13px 10px;font-weight:600;color:var(--mut);border-bottom:2px solid transparent;cursor:pointer}.tabs button.on{color:var(--pri);border-color:var(--pri)}
+label.f{display:block;font-size:12.5px;font-weight:600;color:var(--mut);margin:14px 0 6px}
+.inp{width:100%;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:11px 12px;outline:none;min-width:0}.inp:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pril)}
+textarea.inp{min-height:70px;resize:vertical}
+.step{display:flex;align-items:center;gap:8px}.step button{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:20px;flex:none}.step .v{flex:1;text-align:center;border:1px solid var(--line);border-radius:10px;padding:10px;font-weight:600}
+.dates{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.dates button{flex:0 0 58px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 0;cursor:pointer;font-size:12px;line-height:1.25}.dates button b{font-size:16px;display:block}
+.dates button.on,.slots button.on,.chips button.on{background:var(--pri);color:#fff;border-color:var(--pri)}.dates button:disabled,.slots button:disabled{opacity:.35;cursor:not-allowed}
+.slots{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.slots button{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:11px 0;font-weight:600;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:7px 12px;cursor:pointer;font-size:13px}
+.btn{display:flex;width:100%;justify-content:center;align-items:center;gap:8px;border:0;border-radius:12px;padding:14px;font-weight:700;cursor:pointer;background:var(--grad);color:#fff;margin-top:18px;font-size:15px}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.sec{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.mut{color:var(--mut)}.small{font-size:13px}.note{font-size:13px;color:var(--mut);margin-top:8px}.err{color:var(--bad);font-size:13px;margin-top:8px}
+.sum{background:var(--pril);border-radius:12px;padding:12px 14px}
+.done{text-align:center;padding:34px 20px}.tick{width:60px;height:60px;border-radius:50%;background:var(--okl);color:var(--ok);display:grid;place-items:center;margin:0 auto 12px;font-size:30px}
+.pos{font-size:64px;font-weight:800;letter-spacing:-.03em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
+.foot{text-align:center;font-size:12px;color:var(--mut);padding:12px;border-top:1px solid var(--line)}.foot b{color:var(--pri)}
+a{color:var(--pri)}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card" id="app"><div class="pad mut">Loading…</div></div></div>
+<script>
+const $=s=>document.querySelector(s);const Q=new URLSearchParams(location.search);
+const pad=n=>String(n).padStart(2,'0');const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;const today=()=>ymd(new Date());
+const toMin=t=>{const[h,m]=t.split(':').map(Number);return h*60+m};const fromMin=m=>`${pad(Math.floor(m/60)%24)}:${pad(m%60)}`;const nowMin=()=>{const d=new Date();return d.getHours()*60+d.getMinutes()};
+const addDays=(s,n)=>{const d=new Date(s+'T12:00');d.setDate(d.getDate()+n);return ymd(d)};const dow=s=>new Date(s+'T12:00').getDay();
+const fmt=(s,o={weekday:'long',day:'numeric',month:'long'})=>new Date(s+'T12:00').toLocaleDateString('en-GB',o);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDur=m=>{const h=Math.floor(m/60),mm=m%60;return h?`${h} hr${h>1?'s':''}${mm?`, ${mm} mins`:''}`:`${mm} mins`};
+const uuid=()=>crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)});
+let AD=null,VENUE=null,P=null,ST={mode:Q.get('enquiry')?'enquiry':Q.get('queue')?'queue':'book',step:1,size:2,date:today(),time:null,type:Q.get('type')||'',area:'',name:'',email:'',phone:'',notes:'',tags:[],mkt:false,channel:Q.get('ch')||'web',dayOff:0};
+/* ---- adapters ---- */
+function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+async function makeAdapter(){
+ if(Q.get('cloud')==='mock'){const K=k=>'mockcloud:'+k,rd=k=>{try{return JSON.parse(localStorage.getItem(K(k))||'null')}catch(e){return null}},wr=(k,v)=>localStorage.setItem(K(k),JSON.stringify(v));VENUE=Q.get('v')||'demo-venue';
+  return{async pub(){return rd('pub:'+VENUE)?.data||null},async send(kind,payload,id){const L=rd('inbox')||[];L.push({id:id||uuid(),venue:VENUE,kind,payload,created_at:new Date().toISOString(),processed:false});wr('inbox',L)},async invoke(n,b){return{url:null}}}}
+ let c=null;try{const r=await fetch('../cloud.json',{cache:'no-store'});if(r.ok)c=await r.json()}catch(e){}
+ if(!c||!c.url||!c.anonKey)return null;VENUE=Q.get('v')||c.venue;
+ await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js');const sb=supabase.createClient(c.url,c.anonKey,{auth:{persistSession:false}});
+ return{async pub(){const r=await sb.from('venue_public').select('data').eq('id',VENUE).maybeSingle();if(r.error)throw r.error;return r.data?.data||null},
+  async send(kind,payload,id){const r=await sb.from('inbox').insert({...(id?{id}:{}),venue:VENUE,kind,payload});if(r.error)throw r.error},
+  async invoke(n,b){const r=await sb.functions.invoke(n,{body:b});if(r.error)throw r.error;return r.data}}}
+/* ---- availability (mirrors the staff app) ---- */
+const typeById=id=>P.types.find(t=>t.id===id)||P.types[0];
+const durFor=n=>{const d=P.settings.durations;return n<=2?d.small:n<=4?d.med:d.large};
+const closeM=h=>{const o=toMin(h.open),c=toMin(h.close);return c<=o?c+1440:c};
+function hoursFor(d){const b=P.settings.hours[dow(d)];return(P.settings.closedDates||[]).some(c=>c.date===d)?{...b,closed:true}:b}
+function schedFor(d,type){const ov=(P.overrides||[]).find(o=>o.date===d);if(ov&&ov.closed)return[];const h=hoursFor(d);if(h.closed)return[];if((P.settings.bookings.unavailable||[]).includes(d))return[];
+ let ws=P.schedules.filter(s=>s.active&&s.days.includes(dow(d))&&s.types.includes(type)).map(s=>({start:s.start||h.open,end:s.end||fromMin(Math.min(closeM(h),1439)),max:+s.maxCovers||0}));if(ov&&!ov.closed&&ov.start)ws=ws.map(w=>({...w,start:ov.start,end:ov.end||w.end}));return ws}
+function bEnd(b){let e=toMin(b.t)+b.dur;if(b.st==='finished'&&b.e!=null)e=Math.min(e,b.e);if(['seated','dessert','paying'].includes(b.st)&&b.d===today())e=Math.max((b.s??toMin(b.t))+b.dur,nowMin()+15);return e}
+function isFree(tid,d,t,dur){const s=toMin(t),e=s+dur;return!P.busy.some(b=>b.d===d&&b.tb.includes(tid)&&toMin(b.t)<e&&bEnd(b)>s)}
+function usable(t){const a=P.areas.find(x=>x.id===t.area);return t.open!==false&&(!a||a.open!==false)}
+function fits(d,t,dur,n,area){const ok=x=>usable(x)&&(!area||x.area===area);if(P.tables.some(x=>ok(x)&&n>=x.min&&n<=x.max&&isFree(x.id,d,t,dur)))return true;
+ return(P.combos||[]).some(c=>n>=c.min&&n<=c.max&&c.tables.every(id=>{const x=P.tables.find(y=>y.id===id);return x&&ok(x)&&isFree(id,d,t,dur)}))}
+function slots(d,n,type,area){const B=P.settings.bookings;const t=typeById(type);const dur=t.duration||durFor(n);if(d<today()||d>addDays(today(),+B.advanceDays))return[];const nm=d===today()?nowMin()+ +B.leadMins:-1;const out=[],seen=new Set();
+ schedFor(d,type).forEach(w=>{for(let m=toMin(w.start);m+Math.min(dur,60)<=toMin(w.end);m+=+B.interval||15){const tm=fromMin(m);if(seen.has(tm)||m<nm)continue;seen.add(tm);
+  const cov=P.busy.filter(b=>b.d===d&&b.t===tm).reduce((a,b)=>a+b.n,0);const win=w.max?P.busy.filter(b=>b.d===d&&b.t>=w.start&&b.t<w.end).reduce((a,b)=>a+b.n,0):0;
+  out.push({t:tm,ok:cov+n<=+B.maxCoversSlot&&(!w.max||win+n<=w.max)&&fits(d,tm,dur,n,area)})}});return out.sort((a,b)=>a.t.localeCompare(b.t))}
+function types(){const B=P.settings.bookings;return P.types.filter(t=>!(B.disableStd&&t.id==='std'&&P.types.some(x=>x.exp)))}
+/* ---- render ---- */
+function shell(body,tabs=true){const th=P?.settings.prefs.guestTheme;document.body.classList.toggle('dark',th==='Dark');const V=P?.venue||{name:'Book a table'};
+ const Qs=P?.settings.queue,canQ=Qs&&Qs.online&&!Qs.closed&&!hoursFor(today()).closed;const B=P?.settings.bookings;
+ $('#app').innerHTML=`<div class="head ${th==='Light'?'light':''}" style="${V.photo?`background-image:linear-gradient(rgba(20,20,24,.5),rgba(20,20,24,.75)),url(${V.photo});color:#fff`:''}"><div class="row"><div class="logo"></div><div><div class="s">Book a table at</div><h1>${esc(V.name)}</h1></div></div><div class="s">${esc(V.address||'')}</div>${V.description?`<div class="s" style="margin-top:6px">${esc(V.description)}</div>`:''}</div>
+ ${tabs&&P?`<div class="tabs">${[['book','Book a table'],...(canQ?[['queue','Join the queue']]:[]),...(B.enquiries?[['enquiry','Group enquiry']]:[])].map(([k,l])=>`<button class="${ST.mode===k?'on':''}" onclick="setMode('${k}')">${l}</button>`).join('')}</div>`:''}${body}<div class="foot">Powered by <b>Proview Bookings</b></div>`;document.title=(P?.venue?.name?'Book · '+P.venue.name:'Book a table')}
+function setMode(m){ST.mode=m;ST.step=1;ST.time=null;const B=P.settings.bookings;if(m==='enquiry'&&ST.size<+B.enqMin)ST.size=+B.enqMin;if(m==='book'&&ST.size>+B.maxParty)ST.size=Math.max(+B.minParty||1,2);draw()}
+function draw(){
+ if(!P)return;const B=P.settings.bookings;const isEnq=ST.mode==='enquiry';
+ if(ST.mode==='queue')return drawQueueJoin();
+ if(!B.online)return shell(`<div class="pad"><b>Online booking is paused right now.</b><p class="mut">Please call us on ${esc(P.venue.phone||'')}.</p></div>`);
+ if(ST.step===1){const ts=types();if(!ts.some(t=>t.id===ST.type))ST.type=ts[0]?.id;const n=Math.min(+B.advanceDays+1,90);const days=[];for(let i=0;i<n;i++)days.push(addDays(today(),i));const sl=isEnq?[]:slots(ST.date,ST.size,ST.type,ST.area);const over=!isEnq&&ST.size>+B.maxParty;
+  shell(`<div class="pad">${isEnq?`<div class="note" style="margin-top:0">For groups of ${B.enqMin}–${B.enqMax}. Tell us what you'd like and we'll confirm.</div>`:''}
+  ${ts.length>1?`<label class="f">Experience</label><select class="inp" onchange="ST.type=this.value;ST.time=null;draw()">${ts.map(t=>`<option value="${t.id}" ${ST.type===t.id?'selected':''}>${esc(t.name)}${t.price?` — £${t.price} pp`:''}</option>`).join('')}</select>${typeById(ST.type).exp&&typeById(ST.type).desc?`<div class="note">${esc(typeById(ST.type).desc)}</div>`:''}`:''}
+  <label class="f">Guests</label><div class="step"><button onclick="size(-1)" aria-label="Fewer guests">−</button><div class="v">${ST.size} ${ST.size>1?'guests':'guest'}</div><button onclick="size(1)" aria-label="More guests">+</button></div>
+  ${over?`<div class="err">${B.enquiries&&ST.size>=+B.enqMin&&ST.size<=+B.enqMax?`For groups over ${B.maxParty}, <a href="#" onclick="setMode('enquiry');return false">send a group enquiry</a>.`:`For groups over ${B.maxParty}, please call ${esc(P.venue.phone||'us')}.`}</div>`:''}
+  ${B.areaSelect&&!isEnq?`<label class="f">Seating area</label><select class="inp" onchange="ST.area=this.value;ST.time=null;draw()"><option value="">No preference</option>${P.areas.filter(a=>a.open!==false).map(a=>`<option value="${a.id}" ${ST.area===a.id?'selected':''}>${esc(a.name)}</option>`).join('')}</select>`:''}
+  <label class="f">Date</label><div class="dates">${days.map(d=>`<button class="${ST.date===d?'on':''}" onclick="ST.date='${d}';${isEnq?'':'ST.time=null;'}draw()" ${schedFor(d,ST.type).length?'':'disabled'}>${fmt(d,{weekday:'short'})}<b>${fmt(d,{day:'numeric'})}</b>${fmt(d,{month:'short'})}</button>`).join('')}</div>
+  <label class="f">Time</label>${isEnq?`<input class="inp" type="time" step="900" value="${ST.time||'19:00'}" onchange="ST.time=this.value">`:sl.length&&!over?`<div class="slots">${sl.map(s=>`<button class="${ST.time===s.t?'on':''}" onclick="ST.time='${s.t}';draw()" ${s.ok?'':'disabled'}>${s.t}</button>`).join('')}</div>`:`<div class="mut small">No times left on this date — try another day.</div>`}
+  ${B.showDuration&&!isEnq?`<div class="note">Tables are yours for ${fmtDur(typeById(ST.type).duration||durFor(ST.size))}.</div>`:''}
+  <button class="btn" onclick="ST.step=2;if(!ST.time)ST.time='19:00';draw()" ${(isEnq?ST.size>=+B.enqMin&&ST.size<=+B.enqMax:ST.time&&!over)?'':'disabled'}>Continue</button></div>`);
+  setTimeout(()=>{const on=document.querySelector('.dates .on');on&&on.scrollIntoView({inline:'center',block:'nearest'})});return}
+ const t=typeById(ST.type);const pol=B.policy!=='none'&&ST.size>=+B.policyFrom;const dep=pol&&B.policy==='deposit';
+ shell(`<div class="pad"><div class="sum"><b>${fmt(ST.date)} at ${ST.time}</b><div class="small">${ST.size} guests · ${esc(t.name)}${t.price?` · £${t.price*ST.size}`:''}${isEnq?' · enquiry':''}</div></div>
+ <label class="f">Full name</label><input class="inp" id="nm" value="${esc(ST.name)}" autocomplete="name">
+ <label class="f">Email</label><input class="inp" id="em" type="email" value="${esc(ST.email)}" autocomplete="email">
+ <label class="f">Mobile</label><input class="inp" id="ph" type="tel" value="${esc(ST.phone)}" autocomplete="tel">
+ <label class="f">Anything we should know?</label>${['Occasions','Dietary preferences','Accessibility','Allergens'].map(c=>{const l=P.partyTags.filter(x=>x.cat===c);return l.length?`<div class="small mut" style="margin:6px 0 4px">${c}</div><div class="chips">${l.map(x=>`<button class="${ST.tags.includes(x.id)?'on':''}" onclick="tag('${x.id}',this)">${esc(x.name)}</button>`).join('')}</div>`:''}).join('')}
+ <label class="f">Special requests</label><textarea class="inp" id="nt">${esc(ST.notes)}</textarea>
+ <label class="row small" style="margin-top:12px"><input type="checkbox" id="mk" ${ST.mkt?'checked':''}> Send me news and offers from ${esc(P.venue.name)}</label>
+ ${pol?`<div class="note">${dep?`A deposit of £${B.policyAmount} per guest (£${B.policyAmount*ST.size}) is taken now and comes off your bill.`:`We'll hold your card. A £${B.noshowFee} per guest fee applies to no-shows and cancellations within ${B.cancelHours} hours.`}</div>`:''}
+ ${P.settings.prefs.tcsLink?`<div class="note">By booking you agree to our <a href="${esc(P.settings.prefs.tcsLink)}" target="_blank" rel="noopener">terms</a>.</div>`:''}
+ <div id="er" class="err"></div>
+ <button class="btn" id="go" onclick="submit()">${isEnq?'Send enquiry':dep&&P.settings.payments?`Pay £${B.policyAmount*ST.size} deposit and book`:'Confirm booking'}</button><button class="btn sec" onclick="ST.step=1;draw()">Back</button></div>`)}
+function size(d){const B=P.settings.bookings;const isEnq=ST.mode==='enquiry';const min=isEnq?+B.enqMin:Math.max(1,+B.minParty||1);const max=isEnq?+B.enqMax:Math.max(+B.maxParty+1,B.enquiries?+B.enqMax:+B.maxParty);ST.size=Math.min(max,Math.max(min,ST.size+d));if(!isEnq)ST.time=null;draw()}
+function tag(id,el){ST.tags=ST.tags.includes(id)?ST.tags.filter(x=>x!==id):[...ST.tags,id];el.classList.toggle('on')}
+async function submit(){ST.name=$('#nm').value.trim();ST.email=$('#em').value.trim();ST.phone=$('#ph').value.trim();ST.notes=$('#nt').value.trim();ST.mkt=$('#mk').checked;
+ if(!ST.name||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ST.email)){$('#er').textContent='Please enter your name and a valid email.';return}
+ if(ST.phone&&ST.phone.replace(/\D/g,'').length<7){$('#er').textContent='Please check your mobile number.';return}
+ const B=P.settings.bookings;const isEnq=ST.mode==='enquiry';
+ if(!isEnq){P=await AD.pub()||P;if(!slots(ST.date,ST.size,ST.type,ST.area).some(s=>s.t===ST.time&&s.ok)){ST.step=1;ST.time=null;draw();setTimeout(()=>alertMsg('Sorry — that time was just taken. Please pick another.'));return}}
+ const payload={type:ST.type,size:ST.size,date:ST.date,time:ST.time,area:ST.area,name:ST.name,email:ST.email,phone:ST.phone,notes:ST.notes,tags:ST.tags,mkt:ST.mkt,channel:ST.channel};
+ $('#go').disabled=true;$('#go').textContent='Sending…';
+ try{const dep=!isEnq&&B.policy==='deposit'&&ST.size>=+B.policyFrom&&P.settings.payments;
+  if(dep){const r=await AD.invoke('deposit',{venue:VENUE,booking:payload,return_url:location.href.split('?')[0]});if(r&&r.url){location.href=r.url;return}throw new Error('Payments are not available right now')}
+  await AD.send(isEnq?'enquiry':'booking',payload);
+  done(isEnq?'Enquiry sent!':"You're booked!",isEnq?`Thanks ${esc(ST.name.split(' ')[0])} — we'll be in touch about your group of ${ST.size} on ${fmt(ST.date)}.`:`${fmt(ST.date)} at ${ST.time} for ${ST.size}.<br>We'll email a confirmation to ${esc(ST.email)}.`)
+ }catch(e){$('#go').disabled=false;$('#go').textContent='Try again';$('#er').textContent=e.message||'Something went wrong. Please try again.'}}
+function alertMsg(m){const a=document.createElement('div');a.className='err pad';a.textContent=m;$('#app .pad')?.prepend(a)}
+function done(title,text,extra=''){shell(`<div class="done"><div class="tick">✓</div><h2 style="margin:0 0 6px">${title}</h2><p class="mut">${text}</p>${extra}<button class="btn sec" onclick="location.href=location.pathname+(Q.get('cloud')?'?cloud='+Q.get('cloud'):'')">Back to start</button></div>`,false)}
+/* ---- queue ---- */
+function drawQueueJoin(){const Qs=P.settings.queue;const waiting=P.queue.length;const full=waiting>=+Qs.maxLen;const okSize=(Qs.remoteSizes||[]).includes(ST.size);const wait=(+Qs.defaultWait||0)+(+P.settings.prefs.extraWait||0);
+ shell(`<div class="pad">${full?'<b>The queue is full right now.</b><p class="mut">Please try again shortly.</p>':`<label class="f">Guests</label><div class="step"><button onclick="ST.size=Math.max(1,ST.size-1);draw()">−</button><div class="v">${ST.size} ${ST.size>1?'guests':'guest'}</div><button onclick="ST.size=Math.min(12,ST.size+1);draw()">+</button></div>${okSize?'':`<div class="err">Groups of ${ST.size} can't join remotely — please speak to the team at the door.</div>`}
+ <div class="note">About ${wait} minutes${P.settings.prefs.hideQueuePos?'':` · ${waiting} ${waiting===1?'party':'parties'} ahead`}</div>
+ <label class="f">Name</label><input class="inp" id="qn" value="${esc(ST.name)}" autocomplete="name"><label class="f">Mobile</label><input class="inp" id="qp" type="tel" value="${esc(ST.phone)}" placeholder="We'll text you when your table is ready" autocomplete="tel">
+ ${P.venue.menuBefore?`<div class="note"><a href="${esc(P.venue.menuBefore)}" target="_blank" rel="noopener">View the menu while you wait</a></div>`:''}${P.settings.prefs.tcsLink?`<div class="note">By joining you agree to our <a href="${esc(P.settings.prefs.tcsLink)}" target="_blank" rel="noopener">terms</a>.</div>`:''}
+ <div id="er" class="err"></div><button class="btn" id="go" onclick="joinQ()" ${okSize?'':'disabled'}>Join the queue</button>`}</div>`)}
+async function joinQ(){const n=$('#qn').value.trim(),ph=$('#qp').value.trim();if(!n||ph.replace(/\D/g,'').length<7){$('#er').textContent='Please enter your name and mobile number.';return}
+ const id=uuid();$('#go').disabled=true;try{await AD.send('queue',{size:ST.size,name:n,phone:ph,channel:ST.channel},id);const u=new URL(location.href);u.searchParams.set('q',id);u.searchParams.delete('queue');history.replaceState(null,'',u);localStorage.setItem('proview-q',JSON.stringify({id,at:Date.now(),v:VENUE}));queueStatus(id)}catch(e){$('#go').disabled=false;$('#er').textContent=e.message||'Something went wrong.'}}
+async function queueStatus(id){let joined=Date.now();try{const s=JSON.parse(localStorage.getItem('proview-q')||'null');if(s&&s.id===id)joined=s.at}catch(e){}
+ const tick=async()=>{try{P=await AD.pub()||P}catch(e){}const q=P.queue||[];const i=q.findIndex(x=>x.id===id);let body;
+  if(i>=0&&q[i].nt)body=`<div class="done"><div class="tick">🔔</div><h2 style="margin:0 0 6px">Your table is ready!</h2><p class="mut">Please come to the front desk now.</p></div>`;
+  else if(i>=0){const ahead=i;const wait=Math.max(0,Math.round((q[i].q||0)-(Date.now()-(q[i].j||joined))/60000));body=`<div class="done">${P.settings.prefs.hideQueuePos?'':`<div class="small mut">Your place in the queue</div><div class="pos">${ahead+1}</div>`}<h2 style="margin:10px 0 6px">${ahead===0?"You're next!":`${ahead} ${ahead===1?'party':'parties'} ahead of you`}</h2><p class="mut">Estimated wait about ${wait} minutes. We'll text you when your table is ready — you can close this page.</p><button class="btn sec" onclick="leaveQ('${id}')">Leave the queue</button></div>`}
+  else if((P.seatedFromQueue||[]).includes(id))body=`<div class="done"><div class="tick">✓</div><h2 style="margin:0 0 6px">You've been seated</h2><p class="mut">Enjoy your meal!</p></div>`;
+  else if(Date.now()-joined<3*60000)body=`<div class="done"><div class="tick">⏳</div><h2 style="margin:0 0 6px">Adding you to the queue…</h2><p class="mut">This takes a few seconds.</p></div>`;
+  else body=`<div class="done"><h2 style="margin:0 0 6px">You're no longer in the queue</h2><p class="mut">If this is a mistake, please speak to the team.</p></div>`;
+  shell(body,false)};await tick();setInterval(tick,15000)}
+async function leaveQ(id){try{await AD.send('cancel',{id,email:'',queue:true});}catch(e){}localStorage.removeItem('proview-q');done('You\'ve left the queue','Thanks for letting us know.')}
+/* ---- sign-up & cancel ---- */
+function drawSignup(){const F=P.signup||{title:'Join our guest list',text:'',phone:true,birthday:true};shell(`<div class="pad"><h2 style="margin:0 0 4px">${esc(F.title)}</h2><p class="mut" style="margin-top:0">${esc(F.text)}</p><label class="f">Full name</label><input class="inp" id="nm"><label class="f">Email</label><input class="inp" id="em" type="email">${F.phone?'<label class="f">Mobile</label><input class="inp" id="ph" type="tel">':''}${F.birthday?'<label class="f">Birthday</label><input class="inp" id="bd" type="date">':''}<label class="row small" style="margin-top:12px"><input type="checkbox" id="ok"> I'd like to receive news and offers from ${esc(P.venue.name)}</label><div id="er" class="err"></div><button class="btn" id="go" onclick="signup()">Sign up</button></div>`,false)}
+async function signup(){const n=$('#nm').value.trim(),e=$('#em').value.trim();if(!n||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){$('#er').textContent='Please enter your name and a valid email.';return}if(!$('#ok').checked){$('#er').textContent='Please tick the box to agree to hear from us.';return}
+ try{await AD.send('signup',{name:n,email:e,phone:$('#ph')?.value.trim()||'',birthday:$('#bd')?.value||''});done('Thanks for signing up!','We\'ll be in touch with news and offers.')}catch(err){$('#er').textContent=err.message}}
+function drawCancel(){shell(`<div class="pad"><h2 style="margin:0 0 6px">Cancel your booking</h2><p class="mut">We're sorry you can't make it. Confirm below and we'll free up your table.</p><div id="er" class="err"></div><button class="btn" id="go" onclick="cancelB()">Cancel my booking</button></div>`,false)}
+async function cancelB(){try{await AD.send('cancel',{id:Q.get('cancel'),email:Q.get('e')||''});done('Booking cancelled','You\'ll get an email to confirm. Hope to see you another time!')}catch(e){$('#er').textContent=e.message}}
+/* ---- start ---- */
+(async()=>{try{AD=await makeAdapter()}catch(e){AD=null}
+ if(!AD){$('#app').innerHTML='<div class="pad"><b>Online booking isn\'t set up yet.</b><p class="mut">Please contact the restaurant directly.</p></div>';return}
+ try{P=await AD.pub()}catch(e){P=null}
+ if(!P){$('#app').innerHTML='<div class="pad"><b>We couldn\'t load availability.</b><p class="mut">Please try again in a moment, or contact the restaurant.</p></div>';return}
+ if(Q.get('paid'))return done("You're booked!",'Your deposit has been paid. We\'ll email your confirmation shortly.');
+ if(Q.get('q'))return queueStatus(Q.get('q'));
+ if(Q.get('cancel'))return drawCancel();
+ if(Q.get('signup'))return drawSignup();
+ if(ST.mode==='queue'&&!(P.settings.queue.online&&!P.settings.queue.closed))ST.mode='book';
+ if(ST.mode==='enquiry'){ST.size=Math.max(ST.size,+P.settings.bookings.enqMin);ST.time='19:00'}
+ if(!ST.type)ST.type=types()[0]?.id||'std';
+ draw()})();
+</script>
+</body>
+</html>

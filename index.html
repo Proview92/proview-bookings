@@ -259,6 +259,8 @@ table.t tr:last-child td{border-bottom:0}
 .notif .ic{width:32px;height:32px;border-radius:9px;background:var(--pri-l);color:var(--pri);display:grid;place-items:center;flex:none}
 .hours-row{display:grid;grid-template-columns:110px 1fr 1fr 90px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
 /* v3 */
+.sync-dot{width:11px;height:11px;border-radius:50%;display:inline-block;background:var(--grey)}.sync-dot.synced{background:var(--ok)}.sync-dot.syncing{background:var(--pri);animation:pulse 1s infinite}.sync-dot.error,.sync-dot.login{background:var(--bad)}.sync-dot.offline{background:var(--warn)}
+@keyframes pulse{50%{opacity:.35}}
 .onshift{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}.osh{display:flex;gap:8px;align-items:center;padding:8px 12px 8px 8px;border:1px solid var(--line);border-radius:12px}.osh.live{border-color:#9fdcc5;background:var(--okl)}
 .newtask{display:grid;grid-template-columns:2fr 110px 140px 1.4fr 130px 140px auto;gap:8px;margin-top:10px}
 @media (max-width:1100px){.newtask{grid-template-columns:1fr 1fr}.newtask>#tkTitle,.newtask>.btn{grid-column:1/-1}}
@@ -477,7 +479,7 @@ const SIZE={sq:[64,64],rect:[100,64],round:[74,74],long:[74,150],big:[130,80]};
 const STATUS_LABEL={booked:'Booked',arrived:'Arrived',waiting:'Waiting',seated:'Seated',dessert:'Dessert',paying:'Paying',finished:'Finished',cancelled:'Cancelled',noshow:'No-show',deleted:'Deleted',pending:'Enquiry',declined:'Declined'};
 const DEAD=['cancelled','noshow','deleted','pending','declined'];
 const ACTIVE=['seated','dessert','paying'];
-function save(){LEARN=null;try{localStorage.setItem(KEY,JSON.stringify(S));const l=LOC.list.find(x=>x.id===LOC.current);if(l&&S.venue)l.name=S.venue.name;localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}}
+function save(){LEARN=null;if(typeof CLOUD!=='undefined'&&CLOUD.on)setTimeout(()=>schedulePush());try{localStorage.setItem(KEY,JSON.stringify(S));const l=LOC.list.find(x=>x.id===LOC.current);if(l&&S.venue)l.name=S.venue.name;localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}}
 function load(){try{const r=localStorage.getItem(KEY);if(r){S=upgrade(JSON.parse(r));return}}catch(e){}S=upgrade(seed());save()}
 
 function seed(){
@@ -641,7 +643,7 @@ const resolveBy=p=>addDays(p.date,2);
 function queueSort(a,b){if(S.settings.prefs.groupNotified&&!!a.notifiedAt!==!!b.notifiedAt)return a.notifiedAt?-1:1;return(a.joinedAt||0)-(b.joinedAt||0)}
 const quoteOf=p=>(+p.quote||0)+(+S.settings.prefs.extraWait||0);
 function loadQR(cb){if(window.QRCode)return cb();const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';s.onload=cb;s.onerror=()=>cb(true);document.head.appendChild(s)}
-const bookLink=q=>`https://book.proviewtech.co.uk/${slug(S.venue.name)}${q?'?'+q:''}`;
+const bookLink=q=>bookPage(q);
 
 function relTime(ts){const m=Math.round((Date.now()-ts)/60000);if(m<1)return'just now';if(m<60)return m+'m ago';const h=Math.round(m/60);if(h<24)return h+'h ago';return Math.round(h/24)+'d ago'}
 
@@ -650,9 +652,9 @@ const U={view:'parties',date:today(),status:'upcoming',size:'all',cat:'all',area
 const NAV=[
  ['sec','Service'],['parties','Bookings','list'],['tables','Table status','tables'],['planner','Timeline','timeline'],['floor','Floor view','floor'],
  ['sec','Grow'],['guests','Guests & marketing','guests'],['reviews','Reviews','star'],['preorders','Pre-orders','menu'],['reports','Insights','chart'],
- ['sec','Team'],['staff','Staff & tasks','users'],['kitchen','Kitchen','chef'],
+ ['sec','Team'],['staff','Staff & rota','users'],['kitchen','Kitchen','chef'],
  ['sec','Manage'],['settings','Settings','cog']];
-const TITLES={parties:'Bookings',tables:'Table status',planner:'Timeline',floor:'Floor view',guests:'Guests & marketing',reviews:'Reviews',preorders:'Pre-orders',reports:'Insights',settings:'Settings',staff:'Staff & tasks',kitchen:'Kitchen'};
+const TITLES={parties:'Bookings',tables:'Table status',planner:'Timeline',floor:'Floor view',guests:'Guests & marketing',reviews:'Reviews',preorders:'Pre-orders',reports:'Insights',settings:'Settings',staff:'Staff & rota',kitchen:'Kitchen'};
 
 function renderNav(){
  const up=S.parties.filter(p=>p.date===today()&&['booked','arrived','waiting'].includes(p.status)).length;
@@ -663,10 +665,11 @@ function renderNav(){
  $('#sideFoot').innerHTML=`<button class="loc-btn" data-act="locations" title="Switch location">${ic('store',16)}</button><button data-act="help" title="Help">${ic('help',16)}<span class="lbl">Help</span></button><button data-act="logout" title="Sign out">${ic('out',16)}<span class="lbl">Sign out</span></button>`;
 }
 function renderTop(){
- const dated=['parties','planner','floor','staff','kitchen'].includes(U.view)&&!(U.view==='staff'&&['team','checklists'].includes(U.stTab));
+ const dated=['parties','planner','floor','staff','kitchen'].includes(U.view)&&!(U.view==='staff'&&(U.stTab==='team'||(U.stTab==='checklists'&&S.settings.prefs.showTasks)));
  const unreadChats=S.chats.filter(c=>c.unread).length,unreadN=S.notes.filter(n=>!n.read).length,enq=S.parties.filter(p=>p.kind==='enquiry'&&p.status==='pending').length;
  $('#top').innerHTML=`${dated?`<div class="datenav"><button data-act="day" data-n="-1" title="Previous day">${ic('left')}</button><div class="dlabel">${U.date===today()?'<span class="tdy">Today · </span>':''}${fmtDate(U.date)}<input type="date" value="${U.date}" data-act-change="pickDate" aria-label="Pick a date"></div><button data-act="day" data-n="1" title="Next day">${ic('right')}</button>${U.date!==today()?`<button class="today-btn" data-act="day" data-n="0">Today</button>`:''}</div>`:`<h2>${TITLES[U.view]}</h2>`}
  <div class="sp"></div>
+ ${CLOUD.cfg?`<button class="icon-btn" data-act="goPage" data-v="integrations" title="${esc(syncLabel())}"><span id="syncDot" class="sync-dot ${CLOUD.status}"></span></button>`:''}
  <button class="icon-btn" data-act="search" title="Search guests & bookings (Ctrl+K)">${ic('search')}</button>
  <button class="icon-btn" data-act="chats" title="Guest messages">${ic('chat')}${unreadChats?`<span class="badge">${unreadChats}</span>`:''}</button>
  <button class="icon-btn" data-act="enquiries" title="Enquiries">${ic('mail')}${enq?`<span class="badge">${enq}</span>`:''}</button>
@@ -1043,7 +1046,7 @@ VIEWS.settings=()=>{
     <label class="f">Location photo</label><div class="row">${S.venue.photo?`<img src="${S.venue.photo}" alt="Location photo" style="width:180px;height:100px;object-fit:cover;border-radius:10px">`:''}<label class="btn sm">${ic('download',14)} ${S.venue.photo?'Replace':'Upload'} photo<input type="file" accept="image/*" data-act-change="photo" style="display:none"></label>${S.venue.photo?`<button class="btn sm ghost" data-act="rmPhoto">Remove</button>`:''}</div><div class="small mut" style="margin-top:6px">Shown on your booking page. A landscape photo works best.</div></div>`},
   prefs:()=>{const [t,tb]=stabs([['theme','Theme'],['queue','Queues & walk-ins'],['app','App & tables']]);
    if(t==='queue')return tb+learnedHtml()+`<div class="card pad" style="max-width:760px;margin-top:14px">${setRow('Seating duration · 1–2 guests','Minutes a party is seated for',num('settings.durations.small'))}${setRow('Seating duration · 3–4 guests','Minutes',num('settings.durations.med'))}${setRow('Seating duration · 5+ guests','Minutes',num('settings.durations.large'))}${setRow('Default quoted wait','Minutes',num('settings.queue.defaultWait'))}${setRow('Group notified parties at the top of the queue','Keep parties you\'ve texted at the top of the list',tog('settings.prefs.groupNotified'))}${setRow('Confirm before notifying a party','Ask "are you sure?" before texting the guest',tog('settings.prefs.confirmNotify'))}${setRow('Additional wait time','Minutes added to every quote when it\'s busy',num('settings.prefs.extraWait'))}${setRow('Hide queue position from guests','Guests won\'t see their place in line',tog('settings.prefs.hideQueuePos'))}<label class="f">Terms & conditions link</label>${txt('settings.prefs.tcsLink','100%','https://')}<div class="small mut" style="margin-top:6px">Shown on the self sign-up form and to guests in the queue.</div></div>`;
-   if(t==='app')return tb+`<div class="card pad" style="max-width:760px">${setRow('Dark mode','Easier on the eyes during evening service',tog('settings.prefs.dark',1))}${setRow('Mark tables as needing clearing','Flag a table when its party finishes, until staff clear it',tog('settings.prefs.autoDirty'))}</div>`;
+   if(t==='app')return tb+`<div class="card pad" style="max-width:760px">${setRow('Dark mode','Easier on the eyes during evening service',tog('settings.prefs.dark',1))}${setRow('Show staff tasks and checklists','Adds Tasks and Checklists to Staff & rota',tog('settings.prefs.showTasks',1))}${setRow('Mark tables as needing clearing','Flag a table when its party finishes, until staff clear it',tog('settings.prefs.autoDirty'))}</div>`;
    return tb+`<div class="card pad" style="max-width:760px"><b>Guest theme</b><div class="small mut">The look guests see when booking a table or joining the queue.</div><div class="cards" style="margin-top:14px">${[['Light','#ffffff','#17171c'],['Dark','#141418','#ffffff'],['Proview Blue','linear-gradient(135deg,#2f84d4,#5a5fbb)','#ffffff']].map(([n,bg,fg])=>`<div class="card navcard" data-act="guestTheme" data-v="${n}" style="${S.settings.prefs.guestTheme===n?'border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-l)':''}"><div style="height:70px;border-radius:10px;background:${bg};color:${fg};border:1px solid var(--line);display:grid;place-items:center;font-weight:700">Aa</div><b>${n}</b>${S.settings.prefs.guestTheme===n?'<span class="chip blue">Current theme</span>':''}</div>`).join('')}</div></div>`},
   hours:()=>`<div class="grid2" style="align-items:start"><div class="card pad"><b>Weekly hours</b><div class="small mut">These times show on the timeline. Bookings follow your schedules in Bookings.</div><div class="hours-row hours-head small mut" style="font-weight:600"><span>Day</span><span>Opens</span><span>Closes</span><span>Closed</span></div>${S.settings.hours.map((h,i)=>({h,i})).sort((a,b)=>((a.i+6)%7)-((b.i+6)%7)).map(({h,i})=>`<div class="hours-row"><b>${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][i]}</b><input class="inp" type="time" data-bind="settings.hours.${i}.open" value="${h.open}" ${h.closed?'disabled':''}><input class="inp" type="time" data-bind="settings.hours.${i}.close" value="${h.close}" ${h.closed?'disabled':''}><label class="toggle"><input type="checkbox" data-bind="settings.hours.${i}.closed" data-rerender="1" ${h.closed?'checked':''}><span></span></label></div>`).join('')}</div>
    <div class="card pad"><b>Closed dates</b><div class="small mut">Bank holidays, refurbishments and private hire. These don't cancel existing bookings — check the bookings list for those dates.</div>
@@ -1084,9 +1087,9 @@ VIEWS.settings=()=>{
   templates:()=>{const [t,tb]=stabs([['msg','Messages'],['ptags','Party tags']]);
    if(t==='ptags')return tb+`<div class="card pad" style="max-width:820px">${tagGroups('p')}</div>`;
    return tb+`<div class="card pad" style="max-width:760px"><div class="row between"><div><b>Message templates</b><div class="small mut">Reusable texts to send in guest chat — handy for guests in the queue.</div></div><button class="btn sm" data-act="addReply">${ic('plus',14)} Add</button></div>${S.quickReplies.map((q,i)=>`<div class="setrow"><input class="inp" style="max-width:none" value="${esc(q)}" data-qr="${i}"><button class="icon-btn" data-act="delReply" data-i="${i}">${ic('trash',15)}</button></div>`).join('')}</div>`},
-  integrations:()=>{const I=S.settings.integrations;const link=bookLink('');const items=[['google','Reserve with Google','Bookings from Google Search & Maps'],['app','Proview app','Listing in the Proview consumer app'],['airship','Airship','Targeted messages, loyalty programmes and personalised offers'],['pos','Point of sale','Sync table status and spend with your POS'],['mailchimp','Mailchimp','Sync opted-in guests to your mailing list'],['instagram','Instagram','"Reserve" button on your profile'],['xero','Xero','Send deposits and no-show fees to accounts'],['widget','Website widget','Embed booking on your own site']];
+  integrations:()=>{const I=S.settings.integrations;const link=bookLink('');const items=[['google','Reserve with Google','Bookings from Google Search & Maps'],['app','Proview app','Listing in the Proview consumer app'],['airship','Airship','Targeted messages, loyalty programmes and personalised offers'],['pos','Point of sale','Sync table status and spend with your POS'],['mailchimp','Mailchimp','Sync opted-in guests to your mailing list'],['instagram','Instagram','"Reserve" button on your profile'],['xero','Xero','Send deposits and no-show fees to accounts'],['widget','Website widget','Embed booking on your own site'],['stripe','Stripe deposits','Take deposits on the public booking page (needs cloud sync + Stripe keys)']];
    return `<div class="cards">${items.map(([k,n,d])=>`<div class="card pad"><div class="row between"><div class="navcard" style="padding:0;cursor:default"><div class="ic">${ic('plug',18)}</div></div><label class="toggle"><input type="checkbox" data-bind="settings.integrations.${k}" ${I[k]?'checked':''}><span></span></label></div><b style="display:block;margin-top:10px">${n}</b><div class="small mut">${d}</div></div>`).join('')}</div>
-   <div class="card pad" style="margin-top:16px"><b>Your booking link</b><div class="row" style="margin-top:8px"><div class="code" style="flex:1">${esc(link)}</div><button class="btn sm" data-act="copy" data-v="${esc(link)}">${ic('copy',14)} Copy</button></div><b style="display:block;margin-top:14px">Website embed code</b><div class="row" style="margin-top:8px"><div class="code" style="flex:1">${esc(`<iframe src="${link}?embed=1" width="420" height="640" style="border:0"></iframe>`)}</div><button class="btn sm" data-act="copy" data-v="${esc(`<iframe src="${link}?embed=1" width="420" height="640" style="border:0"></iframe>`)}">${ic('copy',14)} Copy</button></div></div>
+   ${cloudCard()}<div class="card pad" style="margin-top:16px"><b>Your booking link</b><div class="row" style="margin-top:8px"><div class="code" style="flex:1">${esc(link)}</div><button class="btn sm" data-act="copy" data-v="${esc(link)}">${ic('copy',14)} Copy</button></div><b style="display:block;margin-top:14px">Website embed code</b><div class="row" style="margin-top:8px"><div class="code" style="flex:1">${esc(`<iframe src="${link}?embed=1" width="420" height="640" style="border:0"></iframe>`)}</div><button class="btn sm" data-act="copy" data-v="${esc(`<iframe src="${link}?embed=1" width="420" height="640" style="border:0"></iframe>`)}">${ic('copy',14)} Copy</button></div></div>
    <div class="card pad" style="margin-top:16px"><b>Looking for another integration?</b><div class="small mut">Tell us what you need and we'll look into it.</div><div class="row" style="margin-top:10px"><input class="inp" id="reqInt" placeholder="e.g. OpenTable sync, Square POS" style="flex:1"><button class="btn sm pri" data-act="requestInt">Request an integration</button></div></div>`}
  };
  return back+P[U.setPage]();
@@ -1214,7 +1217,7 @@ function renderChats(){const c=U.chat&&S.chats.find(x=>x.id===U.chat);
  const b=$('.dr-body');b.scrollTop=b.scrollHeight;$('#chatIn').onkeydown=e=>{if(e.key==='Enter')A.sendChat()}}
 A.openChat=el=>{U.chat=el.dataset.id;renderChats()};
 A.qr=el=>{$('#chatIn').value=S.quickReplies[+el.dataset.i];$('#chatIn').focus()};
-A.sendChat=()=>{const v=$('#chatIn').value.trim();if(!v)return;S.chats.find(x=>x.id===U.chat).messages.push({from:'v',text:v,at:Date.now()});save();renderChats()};
+A.sendChat=()=>{const v=$('#chatIn').value.trim();if(!v)return;const ch=S.chats.find(x=>x.id===U.chat);ch.messages.push({from:'v',text:v,at:Date.now()});const gg=guestById(ch.guest);if(CLOUD.on&&gg&&gg.phone)sendMsg({sms:{to:gg.phone,body:v}});save();renderChats()};
 A.notifs=()=>{openDrawer('Notifications',S.notes.map(n=>`<div class="notif"><div class="ic">${ic(n.icon,16)}</div><div style="flex:1"><div style="${n.read?'':'font-weight:600'}">${esc(n.text)}</div><div class="small mut">${relTime(n.at)}</div></div></div>`).join('')||'<div class="empty">You\'re all caught up.</div>');S.notes.forEach(n=>n.read=true);save();renderTop()};
 
 /* party drawer actions */
@@ -1245,12 +1248,12 @@ A.advance=(el,e)=>{e.stopPropagation();const p=S.parties.find(x=>x.id===el.datas
  else if(p.status==='paying'){p.status='finished';p.endedAt=p.date===today()?nowMin():null;if(S.settings.prefs.autoDirty)p.tables.forEach(t=>S.dirty[t]=true);logH(p,'Finished');toast(`${pName(p)} finished${S.settings.prefs.autoDirty?' — table needs clearing':''}`)}
  save();render()};
 A.noshow=(el,e)=>{e.stopPropagation();const p=S.parties.find(x=>x.id===el.dataset.id);p.status='noshow';logH(p,'Marked as no-show');save();toast(`${pName(p)} marked as no-show`);render()};
-A.cancelParty=(el,e)=>{e&&e.stopPropagation();const p=S.parties.find(x=>x.id===el.dataset.id);p.status='cancelled';logH(p,'Cancelled');save();toast(`${pName(p)} cancelled`);render()};
+A.cancelParty=(el,e)=>{e&&e.stopPropagation();const p=S.parties.find(x=>x.id===el.dataset.id);p.status='cancelled';logH(p,'Cancelled');sendTemplate('cancelled',p);save();toast(`${pName(p)} cancelled`);render()};
 A.delParty=(el,e)=>{e.stopPropagation();const p=S.parties.find(x=>x.id===el.dataset.id);p.status='deleted';logH(p,'Deleted');save();toast(`${pName(p)} deleted — find it under Deleted`);render()};
 A.restore=(el,e)=>{e.stopPropagation();const p=S.parties.find(x=>x.id===el.dataset.id);p.status=p.kind==='queue'?'waiting':'booked';const clash=p.tables.length&&tablesFree(p,p.tables,p.date,p.time,p.dur);if(clash){p.tables=[];toast(`Restored without a table — ${clash} has been re-booked`)}else toast('Restored');logH(p,'Restored');save();render()};
 A.showUnresolved=()=>{const u=S.parties.filter(isUnresolved).sort((a,b)=>a.date.localeCompare(b.date));if(!u.length)return;U.date=u[0].date;U.status='upcoming';U.cat='all';U.size='all';render()};
 A.reopenQueue=()=>{S.settings.queue.closed=false;save();render();toast('Queue reopened')};
-A.notifyQ=(el,e)=>{e.stopPropagation();const p=S.parties.find(x=>x.id===el.dataset.id);if(S.settings.prefs.confirmNotify&&U.pendingNotify!==p.id){U.pendingNotify=p.id;render();return}U.pendingNotify=null;p.notifiedAt=Date.now();logH(p,'Notified: table is ready (SMS)');const c=p.guest&&(S.chats.find(x=>x.guest===p.guest)||(S.chats.push({id:uid(),guest:p.guest,unread:false,messages:[]}),S.chats[S.chats.length-1]));if(c)c.messages.push({from:'v',text:`Your table at ${S.venue.name} is ready! Please come to the front desk.`,at:Date.now()});save();toast(`${pName(p)} notified that their table is ready`);render()};
+A.notifyQ=(el,e)=>{e.stopPropagation();const p=S.parties.find(x=>x.id===el.dataset.id);if(S.settings.prefs.confirmNotify&&U.pendingNotify!==p.id){U.pendingNotify=p.id;render();return}U.pendingNotify=null;p.notifiedAt=Date.now();logH(p,'Notified: table is ready');if(S.settings.queue.smsReady)sendSms(p,`Your table at ${S.venue.name} is ready! Please come to the front desk.`);const c=p.guest&&(S.chats.find(x=>x.guest===p.guest)||(S.chats.push({id:uid(),guest:p.guest,unread:false,messages:[]}),S.chats[S.chats.length-1]));if(c)c.messages.push({from:'v',text:`Your table at ${S.venue.name} is ready! Please come to the front desk.`,at:Date.now()});save();toast(`${pName(p)} notified that their table is ready`);render()};
 A.tableStatus=el=>{const tid=el.dataset.id,v=el.value,p=activeParty(tid);
  if(p){if(v==='inuse')p.status='seated';else if(v==='dessert'||v==='paying')p.status=v;else{p.status='finished';p.endedAt=nowMin();if(v==='dirty')S.dirty[tid]=true;else delete S.dirty[tid]}logH(p,'Status changed to '+(STATUS_LABEL[p.status]))}
  else{if(v==='dirty')S.dirty[tid]=true;else if(v==='available')delete S.dirty[tid];else{render();newParty('walkin',{tables:[tid]});return}}
@@ -1264,7 +1267,7 @@ A.saveNewGuest=()=>{const n=$('#ngName').value.trim(),em=$('#ngEmail').value.tri
 A.delGuest=el=>{const id=el.dataset.id;ask(`Delete ${esc(guestById(id).name)}? Their past bookings stay but are no longer linked to a guest.`,()=>{const g=guestById(id);S.parties.forEach(p=>{if(p.guest===id){p.name=g.name;p.guest=null}});S.guests=S.guests.filter(x=>x.id!==id);S.chats=S.chats.filter(c=>c.guest!==id);save();closeDrawer();render();toast('Guest deleted')})};
 A.addTag=el=>{const kind=el.dataset.k,cat=el.dataset.cat||(kind==='g'?'General':'Preferences');(kind==='g'?S.guestTags:S.partyTags).push({id:uid(),name:'New tag',color:'#4a6cd0',cat});save();render()};
 A.delTag=el=>{const id=el.dataset.id;if(el.dataset.k==='g'){S.guestTags=S.guestTags.filter(t=>t.id!==id);S.guests.forEach(g=>g.tags=g.tags.filter(t=>t!==id))}else{S.partyTags=S.partyTags.filter(t=>t.id!==id);S.parties.forEach(p=>p.tags=p.tags.filter(t=>t!==id))}save();render()};
-A.addUser=()=>{const n=$('#nuName').value.trim(),e=$('#nuEmail').value.trim().toLowerCase();if(!n||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){toast('Enter a name and a valid email address');return}if(S.venue.users.some(u=>u.email.toLowerCase()===e)){toast('That person is already on the team');return}S.venue.users.push({name:n,email:e,role:'Host',since:today()});save();render();toast('Invite sent to '+e)};
+A.addUser=()=>{const n=$('#nuName').value.trim(),e=$('#nuEmail').value.trim().toLowerCase();if(!n||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){toast('Enter a name and a valid email address');return}if(S.venue.users.some(u=>u.email.toLowerCase()===e)){toast('That person is already on the team');return}S.venue.users.push({name:n,email:e,role:'Host',since:today()});if(CLOUD.on)CLOUD.ad.invite(e,CLOUD.vid,'Host').catch(()=>toast('Couldn\'t save the invite in the cloud'));save();render();toast('Invite sent to '+e)};
 A.userRole=el=>{const i=+el.dataset.i;if(i===0&&el.value!=='Admin'&&!S.venue.users.slice(1).some(u=>u.role==='Admin'||u.role==='Owner')){toast('Your venue needs at least one Admin');render();return}S.venue.users[i].role=el.value;save();toast('Role updated')};
 A.delUser=el=>{const u=S.venue.users[+el.dataset.i];ask(`Remove ${esc(u.name)} from the team?`,()=>{S.venue.users.splice(+el.dataset.i,1);save();render()},'Remove')};
 A.addType=()=>{S.types.push({id:uid(),name:'New experience',color:'#0ea5a4',duration:120,price:0,exp:true,desc:''});U.setTab='exp';save();render()};
@@ -1273,10 +1276,10 @@ A.typeMove=el=>{const exps=S.types.filter(x=>x.exp);const i=exps.findIndex(x=>x.
 A.delMenu=()=>{const m=S.menus.find(x=>x.id===U.menuSel)||S.menus[0];if(!m)return;ask(`Delete the ${esc(m.name)} menu?`,()=>{S.menus=S.menus.filter(x=>x!==m);U.menuSel=null;save();render()})};
 A.disableReviews=()=>{S.settings.reviews.enabled=false;save();render()};
 A.pdTab=el=>{U.pdTab=el.dataset.k;renderPD()};
-A.pdSendChat=()=>{const v=$('#chatIn').value.trim();if(!v)return;let c=S.chats.find(x=>x.guest===D.guest);if(!c){c={id:uid(),guest:D.guest,unread:false,messages:[]};S.chats.push(c)}c.messages.push({from:'v',text:v,at:Date.now()});const p=S.parties.find(x=>x.id===D.id);if(p)logH(p,'Message sent to guest');save();renderPD()};
+A.pdSendChat=()=>{const v=$('#chatIn').value.trim();if(!v)return;let c=S.chats.find(x=>x.guest===D.guest);if(!c){c={id:uid(),guest:D.guest,unread:false,messages:[]};S.chats.push(c)}c.messages.push({from:'v',text:v,at:Date.now()});const p=S.parties.find(x=>x.id===D.id);if(p)logH(p,'Message sent to guest');const gg=guestById(D.guest);if(CLOUD.on&&gg&&gg.phone)sendMsg({sms:{to:gg.phone,body:v}});save();renderPD()};
 A.pdResolve=el=>{const p=S.parties.find(x=>x.id===D.id);p.status=el.dataset.v;logH(p,el.dataset.v==='noshow'?'Resolved as no-show':'Seated and completed (resolved)');save();closeDrawer();render();toast(el.dataset.v==='noshow'?'Marked as no-show':'Marked as completed')};
 A.pdClearGuest=()=>{D.guest=null;D.gname='';D.gphone='';D.gemail='';renderPD()};
-A.pdCancel=()=>{const p=S.parties.find(x=>x.id===D.id);p.status='cancelled';logH(p,'Cancelled');save();closeDrawer();render();toast('Booking cancelled')};
+A.pdCancel=()=>{const p=S.parties.find(x=>x.id===D.id);p.status='cancelled';logH(p,'Cancelled');sendTemplate('cancelled',p);save();closeDrawer();render();toast('Booking cancelled')};
 A.pdDelete=()=>{const p=S.parties.find(x=>x.id===D.id);p.status='deleted';logH(p,'Deleted');save();closeDrawer();render();toast('Party deleted')};
 A.pdSave=()=>{
  if(!D)return;
@@ -1293,10 +1296,10 @@ A.pdSave=()=>{
  else if(gid){const g=guestById(gid);if(D.gphone&&!g.phone)g.phone=D.gphone}
  const old=D.id&&S.parties.find(x=>x.id===D.id);
  const p={...(old||{}),id:D.id||uid(),kind:D.kind,type:D.type||'std',guest:gid||null,name:gid?'':(D.gname||'Walk-in'),size:D.size,date:D.date,time:D.time,dur:+D.dur,tables:D.tables,status:D.status,seatedAt:D.seatedAt??null,notes:D.notes,tags:D.tags,channel:D.channel,created:D.created||today(),preorder:!!D.preorder,preItems:D.preItems||{},spend:D.spend===''||D.spend==null?(old?old.spend:null):+D.spend,deposit:old?old.deposit:(typeById(D.type).price?typeById(D.type).price*D.size*0.2:0),quote:D.quote,joinedAt:D.joinedAt||(D.kind==='queue'?Date.now():undefined),confirm:D.confirm||(D.kind==='booking'?'confirmed':'none'),history:old?old.history:[]};
- if(!old){if(p.kind==='walkin'){p.status='seated';p.seatedAt=nowMin();p.tables.forEach(t=>delete S.dirty[t])}logH(p,p.kind==='walkin'?`Walk-in seated at ${p.tables.map(tRaw).join(' + ')}`:p.kind==='queue'?'Added to the queue':'Booking created by staff');S.parties.push(p);if(p.kind==='booking')notify('cal',`Booking added: ${pName(p)}, ${p.size} on ${fmtDate(p.date)} at ${p.time}`)}
+ if(!old){if(p.kind==='walkin'){p.status='seated';p.seatedAt=nowMin();p.tables.forEach(t=>delete S.dirty[t])}logH(p,p.kind==='walkin'?`Walk-in seated at ${p.tables.map(tRaw).join(' + ')}`:p.kind==='queue'?'Added to the queue':'Booking created by staff');S.parties.push(p);if(p.kind==='booking'){sendTemplate('created',p)}if(p.kind==='booking')notify('cal',`Booking added: ${pName(p)}, ${p.size} on ${fmtDate(p.date)} at ${p.time}`)}
  else{const ch=[];if(old.date!==p.date)ch.push(`date ${fmtDate(old.date)} → ${fmtDate(p.date)}`);if(old.time!==p.time)ch.push(`time ${old.time} → ${p.time}`);if(old.size!==p.size)ch.push(`size ${old.size} → ${p.size}`);if(old.tables.join()!==p.tables.join())ch.push(`table ${old.tables.map(tRaw).join('+')||'none'} → ${p.tables.map(tRaw).join('+')||'none'}`);if(old.status!==p.status)ch.push(`status ${STATUS_LABEL[old.status]} → ${STATUS_LABEL[p.status]}`);if(old.notes!==p.notes)ch.push('comments');if(old.guest!==p.guest)ch.push('guest');
   if(ACTIVE.includes(p.status)&&p.seatedAt==null)p.seatedAt=nowMin();if(p.status==='finished'&&old.status!=='finished')p.endedAt=p.date===today()?nowMin():null;
-  logH(p,ch.length?'Edited: '+ch.join(', '):'Saved (no changes)');S.parties[S.parties.indexOf(old)]=p}
+  if(p.kind==='booking'&&!DEAD.includes(p.status)&&(old.date!==p.date||old.time!==p.time||old.size!==p.size))sendTemplate('edited',p);logH(p,ch.length?'Edited: '+ch.join(', '):'Saved (no changes)');S.parties[S.parties.indexOf(old)]=p}
  const msg=D.id?'Changes saved':p.kind==='walkin'?`Walk-in seated at ${p.tables.map(tRaw).join(' + ')}`:p.kind==='queue'?'Added to the queue':`Booking created for ${pName(p)}`;
  const goDate=!D.id&&p.kind==='booking'&&['parties','planner','floor'].includes(U.view)?p.date:U.date;
  save();closeDrawer();U.date=goDate;render();toast(msg)};
@@ -1304,7 +1307,7 @@ A.pdSave=()=>{
 A.enquiries=()=>{const list=S.parties.filter(p=>p.kind==='enquiry'&&p.status==='pending').sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
  openDrawer('Enquiries',list.length?list.map(p=>`<div class="card pad" style="margin-top:12px;padding:14px"><div class="row between"><b>${esc(pName(p))}</b><span class="size">${ic('people',13)}${p.size}</span></div><div class="small mut">${fmtDate(p.date,{weekday:'short',day:'numeric',month:'short'})} at ${p.time} · ${esc(typeById(p.type).name)}</div>${p.notes?`<div class="small" style="margin-top:6px">${esc(p.notes)}</div>`:''}<div class="row" style="margin-top:10px"><button class="btn sm pri" data-act="enqAccept" data-id="${p.id}">Accept</button><button class="btn sm" data-act="enqOpen" data-id="${p.id}">Details</button><button class="btn sm danger" data-act="enqDecline" data-id="${p.id}">Decline</button></div></div>`).join(''):`<div class="empty">${ic('mail',36)}<div>You currently have no awaiting enquiries.</div><div class="small">Large groups can send an enquiry from your booking page.</div></div>`)};
 A.enqOpen=el=>{U.pdTab='details';editParty(el.dataset.id)};
-A.enqAccept=el=>{const p=S.parties.find(x=>x.id===el.dataset.id);p.kind='booking';p.status='booked';p.confirm='confirmed';if(!p.tables.length)p.tables=autoTable(p.date,p.time,p.dur,p.size,p.id);logH(p,'Enquiry accepted'+(p.tables.length?` — table ${p.tables.map(tRaw).join('+')}`:' — no table free yet'));save();toast(`Enquiry accepted for ${pName(p)}${p.tables.length?'':' — assign a table'}`);render();if(D)closeDrawer();A.enquiries()};
+A.enqAccept=el=>{const p=S.parties.find(x=>x.id===el.dataset.id);p.kind='booking';p.status='booked';p.confirm='confirmed';if(!p.tables.length)p.tables=autoTable(p.date,p.time,p.dur,p.size,p.id);sendTemplate('created',p);logH(p,'Enquiry accepted'+(p.tables.length?` — table ${p.tables.map(tRaw).join('+')}`:' — no table free yet'));save();toast(`Enquiry accepted for ${pName(p)}${p.tables.length?'':' — assign a table'}`);render();if(D)closeDrawer();A.enquiries()};
 A.enqDecline=el=>{const p=S.parties.find(x=>x.id===el.dataset.id);p.status='declined';logH(p,'Enquiry declined');save();toast('Enquiry declined');render();if(D)closeDrawer();A.enquiries()};
 /* planner / floor */
 A.schedRow=el=>{U.showSched=el.checked;render()};
@@ -1340,7 +1343,7 @@ A.delOverride=el=>{S.overrides=S.overrides.filter(o=>o.id!==el.dataset.id);save(
 A.sizeChip=el=>{const path=el.dataset.path,n=+el.dataset.n;const cur=getPath(S,path)||[];setPath(S,path,cur.includes(n)?cur.filter(x=>x!==n):[...cur,n].sort((a,b)=>a-b));save();render()};
 A.addStaffEmail=()=>{const e=$('#seEmail').value.trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){toast('Enter a valid email address');return}const L=S.settings.comms.staffEmails;if(!L.includes(e))L.push(e);save();render()};
 A.delStaffEmail=el=>{S.settings.comms.staffEmails.splice(+el.dataset.i,1);save();render()};
-A.sendReminders=()=>{const t=addDays(today(),1);const ps=S.parties.filter(p=>p.date===t&&p.kind==='booking'&&p.status==='booked');ps.forEach(p=>{if(p.confirm!=='confirmed')p.confirm='unconfirmed';logH(p,'SMS reminder sent')});save();toast(`${ps.length} reminder${ps.length===1?'':'s'} sent for tomorrow`)};
+A.sendReminders=()=>{const t=addDays(today(),1);const ps=S.parties.filter(p=>p.date===t&&p.kind==='booking'&&p.status==='booked');ps.forEach(p=>{if(p.confirm!=='confirmed')p.confirm='unconfirmed';if(!sendSms(p,`Reminder: your booking at ${S.venue.name} for ${p.size} at ${p.time} on ${fmtDate(p.date)}. Reply 1 to confirm or 5 to cancel.`))logH(p,'SMS reminder queued (connect messaging to send)')});save();toast(CLOUD.on?`${ps.length} reminder${ps.length===1?'':'s'} sent for tomorrow`:`${ps.length} booking${ps.length===1?'':'s'} marked — connect cloud messaging to actually send texts`)};
 A.requestInt=()=>{const v=$('#reqInt').value.trim();if(!v){toast('Tell us which integration you need');return}notify('plug',`Integration requested: ${v}`);save();$('#reqInt').value='';renderTop();toast('Thanks — your request has been sent')};
 A.importCsv=el=>{const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const lines=String(r.result).split(/\r?\n/).filter(l=>l.trim());const parse=l=>{const out=[];let cur='',q=false;for(const ch of l){if(ch==='"'){q=!q}else if(ch===','&&!q){out.push(cur);cur=''}else cur+=ch}out.push(cur);return out.map(x=>x.trim())};
  let hdr=parse(lines[0]).map(h=>h.toLowerCase());const has=hdr.includes('date');const idx=k=>has?hdr.indexOf(k):['name','email','phone','date','time','size','notes'].indexOf(k);let ok=0,bad=0;
@@ -1352,7 +1355,7 @@ A.showQR=el=>{const url=el.dataset.v,t=el.dataset.t||'Booking link';const m=$('#
  loadQR(err=>{const box=$('#qrBox');if(!box)return;if(err||!window.QRCode){box.innerHTML='<div class="small mut" style="padding:20px">QR code needs an internet connection.</div>';return}new QRCode(box,{text:url,width:220,height:220,colorDark:'#141418',colorLight:'#ffffff'});setTimeout(()=>{const c=box.querySelector('canvas'),i=box.querySelector('img');if(c&&i){i.src=c.toDataURL();i.style.display='block';c.style.display='none'}},50)})};
 A.signupTest=()=>{const n=$('#suName').value.trim(),e=$('#suEmail').value.trim().toLowerCase();if(!n||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){toast('Enter a name and a valid email');return}if(!$('#suOk').checked){toast('Tick the box to agree to marketing');return}let g=S.guests.find(x=>x.email.toLowerCase()===e);if(g){g.marketing=true}else{g={id:uid(),name:n,phone:$('#suPhone')?.value.trim()||'',email:e,tags:[],notes:'',marketing:true,created:today(),birthday:$('#suBday')?.value||''};S.guests.push(g)}S.signup.signups++;notify('user',`${n} joined your guest list`);save();render();toast(`${n} added to your guest book`)};
 A.locations=()=>{const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:460px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Your locations</h3><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div>${LOC.list.map(l=>`<div class="sres" data-act="switchLoc" data-id="${l.id}"><div class="av">${initials(l.name)}</div><div style="flex:1"><b>${esc(l.name)}</b>${l.id===LOC.current?'<div class="small mut">Current location</div>':''}</div>${l.id===LOC.current?ic('check',16):''}</div>`).join('')}</div><div class="pad row" style="border-top:1px solid var(--line)"><input class="inp" id="newLoc" placeholder="New location name" style="flex:1"><button class="btn sm pri" data-act="addLoc">${ic('plus',14)} Add</button></div></div>`;m.classList.add('show')};
-A.switchLoc=el=>{const id=el.dataset.id;if(id===LOC.current){A.closeModal();return}save();LOC.current=id;KEY='proview-bookings-v3:'+id;load();if(!S.venue.name||S.venue.name==='Proview Kitchen'){const l=LOC.list.find(x=>x.id===id);if(l&&l.fresh){S.venue.name=l.name;delete l.fresh}}save();U.area=S.areas[0].id;U.date=today();U.view='parties';A.closeModal();render();toast('Switched to '+S.venue.name)};
+A.switchLoc=el=>{const id=el.dataset.id;if(id===LOC.current){A.closeModal();return}save();LOC.current=id;if(CLOUD.cfg){localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload();return}KEY='proview-bookings-v3:'+id;load();if(!S.venue.name||S.venue.name==='Proview Kitchen'){const l=LOC.list.find(x=>x.id===id);if(l&&l.fresh){S.venue.name=l.name;delete l.fresh}}save();U.area=S.areas[0].id;U.date=today();U.view='parties';A.closeModal();render();toast('Switched to '+S.venue.name)};
 A.addLoc=()=>{const n=$('#newLoc').value.trim();if(!n){toast('Name the location');return}const id=uid();LOC.list.push({id,name:n});save();const keep=S;const s=upgrade(seed());s.venue.name=n;s.venue.area='';s.parties=[];s.guests=[];s.reviews=[];s.chats=[];s.notes=[];s.dirty={};try{localStorage.setItem('proview-bookings-v3:'+id,JSON.stringify(s))}catch(e){}S=keep;A.switchLoc({dataset:{id}})};
 function seatAt(pid,tid){const p=S.parties.find(x=>x.id===pid);const t=S.tables.find(x=>x.id===tid);
  if(U.date!==today()||p.date!==today()){toast('You can only seat parties on today\'s plan');return}
@@ -1444,8 +1447,8 @@ function upgradeStaff(s){
   {id:'tpl-close',name:'Closing checklist',time:'23:00',role:'Manager',days:[0,1,2,3,4,5,6],items:['Cash up the till','Check all tables cleared','Set the alarm and lock up']},
   {id:'tpl-deep',name:'Weekly deep clean',time:'15:30',role:'Kitchen porter',days:[1],items:['Degrease extraction hoods','Clean behind ovens']}];
  s.tasks=s.tasks||[];s.taskGen=s.taskGen||{};
- if(!s.tasks.some(t=>!t.templateId)){const td=today();[['Call supplier about missing oat milk','Manager','11:00','high'],['Confirm 12-person enquiry for next week','Host','14:00','normal'],['Fix wobbly leg on table M6','Kitchen porter','16:00','normal']].forEach(([title,role,due,pr])=>s.tasks.push({id:uid(),title,notes:'',date:td,due,role,assignee:'',priority:pr,status:'open',createdAt:Date.now()}))}
- return s;
+ if(!s._seedTasks&&!s.tasks.some(t=>!t.templateId)){const td=today();[['Call supplier about missing oat milk','Manager','11:00','high'],['Confirm 12-person enquiry for next week','Host','14:00','normal'],['Fix wobbly leg on table M6','Kitchen porter','16:00','normal']].forEach(([title,role,due,pr])=>s.tasks.push({id:uid(),title,notes:'',date:td,due,role,assignee:'',priority:pr,status:'open',createdAt:Date.now()}))}
+ s._seedTasks=1;return s;
 }
 function weekStart(d){return addDays(d,-((dow(d)+6)%7))}
 const staffById=id=>S.staff.find(x=>x.id===id);
@@ -1468,8 +1471,8 @@ function serverFor(tid,date){const now=fromMin(nowMin());const sh=shiftsOn(date)
 const avatar=(st,sz=30)=>st?`<span class="av" style="width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.38)}px;background:${st.color}">${initials(st.name)}</span>`:`<span class="av" style="width:${sz}px;height:${sz}px;background:var(--greyl);color:var(--mut)">?</span>`;
 const hrs=sh=>{let m=toMin(sh.end)-toMin(sh.start);if(m<=0)m+=1440;return m/60};
 VIEWS.staff=()=>{
- const tab=U.stTab||'tasks';
- const tabs=`<div class="seg" style="margin-bottom:16px">${[['tasks','Tasks'],['rota','Rota'],['team','Team'],['checklists','Checklists']].map(([k,l])=>`<button class="${tab===k?'on':''}" data-act="set" data-k="stTab" data-v="${k}">${l}</button>`).join('')}</div>`;
+ const showTasks=!!S.settings.prefs.showTasks;let tab=U.stTab||(showTasks?'tasks':'rota');if(!showTasks&&['tasks','checklists'].includes(tab))tab='rota';
+ const tabs=`<div class="seg" style="margin-bottom:16px">${(showTasks?[['tasks','Tasks'],['rota','Rota'],['team','Team'],['checklists','Checklists']]:[['rota','Rota'],['team','Team']]).map(([k,l])=>`<button class="${tab===k?'on':''}" data-act="set" data-k="stTab" data-v="${k}">${l}</button>`).join('')}</div>`;
  if(tab==='team'){const ws=weekStart(U.date);
   return tabs+`<div class="card"><div class="pad row between"><div><b>Team</b><div class="small mut">Everyone who works shifts. Roles decide which tasks and checklists they get.</div></div></div>
   <table class="t"><thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Email</th><th>Hours this week</th><th>Active</th><th></th></tr></thead><tbody>${S.staff.map(st=>{const h=S.shifts.filter(x=>x.staffId===st.id&&x.date>=ws&&x.date<=addDays(ws,6)).reduce((a,x)=>a+hrs(x),0);return`<tr><td><div class="row" style="flex-wrap:nowrap"><label title="Colour" style="cursor:pointer">${avatar(st,34)}<input type="color" value="${st.color}" data-staff="${st.id}:color" style="width:0;height:0;opacity:0;position:absolute"></label><input class="inp" style="min-width:150px" value="${esc(st.name)}" data-staff="${st.id}:name"></div></td><td><select class="inp" style="min-width:140px" data-staff="${st.id}:role">${ROLES.map(r=>`<option ${st.role===r?'selected':''}>${r}</option>`).join('')}</select></td><td><input class="inp" style="min-width:130px" value="${esc(st.phone)}" data-staff="${st.id}:phone"></td><td><input class="inp" style="min-width:200px" value="${esc(st.email)}" data-staff="${st.id}:email"></td><td>${h?h.toFixed(1)+' hrs':'—'}</td><td><label class="toggle"><input type="checkbox" ${st.active!==false?'checked':''} data-staff="${st.id}:active"><span></span></label></td><td><button class="icon-btn" style="color:var(--bad)" data-act="delStaff" data-id="${st.id}" title="Remove">${ic('trash',16)}</button></td></tr>`}).join('')}</tbody></table>
@@ -1577,17 +1580,18 @@ Seated: ${x.parties} parties, ${x.covers} covers (${x.walkins} walk-ins)
 No-shows: ${x.noshows} · Cancellations: ${x.cancelled}${x.unresolved?` · Unresolved: ${x.unresolved}`:''}
 Takings recorded: ${money(x.spend)}${x.perHead?` · ${money(x.perHead)} per head`:''}
 Busiest hour: ${x.peak}
-Staff on shift: ${x.staff} · Tasks done: ${x.tasksDone}/${x.tasksAll}${x.openTasks.length?`
-Still open: ${x.openTasks.slice(0,6).join('; ')}`:''}
+Staff on shift: ${x.staff}${S.settings.prefs.showTasks?` · Tasks done: ${x.tasksDone}/${x.tasksAll}${x.openTasks.length?`
+Still open: ${x.openTasks.slice(0,6).join('; ')}`:''}`:''}
 
 Tomorrow: ${x.tmrParties} bookings, ${x.tmrCovers} covers${x.tmrLarge?` (${x.tmrLarge} groups of 6+)`:''}`}
 A.daySummary=()=>{const x=daySummary(U.date);const t=summaryText(x);const to=S.settings.comms.staffEmails.join(',');const m=$('#modal');
  m.innerHTML=`<div class="modal card" style="max-width:560px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Day summary</h3><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div class="pad">
  <div class="stats" style="grid-template-columns:repeat(3,1fr)"><div class="card stat"><div class="k">Covers</div><div class="v">${x.covers}</div></div><div class="card stat"><div class="k">Takings</div><div class="v">${money(x.spend)}</div></div><div class="card stat"><div class="k">Per head</div><div class="v">${x.perHead?money(x.perHead):'—'}</div></div></div>
  <pre class="code" style="white-space:pre-wrap;font-family:inherit;font-size:13px;margin:0">${esc(t)}</pre>
- <div class="row" style="margin-top:14px"><button class="btn pri" data-act="copy" data-v="${esc(t)}">${ic('copy',15)} Copy summary</button>${to?`<a class="btn" href="mailto:${esc(to)}?subject=${encodeURIComponent('Day summary '+fmtDate(x.date))}&body=${encodeURIComponent(t)}">${ic('mail',15)} Email the team</a>`:`<button class="btn" data-act="goPage" data-v="comms" data-t="getn">${ic('mail',15)} Add team emails</button>`}</div>
+ <div class="row" style="margin-top:14px"><button class="btn pri" data-act="copy" data-v="${esc(t)}">${ic('copy',15)} Copy summary</button>${to&&CLOUD.on?`<button class="btn" data-act="sendSummary">${ic('mail',15)} Email the team</button>`:to?`<a class="btn" href="mailto:${esc(to)}?subject=${encodeURIComponent('Day summary '+fmtDate(x.date))}&body=${encodeURIComponent(t)}">${ic('mail',15)} Email the team</a>`:`<button class="btn" data-act="goPage" data-v="comms" data-t="getn">${ic('mail',15)} Add team emails</button>`}</div>
  <label class="row small" style="margin-top:12px">${tog('settings.comms.dailySummary')} Email this automatically every night at 23:45 (needs cloud sync)</label></div></div>`;m.classList.add('show')};
 
+A.sendSummary=()=>{const x=daySummary(U.date);const t=summaryText(x);S.settings.comms.staffEmails.forEach(to=>sendMsg({email:{to,subject:`Day summary ${fmtDate(x.date)}`,text:t}}));toast('Summary emailed to the team')};
 /* ================= occasions ================= */
 function nextOcc(md){if(!md)return null;const [,m,d]=md.split('-');const t=today();let y=+t.slice(0,4);let s=`${y}-${m}-${d}`;if(s<t)s=`${y+1}-${m}-${d}`;return s}
 function occasionsList(days=30){const end=addDays(today(),days);const out=[];S.guests.forEach(g=>{[['birthday','Birthday 🎂'],['anniversary','Anniversary 💍']].forEach(([k,l])=>{const n=nextOcc(g[k]);if(n&&n<=end)out.push({g,k,l,date:n,sent:(g.offers||{})[k+n.slice(0,4)]})})});return out.sort((a,b)=>a.date.localeCompare(b.date))}
@@ -1595,7 +1599,179 @@ A.sendOffer=el=>{const g=guestById(el.dataset.id),k=el.dataset.k,d=el.dataset.d;
  m.innerHTML=`<div class="modal card" style="max-width:520px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><b>Send ${k} offer to ${esc(g.name)}</b><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div class="pad"><div class="small mut">To: ${esc(g.email||'no email on file')}</div><div class="small mut">Subject: ${esc(e.subject)}</div>
  <div class="card" style="margin-top:10px;overflow:hidden"><div class="bk-head" style="padding:16px"><h3 style="font-size:17px">${esc(e.header)}</h3></div><div class="pad small">Hi ${esc(g.name.split(' ')[0])}, ${k==='birthday'?'happy birthday from all of us':'happy anniversary from all of us'} at ${esc(S.venue.name)}! ${esc(e.extra||'')}</div></div>
  <div class="row" style="margin-top:14px">${g.email?`<a class="btn pri" href="mailto:${esc(g.email)}?subject=${encodeURIComponent(e.subject)}&body=${encodeURIComponent(`Hi ${g.name.split(' ')[0]}, ${k==='birthday'?'happy birthday':'happy anniversary'} from all of us at ${S.venue.name}! ${e.extra||''}`)}" data-act="markOffer" data-id="${g.id}" data-k="${k}" data-d="${d}">${ic('mail',15)} Open in email</a>`:''}<button class="btn" data-act="markOffer" data-id="${g.id}" data-k="${k}" data-d="${d}">Mark as sent</button></div><div class="small mut" style="margin-top:8px">With cloud sync and an email service connected, these send automatically ${S.settings.comms.occasionDays||7} days before.</div></div></div>`;m.classList.add('show')};
-A.markOffer=el=>{const g=guestById(el.dataset.id);g.offers=g.offers||{};g.offers[el.dataset.k+el.dataset.d.slice(0,4)]=today();save();setTimeout(()=>{A.closeModal();render();toast('Offer marked as sent')},50)};
+A.markOffer=el=>{const g=guestById(el.dataset.id);if(CLOUD.on&&g.email&&el.tagName==='BUTTON'){const e=S.settings.comms.emails.find(x=>x.key===el.dataset.k)||{};sendMsg({email:{to:g.email,subject:e.subject||'A treat from us',text:`${e.header||''}\n\nHi ${g.name.split(' ')[0]}, ${el.dataset.k==='birthday'?'happy birthday':'happy anniversary'} from all of us at ${S.venue.name}! ${e.extra||''}\n\n${bookPage('')}`}})}g.offers=g.offers||{};g.offers[el.dataset.k+el.dataset.d.slice(0,4)]=today();save();setTimeout(()=>{A.closeModal();render();toast('Offer marked as sent')},50)};
+
+/* ================= cloud sync (Supabase) ================= */
+const CLOUD={cfg:null,ad:null,on:false,user:null,vid:null,snap:null,ver:null,pushT:null,busy:false,again:false,status:'off',pubJson:'',offline:false};
+function cloudLocalCfg(){try{return JSON.parse(localStorage.getItem('proview-cloud')||'null')}catch(e){return null}}
+function venueIdFor(c){return LOC.current==='main'?c.venue:c.venue+'-'+LOC.current}
+function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+async function SupabaseAdapter(c){
+ if(!window.supabase)await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js');
+ const sb=window.supabase.createClient(c.url,c.anonKey,{auth:{persistSession:true,autoRefreshToken:true}});
+ const one=r=>{if(r.error)throw r.error;return r.data};
+ return{kind:'supabase',sb,
+  async user(){return(await sb.auth.getSession()).data.session?.user||null},
+  async signIn(e,p){const r=await sb.auth.signInWithPassword({email:e,password:p});if(r.error)throw r.error;return r.data.user},
+  async signUp(e,p){const r=await sb.auth.signUp({email:e,password:p});if(r.error)throw r.error;return r.data.user},
+  async reset(e){const r=await sb.auth.resetPasswordForEmail(e,{redirectTo:location.origin+location.pathname});if(r.error)throw r.error},
+  async signOut(){await sb.auth.signOut()},
+  async get(v){return one(await sb.from('venue_state').select('data,updated_at').eq('id',v).maybeSingle())},
+  async put(v,data,prev){const now=new Date().toISOString();const u=(await sb.auth.getUser()).data.user;
+   if(prev==null){const r=await sb.from('venue_state').insert({id:v,data,updated_at:now,updated_by:u?.id}).select('updated_at');if(r.error){if(r.error.code==='23505')return null;throw r.error}return r.data[0].updated_at}
+   const r=await sb.from('venue_state').update({data,updated_at:now,updated_by:u?.id}).eq('id',v).eq('updated_at',prev).select('updated_at');if(r.error)throw r.error;return r.data.length?r.data[0].updated_at:null},
+  onChange(v,cb){sb.channel('vs-'+v).on('postgres_changes',{event:'*',schema:'public',table:'venue_state',filter:'id=eq.'+v},()=>cb()).subscribe()},
+  async inbox(v){return one(await sb.from('inbox').select('*').eq('venue',v).eq('processed',false).order('created_at'))},
+  async claim(id){const r=await sb.from('inbox').update({processed:true}).eq('id',id).eq('processed',false).select('id');if(r.error)throw r.error;return r.data.length>0},
+  onInbox(v,cb){sb.channel('ib-'+v).on('postgres_changes',{event:'INSERT',schema:'public',table:'inbox',filter:'venue=eq.'+v},()=>cb()).subscribe()},
+  async publish(v,data){const r=await sb.from('venue_public').upsert({id:v,data,updated_at:new Date().toISOString()});if(r.error)throw r.error},
+  async invoke(name,body){const r=await sb.functions.invoke(name,{body});if(r.error)throw r.error;return r.data},
+  async invite(email,v,role){const r=await sb.from('staff_invites').upsert({email:email.toLowerCase(),venue:v,role});if(r.error)throw r.error}}}
+function MockAdapter(){
+ const K=k=>'mockcloud:'+k,rd=k=>{try{return JSON.parse(localStorage.getItem(K(k))||'null')}catch(e){return null}},wr=(k,v)=>localStorage.setItem(K(k),JSON.stringify(v));
+ const subs=[];addEventListener('storage',e=>{if(e.key&&e.key.startsWith('mockcloud:'))subs.forEach(f=>f(e.key))});
+ return{kind:'mock',
+  async user(){return rd('user')},async signIn(e){const u={id:'u-'+e,email:e};wr('user',u);return u},async signUp(e){return this.signIn(e)},async reset(){},async signOut(){localStorage.removeItem(K('user'))},
+  async get(v){return rd('vs:'+v)},
+  async put(v,data,prev){const run=()=>{const cur=rd('vs:'+v);if((cur?cur.updated_at:null)!==prev)return null;const ts=new Date(Date.now()+Math.random()).toISOString()+Math.random().toString(36).slice(2,6);wr('vs:'+v,{data,updated_at:ts});return ts};return navigator.locks?navigator.locks.request('mockcloud-put',run):run()},
+  onChange(v,cb){subs.push(k=>{if(k===K('vs:'+v))cb()})},
+  async inbox(v){return(rd('inbox')||[]).filter(r=>r.venue===v&&!r.processed)},
+  async claim(id){const run=()=>{const L=rd('inbox')||[];const r=L.find(x=>x.id===id);if(!r||r.processed)return false;r.processed=true;wr('inbox',L);return true};return navigator.locks?navigator.locks.request('mockcloud-claim',run):run()},
+  onInbox(v,cb){subs.push(k=>{if(k===K('inbox'))cb()})},
+  async publish(v,data){wr('pub:'+v,{data,updated_at:new Date().toISOString()})},
+  async invoke(name,body){const L=rd('sent')||[];L.push({name,body,at:Date.now()});wr('sent',L);return{ok:true}},
+  async invite(email,v,role){const L=rd('invites')||[];L.push({email,venue:v,role});wr('invites',L)}}}
+async function cloudInit(){
+ let c=cloudLocalCfg();
+ if(!c){try{const r=await fetch('cloud.json',{cache:'no-store'});if(r.ok){const j=await r.json();if(j.url&&j.anonKey&&j.venue)c=j}}catch(e){}}
+ if(new URLSearchParams(location.search).get('cloud')==='mock')c={mock:true,venue:'demo-venue'};
+ if(!c||sessionStorage.getItem('proview-offline-only'))return;
+ CLOUD.cfg=c;CLOUD.vid=venueIdFor(c);
+ try{CLOUD.ad=c.mock?MockAdapter():await SupabaseAdapter(c)}catch(e){cloudStatus('error','Couldn\'t reach the cloud — working offline');return}
+ const u=await CLOUD.ad.user().catch(()=>null);
+ if(!u){showLogin();return}
+ CLOUD.user=u;await cloudStart();
+}
+const ID_ARRAYS=new Set(['parties','guests','tables','decor','staff','shifts','tasks','taskTemplates','chats','notes','reviews','menus','channels','schedules','overrides','combos','guestTags','partyTags']);
+function stampChanges(){
+ const old=CLOUD.snap?JSON.parse(CLOUD.snap):{};const now=Date.now();S._m=S._m||{};S._del=S._del||{};
+ for(const k of Object.keys(S)){if(k==='_m'||k==='_del')continue;const a=S[k],b=old[k];
+  if(ID_ARRAYS.has(k)&&Array.isArray(a)){const om=new Map((b||[]).map(x=>[x.id,x]));const seen=new Set();
+   for(const it of a){seen.add(it.id);const o=om.get(it.id);if(!o){it._u=now;continue}const{_u:u1,...x1}=it,{_u:u2,...x2}=o;if(JSON.stringify(x1)!==JSON.stringify(x2))it._u=now}
+   for(const id of om.keys())if(!seen.has(id))S._del[id]=now}
+  else if(JSON.stringify(a)!==JSON.stringify(b))S._m[k]=now}
+}
+function mergeState(L,Rm){
+ const out={},del={...(Rm._del||{})};for(const[k,v]of Object.entries(L._del||{}))del[k]=Math.max(del[k]||0,v);
+ const lm=L._m||{},rm=Rm._m||{},m={...rm};
+ const keys=new Set([...Object.keys(L),...Object.keys(Rm)]);keys.delete('_m');keys.delete('_del');
+ for(const k of keys){const a=L[k],b=Rm[k];
+  if(ID_ARRAYS.has(k)&&(Array.isArray(a)||Array.isArray(b))){const map=new Map();(b||[]).forEach(x=>map.set(x.id,x));
+   (a||[]).forEach(x=>{const r=map.get(x.id);if(!r||(x._u||0)>(r._u||0))map.set(x.id,x)});
+   out[k]=[...map.values()].filter(x=>!(del[x.id]&&del[x.id]>=(x._u||0)))}
+  else{const useL=b===undefined||(a!==undefined&&(lm[k]||0)>(rm[k]||0));out[k]=useL?a:b;m[k]=Math.max(lm[k]||0,rm[k]||0)}}
+ if(out.parties){const best={};out.parties.forEach(p=>{if(p.src&&(!best[p.src]||p.id<best[p.src]))best[p.src]=p.id});out.parties=out.parties.filter(p=>{if(p.src&&best[p.src]!==p.id){del[p.id]=Date.now();return false}return true})}
+ if(out.guests&&out.parties){const keep={},remap={};out.guests.forEach(g=>{const e=(g.email||'').toLowerCase();if(!e)return;if(!keep[e]||g.id<keep[e])keep[e]=g.id});out.guests=out.guests.filter(g=>{const e=(g.email||'').toLowerCase();if(e&&keep[e]!==g.id){remap[g.id]=keep[e];del[g.id]=Date.now();return false}return true});if(Object.keys(remap).length)out.parties.forEach(p=>{if(remap[p.guest]){p.guest=remap[p.guest];p._u=Date.now()}})}
+ const cut=Date.now()-30*864e5;for(const id in del)if(del[id]<cut)delete del[id];
+ out._m=m;out._del=del;return out}
+function localSave(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+async function cloudStart(){
+ CLOUD.on=true;cloudStatus('syncing');
+ try{const r=await CLOUD.ad.get(CLOUD.vid);
+  const fk='proview-synced:'+KEY;const linked=localStorage.getItem(fk)===CLOUD.vid;
+  if(r&&r.data){S=upgrade(linked?mergeState(S,r.data):r.data);if(!S._m)S._m={};if(!S._del)S._del={};CLOUD.ver=r.updated_at;CLOUD.snap=linked?JSON.stringify(r.data):JSON.stringify(S);localSave();localStorage.setItem(fk,CLOUD.vid);
+   if(linked&&JSON.stringify(S)!==JSON.stringify(r.data))schedulePush(50)}
+  else{const choice=await firstConnectChoice();if(choice==='fresh')freshVenue();CLOUD.ver=null;CLOUD.snap=null;S._m=S._m||{};S._del=S._del||{};await cloudPush();localStorage.setItem(fk,CLOUD.vid)}
+  CLOUD.ad.onChange(CLOUD.vid,()=>cloudPull());CLOUD.ad.onInbox(CLOUD.vid,()=>processInbox());
+  setInterval(()=>{cloudPull();processInbox()},45000);
+  addEventListener('online',()=>{cloudPull();schedulePush(100)});
+  await processInbox();cloudStatus('synced');render();
+ }catch(e){console.error(e);cloudStatus('error','Sync problem — changes are kept on this device and will retry')}
+}
+function firstConnectChoice(){return new Promise(res=>{const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:460px"><div class="pad"><b style="font-size:17px">Set up ${esc(CLOUD.vid)} in the cloud</b><p class="mut">This venue has no data in the cloud yet. What should every device start with?</p><button class="btn pri" style="width:100%;justify-content:center" id="fcUp">Upload what's on this device</button><div class="small mut" style="margin:6px 0 12px">Includes the sample bookings and guests if you haven't cleared them.</div><button class="btn" style="width:100%;justify-content:center" id="fcFresh">Start fresh — keep settings, tables and menus only</button></div></div>`;m.classList.add('show');$('#fcUp').onclick=()=>{A.closeModal();res('upload')};$('#fcFresh').onclick=()=>{A.closeModal();res('fresh')}})}
+function freshVenue(){['parties','guests','reviews','chats','notes','tasks','shifts'].forEach(k=>S[k]=[]);S.staff=[];S.taskGen={};S.dirty={};S.signup.signups=0;S.channels.forEach(c=>c.views=0);S.venue.users=[{name:CLOUD.user?.email?.split('@')[0]||'Owner',email:CLOUD.user?.email||'',role:'Admin',since:today()}];S._v4=1;save()}
+function schedulePush(ms=900){if(!CLOUD.on)return;clearTimeout(CLOUD.pushT);cloudStatus('syncing');CLOUD.pushT=setTimeout(cloudPush,ms)}
+async function cloudPush(){
+ if(!CLOUD.ad)return;if(CLOUD.busy){CLOUD.again=true;return}CLOUD.busy=true;
+ try{stampChanges();
+  for(let i=0;i<5;i++){const r=await CLOUD.ad.get(CLOUD.vid);const prev=r?r.updated_at:null;
+   if(r&&r.data&&prev!==CLOUD.ver)S=upgrade(mergeState(S,r.data));
+   const v=await CLOUD.ad.put(CLOUD.vid,S,prev);if(v){CLOUD.ver=v;CLOUD.snap=JSON.stringify(S);localSave();break}}
+  await publishPublic();cloudStatus(navigator.onLine?'synced':'offline');
+ }catch(e){console.error(e);cloudStatus(navigator.onLine?'error':'offline');setTimeout(()=>schedulePush(),8000)}
+ CLOUD.busy=false;CLOUD.pushT=null;if(CLOUD.again){CLOUD.again=false;schedulePush(200)}else if(CLOUD.pullAfter){CLOUD.pullAfter=false;cloudPull()}}
+async function cloudPull(){
+ if(!CLOUD.on)return;if(CLOUD.busy){CLOUD.pullAfter=true;return}
+ try{const r=await CLOUD.ad.get(CLOUD.vid);if(!r||r.updated_at===CLOUD.ver)return;
+  if(CLOUD.pushT)stampChanges();S=upgrade(mergeState(S,r.data));CLOUD.ver=r.updated_at;const differs=JSON.stringify(S)!==JSON.stringify(r.data);CLOUD.snap=JSON.stringify(r.data);localSave();if(differs)schedulePush(300);
+  const a=document.activeElement;if(a&&a.closest&&a.closest('#content')&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)){a.addEventListener('blur',()=>render(),{once:true})}else render();
+  cloudStatus('synced')}catch(e){}}
+function publicState(){const B=S.settings.bookings,P=S.settings.prefs,Q=S.settings.queue;const td=today(),end=addDays(td,+B.advanceDays+1);
+ return{venue:{name:S.venue.name,address:venueAddress(),phone:S.venue.phone,description:S.venue.description,menuBefore:S.venue.menuBefore,photo:(S.venue.photo||'').length<180000?S.venue.photo:''},
+  settings:{hours:S.settings.hours,closedDates:S.settings.closedDates,bookings:{online:B.online,minParty:B.minParty,maxParty:B.maxParty,leadMins:B.leadMins,advanceDays:B.advanceDays,interval:B.interval,maxCoversSlot:B.maxCoversSlot,showDuration:B.showDuration,unavailable:B.unavailable,areaSelect:B.areaSelect,enquiries:B.enquiries,enqMin:B.enqMin,enqMax:B.enqMax,disableStd:B.disableStd,policy:B.policy,policyAmount:B.policyAmount,policyFrom:B.policyFrom,noshowFee:B.noshowFee,cancelHours:B.cancelHours,autoConfirm:B.autoConfirm},
+   queue:{online:Q.online,closed:Q.closed,remoteSizes:Q.remoteSizes,qrSizes:Q.qr?Q.qrSizes:[],maxLen:Q.maxLen,defaultWait:Q.defaultWait},prefs:{guestTheme:P.guestTheme,tcsLink:P.tcsLink,hideQueuePos:P.hideQueuePos,extraWait:P.extraWait},durations:S.settings.durations,payments:!!S.settings.integrations.stripe},
+  types:S.types.map(({id,name,color,duration,price,exp,desc})=>({id,name,color,duration,price,exp,desc})),schedules:S.schedules,overrides:S.overrides,
+  tables:S.tables.map(({id,min,max,area,open})=>({id,min,max,area,open})),areas:S.areas.map(({id,name,open})=>({id,name,open})),combos:S.combos,
+  partyTags:S.partyTags.filter(t=>t.cat!=='Preferences').map(({id,name,cat})=>({id,name,cat})),signup:S.signup,
+  busy:S.parties.filter(p=>p.date>=td&&p.date<=end&&!DEAD.includes(p.status)&&p.kind!=='queue'&&p.kind!=='enquiry').map(p=>({d:p.date,t:p.time,dur:p.dur,tb:p.tables,n:p.size,st:p.status,s:p.seatedAt??null,e:p.endedAt??null})),
+  queue:S.parties.filter(p=>p.date===td&&p.status==='waiting').sort(queueSort).map(p=>({id:p.id,n:p.size,j:p.joinedAt,nt:p.notifiedAt||null,q:quoteOf(p)})),
+  seatedFromQueue:S.parties.filter(p=>p.date===td&&p.fromQueue&&p.qid).map(p=>p.qid),
+  generated:Date.now()}}
+async function publishPublic(){const pub=publicState();const j=JSON.stringify({...pub,generated:0});if(j===CLOUD.pubJson)return;CLOUD.pubJson=j;await CLOUD.ad.publish(CLOUD.vid,pub)}
+async function processInbox(){
+ if(!CLOUD.on)return;let rows=[];try{rows=await CLOUD.ad.inbox(CLOUD.vid)}catch(e){return}
+ let changed=false;
+ for(const row of rows){let ok=false;try{ok=await CLOUD.ad.claim(row.id)}catch(e){}if(!ok)continue;
+  try{if(handleInbox(row))changed=true}catch(e){console.error('inbox',e)}}
+ if(changed){save();render();renderTop()}}
+function handleInbox(row){const pl=row.payload||{};
+ if((row.kind==='booking'||row.kind==='enquiry')&&S.parties.some(x=>x.src===row.id))return false;
+ if(row.kind==='booking'||row.kind==='enquiry'){const p=createOnlineBooking({...pl,forceEnquiry:row.kind==='enquiry',__src:row.id});if(p&&pl.deposit_paid){p.deposit=+pl.deposit_paid;p.depositRef=pl.deposit_ref;logH(p,`Deposit paid online ${money(p.deposit)}`)}if(p&&p.kind==='booking')sendTemplate('created',p);return true}
+ if(row.kind==='queue'&&S.parties.some(x=>x.qid===row.id))return false;
+ if(row.kind==='queue'){const g=findOrCreateGuest(pl);const p={id:row.id,qid:row.id,kind:'queue',type:'std',guest:g.id,name:'',size:+pl.size||2,date:today(),time:fromMin(nowMin()),dur:durFor(+pl.size||2),tables:[],status:'waiting',quote:+S.settings.queue.defaultWait||0,joinedAt:Date.parse(row.created_at)||Date.now(),notes:pl.notes||'',tags:[],channel:pl.channel||'web',created:today(),confirm:'none',history:[]};logH(p,'Joined the queue online');S.parties.push(p);notify('queue',`${g.name} joined the queue (${p.size})`);return true}
+ if(row.kind==='signup'){const g=findOrCreateGuest({...pl,mkt:true});if(pl.birthday)g.birthday=pl.birthday;S.signup.signups++;notify('user',`${g.name} joined your guest list`);return true}
+ if(row.kind==='cancel'&&pl.queue){const p=S.parties.find(x=>x.qid===pl.id&&x.status==='waiting');if(p){p.status='cancelled';logH(p,'Left the queue online');return true}return false}
+ if(row.kind==='cancel'){const p=S.parties.find(x=>x.id===pl.id);const g=p&&guestById(p.guest);if(p&&g&&g.email&&g.email.toLowerCase()===String(pl.email||'').toLowerCase()&&!DEAD.includes(p.status)){p.status=p.kind==='queue'?'cancelled':'cancelled';logH(p,'Cancelled by guest online');notify('ban',`${g.name} cancelled their booking for ${fmtDate(p.date)}`);sendTemplate('cancelled',p);return true}return false}
+ if(row.kind==='sms'){const from=String(pl.from||'').replace(/\D/g,'').slice(-10);const g=S.guests.find(x=>x.phone&&x.phone.replace(/\D/g,'').slice(-10)===from);const body=String(pl.body||'').trim();
+  if(g){let c=S.chats.find(x=>x.guest===g.id);if(!c){c={id:uid(),guest:g.id,unread:true,messages:[]};S.chats.push(c)}c.messages.push({from:'g',text:body,at:Date.now()});c.unread=true;
+   const nb=S.parties.filter(p=>p.guest===g.id&&p.status==='booked'&&p.date>=today()).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[0];
+   if(nb&&body==='1'){nb.confirm='confirmed';logH(nb,'Confirmed by SMS reply')}if(nb&&body==='5'){nb.status='cancelled';logH(nb,'Cancelled by SMS reply');notify('ban',`${g.name} cancelled by text`)}}
+  else notify('chat',`Text from ${pl.from}: ${body.slice(0,80)}`);return true}
+ return false}
+function findOrCreateGuest(pl){const em=String(pl.email||'').trim().toLowerCase(),ph=String(pl.phone||'').trim();let g=em&&S.guests.find(x=>x.email&&x.email.toLowerCase()===em);if(!g&&ph)g=S.guests.find(x=>x.phone&&x.phone.replace(/\D/g,'')===ph.replace(/\D/g,''));
+ if(!g){g={id:uid(),name:String(pl.name||'Guest').trim().slice(0,80),phone:ph,email:em,tags:[],notes:'',marketing:!!pl.mkt,created:today()};S.guests.push(g)}else{if(pl.mkt)g.marketing=true;if(ph&&!g.phone)g.phone=ph}return g}
+function createOnlineBooking(pl){const B=S.settings.bookings;const type=S.types.some(t=>t.id===pl.type)?pl.type:'std';const t=typeById(type);const size=Math.max(1,Math.min(500,Math.round(+pl.size||2)));const date=/^\d{4}-\d{2}-\d{2}$/.test(pl.date)?pl.date:today();const time=/^\d{2}:\d{2}$/.test(pl.time)?pl.time:'19:00';const dur=t.duration||durFor(size);
+ const g=findOrCreateGuest(pl);const avail=!pl.forceEnquiry&&B.autoConfirm&&slotsFor(date,size,type,pl.area||'').some(s=>s.t===time&&s.ok);const isEnq=!avail;
+ const tags=(pl.tags||[]).filter(id=>S.partyTags.some(x=>x.id===id));
+ const p={id:uid(),src:pl.__src||null,kind:isEnq?'enquiry':'booking',type,guest:g.id,name:'',size,date,time,dur,tables:isEnq?[]:autoTable(date,time,dur,size,null,pl.area||null),status:isEnq?'pending':'booked',seatedAt:null,notes:String(pl.notes||'').slice(0,500),tags,channel:S.channels.some(c=>c.id===pl.channel)?pl.channel:'web',created:today(),preorder:false,deposit:0,confirm:isEnq?'none':'confirmed',history:[]};
+ logH(p,isEnq?(pl.forceEnquiry?'Enquiry received online':'Requested online — needs approval (time no longer free or auto-confirm off)'):`Booked online via ${chanById(p.channel)?.name||'website'}`);S.parties.push(p);
+ notify(isEnq?'mail':'globe',isEnq?`New enquiry: ${g.name}, party of ${size} on ${fmtDate(date)}`:`New online booking: ${g.name}, party of ${size} on ${fmtDate(date)} at ${time}`);return p}
+function fillTpl(txt,p){const g=guestById(p.guest);return String(txt||'').replace(/\{name\}/g,g?g.name.split(' ')[0]:'there').replace(/\{size\}/g,p.size).replace(/\{date\}/g,fmtDate(p.date,{weekday:'long',day:'numeric',month:'long'})).replace(/\{time\}/g,p.time).replace(/\{venue\}/g,S.venue.name)}
+function manageLink(p){const g=guestById(p.guest);return bookPage(`cancel=${p.id}&e=${encodeURIComponent(g?.email||'')}`)}
+function bookPage(q){const base=location.protocol==='https:'?location.origin+location.pathname.replace(/[^/]*$/,''):'https://bookings.proviewcrm.co.uk/';return base+'book/'+(q?'?'+q:'')}
+async function sendMsg(m){if(!CLOUD.on){return false}try{await CLOUD.ad.invoke('notify',{venue:CLOUD.vid,from_name:S.settings.comms.senderName||S.venue.name,...m});return true}catch(e){console.error(e);toast('Couldn\'t send — check the messaging setup');return false}}
+function sendTemplate(key,p){const C=S.settings.comms;const g=guestById(p.guest);if(!CLOUD.on||!g)return;const e=C.emails.find(x=>x.key===key);if(!e||(!e.on&&!e.locked))return;if(key==='created'&&!C.confirmEmail)return;
+ if(g.email)sendMsg({email:{to:g.email,subject:e.subject,text:`${e.header}\n\n${key==='created'?fillTpl(C.confirmText,p):key==='cancelled'?`Hi ${g.name.split(' ')[0]}, your booking for ${p.size} on ${fmtDate(p.date)} at ${p.time} has been cancelled.`:`Hi ${g.name.split(' ')[0]}, your booking is now for ${p.size} on ${fmtDate(p.date)} at ${p.time}.`}${S.settings.bookings.showDuration?`\nYour table is yours for ${fmtDur(p.dur)}.`:''}${e.extra?`\n\n${e.extra}`:''}\n\nNeed to cancel? ${manageLink(p)}\n\n${S.venue.name} · ${venueAddress()} · ${S.venue.phone}`}});
+ logH(p,`${e.label} email sent`)}
+function sendSms(p,text){const g=guestById(p.guest);if(!CLOUD.on||!g||!g.phone)return false;sendMsg({sms:{to:g.phone,body:text}});logH(p,'SMS sent: '+text.slice(0,60));return true}
+function cloudStatus(st,msg){CLOUD.status=st;CLOUD.msg=msg||'';const el=$('#syncDot');if(el){el.className='sync-dot '+st;el.title=syncLabel()}}
+function syncLabel(){return{off:'Not connected to the cloud',syncing:'Syncing…',synced:'All changes saved to the cloud',error:CLOUD.msg||'Sync problem',offline:'Offline — will sync when back online',login:'Sign in to sync'}[CLOUD.status]||''}
+function showLogin(msg){cloudStatus('login');const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:400px;margin-top:8vh"><div class="bk-head" style="text-align:center"><div class="logo" style="width:60px;height:42px;margin:0 auto 8px"></div><h3>Proview Bookings</h3><div class="small" style="opacity:.85">Sign in to see your venue's live bookings</div></div><div class="pad">${msg?`<div class="small" style="color:var(--bad);margin-bottom:8px">${esc(msg)}</div>`:''}<label class="f" style="margin-top:0">Email</label><input class="inp" id="lgEmail" type="email" autocomplete="username"><label class="f">Password</label><input class="inp" id="lgPw" type="password" autocomplete="current-password"><button class="btn pri" style="width:100%;justify-content:center;margin-top:14px" data-act="cloudSignIn">Sign in</button><div class="row between" style="margin-top:10px"><a href="#" class="small" data-act="cloudSignUp">First time? Create your account</a><a href="#" class="small" data-act="cloudReset">Forgot password</a></div><button class="btn ghost sm" style="margin-top:10px;width:100%;justify-content:center" data-act="cloudOffline">Use offline on this device for now</button></div></div>`;m.classList.add('show');setTimeout(()=>$('#lgEmail')?.focus(),50)}
+A.cloudSignIn=async()=>{const e=$('#lgEmail').value.trim(),p=$('#lgPw').value;if(!e||!p){toast('Enter your email and password');return}try{CLOUD.user=await CLOUD.ad.signIn(e,p);A.closeModal();await cloudStart();toast('Signed in — syncing')}catch(err){showLogin(err.message||'Sign-in failed');$('#lgEmail').value=e}};
+A.cloudSignUp=async(el,ev)=>{ev&&ev.preventDefault();const e=$('#lgEmail').value.trim(),p=$('#lgPw').value;if(!e||p.length<8){toast('Enter your email and a password of 8+ characters');return}try{const u=await CLOUD.ad.signUp(e,p);if(u&&(await CLOUD.ad.user())){CLOUD.user=u;A.closeModal();await cloudStart()}else showLogin('Check your email to confirm your account, then sign in. Your manager must have invited this email first.')}catch(err){showLogin(err.message)}};
+A.cloudReset=async(el,ev)=>{ev&&ev.preventDefault();const e=$('#lgEmail').value.trim();if(!e){toast('Enter your email first');return}try{await CLOUD.ad.reset(e);toast('Password reset email sent')}catch(err){toast(err.message)}};
+A.cloudOffline=()=>{sessionStorage.setItem('proview-offline-only','1');A.closeModal();cloudStatus('off')};
+A.cloudSignOut=async()=>{if(CLOUD.ad)await CLOUD.ad.signOut();location.reload()};
+A.cloudConnect=()=>{const url=$('#ccUrl').value.trim().replace(/\/$/,''),key=$('#ccKey').value.trim(),venue=slug($('#ccVenue').value.trim()||S.venue.name);if(!/^https:\/\/.+\.supabase\.co$/.test(url)){toast('Paste the Project URL from Supabase (https://…supabase.co)');return}if(key.length<40){toast('Paste the anon public key from Supabase');return}localStorage.setItem('proview-cloud',JSON.stringify({url,anonKey:key,venue}));sessionStorage.removeItem('proview-offline-only');location.reload()};
+A.cloudDisconnect=()=>ask('Stop syncing on this device? Your data stays in the cloud and on this device.',()=>{localStorage.removeItem('proview-cloud');location.reload()},'Disconnect');
+function cloudCard(){const c=CLOUD.cfg;
+ if(c&&CLOUD.on)return`<div class="card pad" style="margin-top:16px"><div class="row between"><div><b>Cloud sync <span class="chip green">Connected</span></b><div class="small mut">Venue <b>${esc(CLOUD.vid)}</b> · signed in as ${esc(CLOUD.user?.email||'')}${CLOUD.ad.kind==='mock'?' · test mode':''}</div><div class="small mut" style="margin-top:4px">${esc(syncLabel())}</div></div><div class="row"><button class="btn sm" data-act="cloudSyncNow">${ic('download',14)} Sync now</button><button class="btn sm" data-act="cloudSignOut">Sign out</button>${cloudLocalCfg()?`<button class="btn sm danger" data-act="cloudDisconnect">Disconnect</button>`:''}</div></div>
+  <div class="small mut" style="margin-top:10px">Public booking page: <a href="${esc(bookPage(''))}" target="_blank" rel="noopener">${esc(bookPage(''))}</a></div></div>`;
+ return`<div class="card pad" style="margin-top:16px"><b>Cloud sync ${c?'<span class="chip amber">Not signed in</span>':'<span class="chip">Not connected</span>'}</b><div class="small mut">Share bookings live across every iPad, phone and computer, with staff logins, online bookings, texts and deposits. Create a free Supabase project, run the setup script, then paste its details here.</div>
+  ${c?`<button class="btn sm pri" style="margin-top:12px" data-act="cloudLogin">Sign in</button>`:`<div class="grid3" style="margin-top:12px;grid-template-columns:1.2fr 1.6fr .8fr auto;align-items:end"><div><label class="f" style="margin-top:0">Project URL</label><input class="inp" id="ccUrl" placeholder="https://xxxx.supabase.co"></div><div><label class="f" style="margin-top:0">Anon public key</label><input class="inp" id="ccKey" placeholder="eyJ…"></div><div><label class="f" style="margin-top:0">Venue ID</label><input class="inp" id="ccVenue" value="${esc(slug(S.venue.name))}"></div><button class="btn pri" data-act="cloudConnect">Connect</button></div>`}
+  <div class="small mut" style="margin-top:10px">Setup guide: <a href="https://github.com/Proview92/proview-bookings/blob/main/SETUP.md" target="_blank" rel="noopener">SETUP.md</a></div></div>`}
+A.cloudLogin=()=>showLogin();
+A.cloudSyncNow=async()=>{await cloudPull();schedulePush(10);await processInbox();toast('Synced')};
 
 /* ================= global events ================= */
 document.addEventListener('click',e=>{if(U.dragEnd&&Date.now()-U.dragEnd<350){e.stopPropagation();return}if(U.areaMenu&&!e.target.closest('.menu,[data-act=areaMenu]')){U.areaMenu=null;U.keepScroll=$('#gwrap')?.scrollLeft||1;render()}const el=e.target.closest('[data-act]');if(!el)return;if(el.tagName==='A')e.preventDefault();const f=A[el.dataset.act];if(f)f(el,e)});
@@ -1631,6 +1807,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#modal').clas
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')A.closeModal()});
 
 load();if(innerWidth<=700)U.showSide=false;render();
+cloudInit();
 try{if('serviceWorker' in navigator&&/^https:$/.test(location.protocol)&&/(proviewcrm\.co\.uk|github\.io)$/.test(location.hostname))navigator.serviceWorker.register('sw.js')}catch(e){}
 function netBanner(){let b=$('#offline');if(navigator.onLine){b&&b.remove();return}if(!b){b=document.createElement('div');b.id='offline';b.textContent='You\'re offline — changes are saved on this device';document.body.appendChild(b)}}
 addEventListener('online',netBanner);addEventListener('offline',netBanner);netBanner();
