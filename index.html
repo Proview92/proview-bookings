@@ -542,6 +542,21 @@ body{font-size:15px;line-height:1.45}
 @media (max-width:700px){.app .side .side-me{display:flex!important}.side .client-pick select{font-size:15px!important}}
 @media (max-width:700px) and (hover:none) and (pointer:coarse){.side .client-pick select{font-size:16px!important}}
 
+/* rail v3: identical iPad/narrow rail on all Proview apps */
+@media (min-width:701px) and (max-width:900px){
+.side .nav{gap:0!important;row-gap:0!important}
+.side .nav>button:not(.nav-more),.side .nav>a{height:56px!important;min-height:0!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;gap:5px!important;padding:0 2px!important;margin:0!important;font-size:15px!important;font-weight:550!important}
+.side .nav>button svg,.side .nav>a svg{width:18px!important;height:18px!important;margin:0!important;order:0!important;flex:none}
+.side .nav .slbl,.side .nav>a>span:not(.bell-dot):not(.cnt){display:block!important;font-size:10.5px!important;line-height:12px!important;font-weight:500!important;letter-spacing:-.1px!important;text-transform:none!important;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:64px;margin:0!important}
+.side .nav .nav-group{color:inherit!important}
+.app .side .side-me{display:flex!important;justify-content:center;margin:8px 10px!important;padding:12px 0!important}
+.app .side .side-me-t,.app .side .side-me>svg{display:none!important}
+.side .side-foot{flex-direction:column!important;align-items:center!important;padding:0 0 12px!important;gap:0!important}
+.side .side-foot .slbl,.side .side-foot [data-act=collapse],.side .side-foot .sf-link:not([data-act=logout]):not(:last-child){display:none!important}
+.side .side-foot>*{width:30px!important;height:26px!important;padding:0!important;margin:0!important;display:flex!important;align-items:center;justify-content:center;flex-direction:row!important;gap:0!important}
+.side .side-foot>* svg{width:18px!important;height:18px!important;margin:0!important}
+}
+.datenav .dlabel{white-space:nowrap}@media (max-width:900px){.datenav .dlabel{min-width:0;padding:6px 6px}.datenav button{padding:6px 5px}}
 </style>
 </head>
 <body class="gate">
@@ -582,7 +597,7 @@ const dow=s=>new Date(s+'T12:00').getDay();
 const fmtDate=(s,o={weekday:'short',day:'numeric',month:'short'})=>new Date(s+'T12:00').toLocaleDateString('en-GB',o);
 const fmtDur=m=>{m=Math.round(Math.abs(m));const h=Math.floor(m/60),mm=m%60;return h?`${h} hr${h>1?'s':''}${mm?`, ${mm} min${mm>1?'s':''}`:''}`:`${mm} min${mm!==1?'s':''}`};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const initials=n=>(n||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+const initials=n=>(String(n||'').replace(/[^\p{L}\p{N}\s]/gu,' ').trim()||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
 const money=v=>'£'+Number(v||0).toFixed(2).replace(/\.00$/,'');
 function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function setPath(o,p,v){const k=p.split('.');let c=o;for(let i=0;i<k.length-1;i++)c=c[k[i]];c[k[k.length-1]]=v}
