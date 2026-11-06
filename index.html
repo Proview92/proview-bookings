@@ -105,6 +105,20 @@ body.gate .boot-wait{display:grid}
 .card>table.t.adm-t{min-width:0!important;width:100%}.adm-t td{vertical-align:middle}.adm-t td:first-child{width:38%}
 @media (max-width:700px){.adm-t td .row{justify-content:flex-start!important;flex-wrap:wrap!important}.adm-t td:first-child{width:auto}}
 @media (max-width:700px){.adm-t tr{display:grid;grid-template-columns:1fr;gap:6px;padding:12px 14px;border-bottom:1px solid var(--line)}.adm-t td{padding:0!important;border:0!important;text-align:left!important}.lockcard{padding:26px 20px}}
+.client-pick{margin:0 14px 12px}
+.client-pick:empty{display:none}
+.client-pick select,.top-pick select{width:100%;background:#23232a;color:#fff;border:1px solid #33333c;border-radius:9px;padding:9px 30px 9px 11px;font:inherit;font-size:14px;font-weight:500;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23fff' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;text-overflow:ellipsis}
+.client-pick select:hover{border-color:#4a4a55}
+.client-pick select:focus-visible,.top-pick select:focus-visible{outline:2px solid var(--pri);outline-offset:1px}
+.client-pick select option,.client-pick select optgroup,.top-pick select option,.top-pick select optgroup{background:#23232a;color:#fff}
+.client-pick .sp-title{color:#9a9aa4;font-size:13px;padding:0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app.collapsed .client-pick{display:none}
+@media (min-width:701px) and (max-width:900px){.client-pick{display:none}}
+.top-pick{display:none}
+@media (max-width:900px){.top-pick{display:block;max-width:46%;min-width:0;margin:0 6px}}
+@media (max-width:900px){.top-pick select{padding:7px 28px 7px 10px;font-size:15px;background-color:#fff;color:var(--ink);border:1px solid var(--line);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23555' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")}.top-pick select option,.top-pick select optgroup{background:#fff;color:var(--ink)}}
+@media (hover:none) and (pointer:coarse){.client-pick select{font-size:16px}}
+@media (max-width:700px){.top:has(.top-pick){flex-wrap:wrap!important;row-gap:8px!important;height:auto}.top .top-pick{order:20;flex:1 0 100%;max-width:none;margin:0 0 2px}}
 /* main */
 .main{display:flex;flex-direction:column;min-width:0;overflow:hidden}
 .top{display:flex;align-items:center;gap:12px;padding:12px 22px;background:var(--card);border-bottom:1px solid var(--line);min-height:62px}
@@ -476,6 +490,7 @@ body.dark .stars span{color:#4a4a55!important}
 <div class="app" id="app">
   <aside class="side">
     <div class="brand"><div class="logo" role="img" aria-label="Proview logo"></div><span class="wordmark">PROVIEW <span>BOOKINGS</span></span><button class="collapse-btn" data-act="collapse" title="Collapse menu"></button></div>
+    <div class="client-pick" id="sitePick"></div>
     <nav class="nav" id="nav"></nav>
     <div class="venue" id="venueCard" data-act="locations" title="Switch location" style="cursor:pointer"></div>
     <div class="side-foot" id="sideFoot"></div>
@@ -752,6 +767,7 @@ const SHORT={"admin":"Admin","parties": "Bookings", "tables": "Tables", "planner
 const TITLES={admin:'Businesses & sites',parties:'Bookings',tables:'Table status',planner:'Timeline',floor:'Floor view',guests:'Guests & marketing',reviews:'Reviews',preorders:'Pre-orders',reports:'Insights',settings:'Settings',staff:'Staff & rota',kitchen:'Kitchen'};
 
 function renderNav(){
+ {const sp=$('#sitePick');if(sp)sp.innerHTML=sitePickHtml()}
  const up=S.parties.filter(p=>p.date===today()&&['booked','arrived','waiting'].includes(p.status)).length;
  $('#nav').innerHTML=`<button class="nav-more" data-act="moreMenu" title="More">${ic('list',19)}<span class="lbl">More</span></button>`+(isMaster()?[...NAV,['sec','Proview'],['admin','Businesses & sites','store']]:NAV).map(n=>n[0]==='sec'?`<div class="nav-sec">${n[1]}</div>`:`<button class="${U.view===n[0]?'on':''} ${['parties','tables','planner','floor'].includes(n[0])?'nav-core':'nav-extra'}" data-act="go" data-v="${n[0]}" title="${n[1]}">${ic(n[2],19)}<span class="lbl">${n[1]}</span><span class="slbl">${SHORT[n[0]]||n[1]}</span>${n[0]==='parties'&&up?`<span class="cnt">${up}</span>`:''}</button>`).join('');
  const open=isOpenNow();
@@ -763,7 +779,7 @@ function renderTop(){
  const dated=['parties','planner','floor','staff','kitchen'].includes(U.view)&&!(U.view==='staff'&&(U.stTab==='team'||(U.stTab==='checklists'&&S.settings.prefs.showTasks)));
  const unreadChats=S.chats.filter(c=>c.unread).length,unreadN=S.notes.filter(n=>!n.read).length,enq=S.parties.filter(p=>p.kind==='enquiry'&&p.status==='pending').length;
  $('#top').innerHTML=`${dated?`<div class="datenav"><button data-act="day" data-n="-1" title="Previous day">${ic('left')}</button><div class="dlabel">${U.date===today()?'<span class="tdy">Today · </span>':''}${fmtDate(U.date)}<input type="date" value="${U.date}" data-act-change="pickDate" aria-label="Pick a date"></div><button data-act="day" data-n="1" title="Next day">${ic('right')}</button>${U.date!==today()?`<button class="today-btn" data-act="day" data-n="0">Today</button>`:''}</div>`:`<h2>${TITLES[U.view]}</h2>`}
- <div class="sp"></div>
+ <div class="sp"></div>${LOC.cloud&&((LOC.list||[]).length>1||isMaster())?`<span class="top-pick">${sitePickHtml(true)}</span>`:''}
  ${CLOUD.cfg?`<button class="icon-btn" data-act="goPage" data-v="integrations" title="${esc(syncLabel())}"><span id="syncDot" class="sync-dot ${CLOUD.status}"></span></button>`:''}
  <button class="icon-btn" data-act="search" title="Search guests & bookings (Ctrl+K)">${ic('search')}</button>
  <button class="icon-btn" data-act="chats" title="Guest messages">${ic('chat')}${unreadChats?`<span class="badge">${unreadChats}</span>`:''}</button>
@@ -1755,7 +1771,7 @@ function MockAdapter(){
    const setLic=(s,t,ext,expires,notes)=>{let e=null;if(t==='custom')e=expires;else if(t!=='lifetime'){const base=ext&&s.license_expires_at&&new Date(s.license_expires_at)>new Date()?new Date(s.license_expires_at):new Date();e=new Date(t==='trial'?base.getTime()+iv.trial:licPreview(t,{extend:ext,current:s.license_expires_at})).toISOString()}
     Object.assign(s,{license_type:t,license_expires_at:e,license_notes:notes||s.license_notes||null,license_updated_at:new Date().toISOString()});return s};
    if(fn==='bk_set_license'){if(!master)throw new Error('Only the Proview administrator can change licences.');const s=d.sites.find(x=>x.id===a.p_site);setLic(s,a.p_type,a.p_extend,a.p_expires,a.p_notes);save();return s}
-   if(fn==='bk_add_site'){if(!master)throw new Error('Only the Proview administrator can add sites.');const b=d.biz.find(x=>x.id===a.p_business);const s={id:newId(a.p_name),business_id:b.id,name:a.p_name};d.sites.push(s);if(a.p_license)setLic(s,a.p_license);if(b.contact_email)d.inv.push({email:b.contact_email,venue:s.id,role:'Admin'});save();return s}
+   if(fn==='bk_add_site'){if(!master)throw new Error('Only the Proview administrator can add sites.');const b=d.biz.find(x=>x.id===a.p_business);const s={id:newId(a.p_name),business_id:b.id,name:a.p_name};d.sites.push(s);setLic(s,a.p_license||'trial');if(b.contact_email)d.inv.push({email:b.contact_email,venue:s.id,role:'Admin'});save();return s}
    if(fn==='bk_create_my_business'){if(d.prof.some(p=>p.email===em))throw new Error('Your account already belongs to a business.');if(d.biz.some(b=>b.self_signup&&b.contact_email===em))throw new Error('This email address has already used its free trial. Call Proview to buy a licence.');
     const b={id:'b-'+Math.random().toString(36).slice(2,8),name:a.p_business,contact_email:em,phone:a.p_phone||null,self_signup:true,notes:'Signed up online',created_at:new Date().toISOString()};d.biz.push(b);
     const s={id:newId(a.p_site||a.p_business),business_id:b.id,name:a.p_site||a.p_business};setLic(s,'trial');d.sites.push(s);d.prof.push({email:em,venue:s.id,role:'Admin'});save();return s.id}
@@ -2092,6 +2108,14 @@ VIEWS.admin=()=>{
   ${D.sites.length?`<table class="t adm-t"><tbody>${D.sites.map(siteRow).join('')}</tbody></table>`:'<div class="empty">No sites yet.</div>'}</div>`};
 AFTER.admin=()=>{if(isMaster()&&(!U.adm||Date.now()-U.adm.at>60000)&&!U.admBusy){U.admBusy=true;admLoad().then(()=>{U.admBusy=false;if(U.view==='admin')render()}).catch(e=>{U.admBusy=false;toast(authErr(e))})}};
 A.admRefresh=()=>{U.adm=null;render()};
+/* site picker (same as Proview Signage's client picker): master sees every site, grouped by business */
+function sitePickHtml(compact){const L=LOC.cloud?(LOC.list||[]):[];if(!L.length)return'';
+ if(L.length===1&&!isMaster())return compact?'':`<div class="sp-title" title="${esc(L[0].name)}">${esc(L[0].name)}</div>`;
+ const groups={};L.forEach(l=>{(groups[l.business||'']=groups[l.business||'']||[]).push(l)});const names=Object.keys(groups).sort((a,b)=>a.localeCompare(b));
+ const opt=l=>`<option value="${esc(l.id)}" ${l.id===LOC.current?'selected':''}>${esc(l.name)}</option>`;
+ const many=names.length>1;
+ return`<select aria-label="Site" title="Switch site" data-act-change="pickSite">${many?names.map(n=>`<optgroup label="${esc(n||'Other')}">${groups[n].map(opt).join('')}</optgroup>`).join(''):L.map(opt).join('')}</select>`}
+A.pickSite=el=>{if(el.value&&el.value!==LOC.current)A.openSite({dataset:{id:el.value}})};
 A.goAdmin=(el,ev)=>{ev&&ev.preventDefault();A.closeModal();U.view='admin';render()};
 async function admReload(){U.adm=null;await admLoad();if(U.view==='admin')render();if(CLOUD.me){try{const me=await CLOUD.ad.whoami();CLOUD.me=me;const cur=(me.sites||[]).find(s=>s.id===CLOUD.vid);if(cur)CLOUD.site=cur;LOC.list=(me.sites||[]).map(s=>({id:s.id,name:s.name,business:s.business}));localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}}render()}
 A.openSite=el=>{const id=el.dataset.id;if(!id)return;if(id===CLOUD.vid){U.view='parties';render();return}save();LOC.current=id;if(!LOC.list.some(x=>x.id===id)){const s=U.adm?.sites.find(x=>x.id===id);LOC.list.push({id,name:s?.name||id})}LOC.cloud=true;localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload()};
