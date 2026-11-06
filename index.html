@@ -581,6 +581,13 @@ html .app .side .side-me.side-me,html .side .side-foot [data-act=logout],html .s
 @media (max-width:900px){#top{gap:6px}#top .top-pick{min-width:110px;flex:0 1 auto}#top [data-act=newParty] .lbl-np{display:none}#top [data-act=newParty]{padding-left:10px;padding-right:10px}}
 @media (max-width:700px){#top .top-me{border-left:0;padding-left:0;margin-left:0}#top{gap:1px}#top .icon-btn{width:30px;min-width:30px}#top .menu-btn{width:34px}}
 @media (max-width:400px){#top [data-act=goPage]{display:none}}
+/* compact sidebar rows (option A), same on all Proview apps */
+@media (min-width:901px){
+.side .nav>button:not(.nav-group):not(.nav-more),.side .nav>a{height:30px!important;min-height:0!important;padding:0 12px!important;gap:10px!important;font-size:14px!important}
+.side .nav>button:not(.nav-group) svg,.side .nav>a svg{width:16px!important;height:16px!important}
+.side .nav>a>span:not(.bell-dot),.side .nav>button .lbl{font-size:14px!important}
+.side .nav-sec,.side .nav-sep,.side .nav .nav-group{padding-top:10px!important;padding-bottom:3px!important;line-height:13px!important;min-height:0!important;height:auto!important}
+}
 </style>
 </head>
 <body class="gate">
