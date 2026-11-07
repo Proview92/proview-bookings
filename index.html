@@ -634,6 +634,29 @@ html .side .nav .lbl,html .side .nav .cnt,html .side .nav .badge-n{display:none!
 html .side .nav .slbl,html .side .nav>a>span:not(.bell-dot):not(.cnt){display:block!important;font-size:10px!important;line-height:12px!important;font-weight:500!important;letter-spacing:-.1px!important;text-transform:none!important;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:54px;margin:0!important}
 html .side .nav .nav-group .rail-ic{display:block!important}html .side .nav .nav-group svg:not(.rail-ic){display:none!important}
 }
+
+/* =====================================================================
+   Proview menu: one spec for Bookings, Employee, Signage and WiFi
+   (measured from Proview Signage; keep the four sites identical)
+   ===================================================================== */
+@media (min-width:701px){
+ .side .brand .collapse-btn{display:none!important}
+ .app.collapsed .side .slbl{display:none!important}
+}
+@media (min-width:901px){
+ .app.collapsed .side .brand{justify-content:flex-start!important;padding:22px 0 14px 18px!important}
+ .app.collapsed #nav{padding:6px 0!important}
+ .app.collapsed #nav button{width:32px!important;min-width:0!important;height:30px!important;margin:0 auto!important;padding:0!important;justify-content:center!important;gap:0!important;flex-direction:row!important}
+ .app.collapsed #sideFoot{justify-content:center!important;padding:0 0 14px!important}
+}
+@media (min-width:701px) and (max-width:900px){
+ .app,.app.collapsed{grid-template-columns:72px 1fr!important}
+ .app .side .slbl{display:none!important}
+ .app .side .brand{justify-content:flex-start!important;padding:22px 0 14px 18px!important}
+ .app #nav{padding:6px 0!important}
+ .app #nav button{width:32px!important;min-width:0!important;height:30px!important;margin:0 auto!important;padding:0!important;justify-content:center!important;gap:0!important;flex-direction:row!important}
+}
+
 </style>
 </head>
 <body class="gate">
