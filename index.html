@@ -643,20 +643,33 @@ html .side .nav .nav-group .rail-ic{display:block!important}html .side .nav .nav
  .side .brand .collapse-btn{display:none!important}
  .app.collapsed .side .slbl{display:none!important}
 }
+/* desktop, menu collapsed: 72px rail, logo 18,22, first button 72px down */
 @media (min-width:901px){
- .app.collapsed .side .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;padding:22px 0 14px 18px!important}
- .app.collapsed .side .brand .logo{margin:0!important}
+ .app.collapsed .side .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;padding:22px 0 18px 18px!important;margin:0!important;height:auto!important}
+ .app.collapsed .side .brand .logo{margin:0!important;width:36px!important;height:26px!important}
  .app.collapsed #nav{padding:6px 0!important}
  .app.collapsed #nav button{width:32px!important;min-width:0!important;height:30px!important;margin:0 auto!important;padding:0!important;justify-content:center!important;gap:0!important;flex-direction:row!important}
- .app.collapsed #sideFoot{justify-content:center!important;padding:0 0 14px!important}
+ .app.collapsed #sideFoot{justify-content:center!important;padding:0 0 32px!important;margin-top:auto!important}
+ .app.collapsed #sideFoot button{width:30px!important;height:26px!important;min-width:0!important;padding:0!important;justify-content:center!important;align-items:center!important}
+ .app.collapsed #sideFoot button .lbl,.app.collapsed #sideFoot button span{display:none!important}
 }
+/* iPad (701-900px): 72px rail, 52 x 56 buttons with an 18px icon and a short label */
 @media (min-width:701px) and (max-width:900px){
  .app,.app.collapsed{grid-template-columns:72px 1fr!important}
- .app .side .slbl{display:none!important}
- .app .side .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;padding:22px 0 14px 18px!important}
- .app .side .brand .logo{margin:0!important}
- .app #nav{padding:6px 0!important}
- .app #nav button{width:32px!important;min-width:0!important;height:30px!important;margin:0 auto!important;padding:0!important;justify-content:center!important;gap:0!important;flex-direction:row!important}
+ .app .side{padding:0!important;gap:0!important}
+ .app .side .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;padding:18px 0 14px!important;margin:0!important;height:auto!important;gap:0!important}
+ .app .side .brand .wordmark{display:none!important}
+ .app .side .brand .logo{margin:0!important;width:36px!important;height:26px!important}
+ .app .side #sitePick,.app .side .client-pick,.app .side .venue,.app .side #sideFoot,.app .side .nav-sec{display:none!important}
+ .app #nav{padding:6px 10px!important;display:block!important}
+ .app #nav button{width:52px!important;min-width:0!important;max-width:52px!important;height:56px!important;margin:0!important;padding:0 2px!important;gap:5px!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;border-radius:9px!important;box-sizing:border-box!important}
+ .app #nav button svg,.app #nav button .gs-ring{width:18px!important;height:18px!important;margin:0!important;flex:none}
+ .app #nav button .lbl,.app #nav button .cnt{display:none!important}
+ .app #nav button .slbl{display:block!important;font-size:10.5px!important;line-height:12px!important;font-weight:500!important;letter-spacing:-.1px!important;max-width:64px!important;white-space:nowrap;overflow:visible!important;text-align:center;margin:0!important}
+}
+/* phones: logo 32 x 23 like Signage */
+@media (max-width:700px){
+ html .side .brand .logo{width:32px!important;height:23px!important;margin:0 auto!important}
 }
 
 
