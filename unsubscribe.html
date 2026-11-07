@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>Unsubscribe</title>
+<style>
+  body { margin: 0; font: 16px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f4f3ef; color: #17171c; display: grid; place-items: center; min-height: 100vh; padding: 20px; box-sizing: border-box; }
+  .c { background: #fff; border: 1px solid #e4e2dc; border-radius: 18px; padding: 32px 28px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 18px 50px -18px rgba(20, 20, 30, .18); }
+  h1 { font-size: 22px; margin: 0 0 8px; }
+  p { color: #55555f; margin: 0 0 18px; }
+  button { font: 600 15px inherit; font-family: inherit; color: #fff; background: linear-gradient(135deg, #2f84d4, #5a5fbb); border: 0; border-radius: 10px; padding: 12px 22px; cursor: pointer; min-height: 44px; }
+  button:disabled { opacity: .6; cursor: default; }
+  button:focus-visible { outline: 3px solid #90caf9; outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main class="c" aria-live="polite" id="box"><p>Loading…</p></main>
+<script>
+(function () {
+  var FN = 'https://otljdgrjrikuejmlwnpv.supabase.co/functions/v1/bk-mail';
+  var t = new URLSearchParams(location.search).get('t') || '';
+  var box = document.getElementById('box');
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function show(h) { box.innerHTML = h; }
+  function call(action) {
+    return fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: action, token: t }) })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Something went wrong'); return j; }); });
+  }
+  function done(venue) { show('<h1>You’re unsubscribed</h1><p>You won’t get marketing emails from ' + esc(venue) + ' any more. Sorry to see you go.</p>'); }
+  if (t === 'test') return show('<h1>This was a test email</h1><p>The unsubscribe link will work in the real campaign.</p>');
+  call('info').then(function (j) {
+    if (j.done) return done(j.venue);
+    show('<h1>Unsubscribe?</h1><p>Stop marketing emails from ' + esc(j.venue) + ' to <b>' + esc(j.email) + '</b>.</p><button id="go">Unsubscribe me</button>');
+    document.getElementById('go').onclick = function () {
+      this.disabled = true; this.textContent = 'Unsubscribing…';
+      call('unsub').then(function (k) { done(k.venue); }).catch(function (e) { show('<h1>Something went wrong</h1><p>' + esc(e.message) + ' Please try again.</p>'); });
+    };
+  }).catch(function (e) { show('<h1>Link not recognised</h1><p>' + esc(e.message) + '</p>'); });
+})();
+</script>
+</body>
+</html>
