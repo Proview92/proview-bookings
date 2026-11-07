@@ -2224,10 +2224,30 @@ function licBannerHtml(){if(!CLOUD.site)return'';const s=CLOUD.site,L=licState(s
 function sitePickHtml(compact){const L=LOC.cloud?(LOC.list||[]):[];if(!L.length)return'';
  if(L.length===1&&!isMaster())return compact?'':`<div class="sp-title" title="${esc(L[0].name)}">${esc(L[0].name)}</div>`;
  const groups={};L.forEach(l=>{(groups[l.business||'']=groups[l.business||'']||[]).push(l)});const names=Object.keys(groups).sort((a,b)=>a.localeCompare(b));
- const opt=l=>`<option value="${esc(l.id)}" ${l.id===LOC.current?'selected':''}>${esc(l.name)}</option>`;
+ const all=U.view==='allsites'&&isMaster(),opt=l=>`<option value="${esc(l.id)}" ${l.id===LOC.current&&!all?'selected':''}>${esc(l.name)}</option>`;
  const many=names.length>1;
- return`<select aria-label="Site" title="Switch site" data-act-change="pickSite">${many?names.map(n=>`<optgroup label="${esc(n||'Other')}">${groups[n].map(opt).join('')}</optgroup>`).join(''):L.map(opt).join('')}</select>`}
-A.pickSite=el=>{if(el.value&&el.value!==LOC.current)A.openSite({dataset:{id:el.value}})};
+ return`<select aria-label="Site" title="Switch site" data-act-change="pickSite">${isMaster()?`<option value="__all" ${all?'selected':''}>All sites (${L.length})</option>`:''}${many?names.map(n=>`<optgroup label="${esc(n||'Other')}">${groups[n].map(opt).join('')}</optgroup>`).join(''):L.map(opt).join('')}</select>`}
+A.pickSite=el=>{if(el.value==='__all'){U.view='allsites';render();return}if(el.value&&el.value===LOC.current&&U.view==='allsites'){U.view='parties';render();return}if(el.value&&el.value!==LOC.current){U.view='parties';A.openSite({dataset:{id:el.value}})}};
+/* "All sites" (master admins, from the site picker): every site's licence and today's bookings at a glance */
+TITLES.allsites='All sites';
+const ALLS={rows:null,busy:false,at:0,err:''};
+VIEWS.allsites=()=>{if(!isMaster())return VIEWS.parties();
+ const sites=CLOUD.me?.sites||[],R=ALLS.rows,by=id=>R&&R[id];
+ const sum=k=>R?sites.reduce((n,x)=>n+((by(x.id)||{})[k]||0),0):'…';
+ const stat=(k,v)=>`<div class="card stat"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+ const row=x=>{const r=by(x.id);return`<tr><td><b>${esc(x.name)}</b>${x.business?`<div class="small mut">${esc(x.business)}</div>`:''}</td><td>${licChip(x)}</td><td>${r?r.b:'…'}</td><td>${r?r.c:'…'}</td><td>${r?r.s:'…'}</td><td class="small mut">${r&&r.at?esc(new Date(r.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})):'—'}</td><td style="text-align:right"><button class="btn sm ${x.id===LOC.current?'':'pri'}" data-act="allOpen" data-id="${esc(x.id)}">${x.id===LOC.current?'Back to this site':'Open'}</button></td></tr>`};
+ return`<div class="stats">${stat('Sites',sites.length)}${stat('Licensed',sites.filter(licWorks).length)}${stat('Bookings today',sum('b'))}${stat('Covers today',sum('c'))}</div>
+ ${ALLS.err?`<div class="notice bad" style="margin-bottom:12px">${esc(ALLS.err)}</div>`:''}
+ <div class="card"><div class="pad row between"><div><b style="font-size:16px">Every site</b><div class="small mut">Today's bookings across all businesses. Open a site to see it as its team does.</div></div><a class="btn sm" href="${LIC_PORTAL}" target="_blank" rel="noopener">Licences ↗</a></div>
+ ${sites.length?`<table class="t"><thead><tr><th>Site</th><th>Licence</th><th>Bookings today</th><th>Covers</th><th>Seated now</th><th>Last change</th><th></th></tr></thead><tbody>${sites.map(row).join('')}</tbody></table>`:`<div class="pad mut">No sites yet. Add businesses and sites in the licence portal.</div>`}</div>`};
+AFTER.allsites=async()=>{if(!isMaster()||ALLS.busy||!CLOUD.ad?.sb)return;if(ALLS.at&&Date.now()-ALLS.at<60e3)return;ALLS.busy=true;
+ try{const r=await CLOUD.ad.sb.from('bk_venue_state').select('id,updated_at,parties:data->parties');if(r.error)throw r.error;
+  const t=today(),rows={};(r.data||[]).forEach(v=>{const ps=(Array.isArray(v.parties)?v.parties:[]).filter(p=>p&&p.date===t&&p.kind!=='enquiry'&&!['cancelled','deleted','noshow'].includes(p.status));
+   rows[v.id]={b:ps.length,c:ps.reduce((n,p)=>n+(+p.size||0),0),s:ps.filter(p=>ACTIVE.includes(p.status)).length,at:v.updated_at}});
+  (CLOUD.me?.sites||[]).forEach(x=>{if(!rows[x.id])rows[x.id]={b:0,c:0,s:0,at:null}});ALLS.rows=rows;ALLS.at=Date.now();ALLS.err=''}
+ catch(e){ALLS.err='Couldn’t load today’s bookings: '+(e.message||e);ALLS.at=Date.now()}
+ ALLS.busy=false;if(U.view==='allsites')render()};
+A.allOpen=el=>{const id=el.dataset.id;U.view='parties';if(id===LOC.current){render();return}A.openSite({dataset:{id}})};
 A.openSite=el=>{const id=el.dataset.id;if(!id)return;if(id===CLOUD.vid)return;save();LOC.current=id;if(!LOC.list.some(x=>x.id===id)){LOC.list.push({id,name:id})}LOC.cloud=true;localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload()};
 /* licences are managed in the Proview licence portal */
 const LIC_PORTAL='https://license.proviewcrm.co.uk';
