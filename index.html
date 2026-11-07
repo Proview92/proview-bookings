@@ -580,7 +580,7 @@ html .app .side .side-me.side-me,html .side .side-foot [data-act=logout],html .s
 @media (max-width:700px){.top-me{margin-left:2px;padding-left:6px;gap:2px}.top-av{width:32px;height:32px;font-size:12px}}
 @media (max-width:900px){#top{gap:6px}#top .top-pick{min-width:110px;flex:0 1 auto}#top [data-act=newParty] .lbl-np{display:none}#top [data-act=newParty]{padding-left:10px;padding-right:10px}}
 @media (max-width:700px){#top .top-me{border-left:0;padding-left:0;margin-left:0}#top{gap:1px}#top .icon-btn{width:30px;min-width:30px}#top .menu-btn{width:34px}}
-@media (max-width:400px){#top [data-act=goPage]{display:none}}
+@media (max-width:440px){#top .datenav>button{display:none}#top .datenav .dlabel{padding:6px 10px}}
 /* compact sidebar rows (option A), same on all Proview apps */
 @media (min-width:901px){
 .side .nav>button:not(.nav-group):not(.nav-more),.side .nav>a{height:30px!important;min-height:0!important;padding:0 12px!important;gap:10px!important;font-size:14px!important}
@@ -596,6 +596,14 @@ html .app .side .side-me.side-me,html .side .side-foot [data-act=logout],html .s
 #drawer.open~.fab,.modal-bg.show~.fab,body.gate .fab{display:none!important}
 #content,.content{padding-bottom:96px!important}
 @media (max-width:700px){.fab{width:56px!important;height:56px!important;padding:0!important;border-radius:50%!important;right:16px;bottom:calc(20px + env(safe-area-inset-bottom))!important}.fab .fab-l{display:none}}
+/* header tray (same on all Proview apps) */
+.hdr-cap{display:flex;align-items:center;gap:2px;background:#f3f2ee;border-radius:12px;padding:3px;flex:none}
+.hdr-cap>button,.hdr-cap>a{width:34px!important;height:34px!important;min-width:34px!important;border-radius:9px!important;background:transparent!important;border:0!important;display:grid;place-items:center;position:relative;padding:0!important;box-shadow:none!important}
+.hdr-cap>button:hover,.hdr-cap>a:hover{background:#fff!important}
+.hdr-cap svg{width:18px!important;height:18px!important}.hdr-cap>[data-act=goPage]{width:27px!important;min-width:27px!important}@media (max-width:700px){.hdr-cap>[data-act=goPage]{width:21px!important;min-width:21px!important}}
+#top .top-me{border-left:0!important;padding-left:0!important;margin-left:8px!important}
+@media (max-width:700px){.hdr-cap{padding:2px;gap:0}.hdr-cap>button,.hdr-cap>a{width:30px!important;min-width:30px!important;height:30px!important}#top .top-me{margin-left:4px!important}}
+@media (max-width:700px){#top .hdr-cap>button,#top .hdr-cap>a{width:30px!important;min-width:30px!important;height:30px!important}#top .hdr-cap>[data-act=goPage]{width:21px!important;min-width:21px!important}}
 </style>
 </head>
 <body class="gate">
@@ -2219,7 +2227,7 @@ document.addEventListener('change',e=>{if(e.target.closest('.side .client-pick')
 
 
 function topMe(act){const t=document.getElementById('top'),vc=document.getElementById('venueCard');if(!t)return;const a=vc&&vc.querySelector('.side-av');if(!a)return;t.querySelector('.top-me')?.remove();const nm=vc.querySelector('.side-me-t b')?.textContent||'',sub=vc.querySelector('.side-me-t span')?.textContent||'';const w=document.createElement('div');w.className='top-me';w.innerHTML=`<button class="top-av" title="${esc(nm+(sub?' · '+sub:''))}" aria-label="My account">${esc(a.textContent)}</button><button class="icon-btn top-out" data-act="${act}" title="Sign out" aria-label="Sign out">${ic('out',18)}</button>`;w.querySelector('.top-av').onclick=e=>{e.stopPropagation();vc.click()};t.appendChild(w)}
-{const _rt=renderTop,_rn=renderNav;renderTop=function(){const r=_rt.apply(this,arguments);topMe('logout');return r};renderNav=function(){const r=_rn.apply(this,arguments);topMe('logout');return r}}
+{const _rt=renderTop,_rn=renderNav;renderTop=function(){const r=_rt.apply(this,arguments);try{const t=document.getElementById('top');if(t&&!t.querySelector('.hdr-cap')){const ks=['goPage','search','chats','enquiries','notifs'].map(k=>t.querySelector(':scope>[data-act='+k+']')).filter(Boolean);if(ks.length){const cap=document.createElement('div');cap.className='hdr-cap';ks[0].before(cap);ks.forEach(e=>cap.appendChild(e))}}}catch(e){}topMe('logout');return r};renderNav=function(){const r=_rn.apply(this,arguments);topMe('logout');return r}}
 load();if(innerWidth<=700)U.showSide=false;render();
 
 
