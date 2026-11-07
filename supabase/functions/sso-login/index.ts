@@ -1,6 +1,6 @@
 // "Sign in with Proview account" — receiving end for bookings.
 //
-// license.proviewcrm.co.uk/account/ signs a short-lived Ed25519 assertion "this person controls
+// dashboard.proviewcrm.co.uk signs a short-lived Ed25519 assertion "this person controls
 // <email>" (only after they signed in to their confirmed Proview account). This function checks
 // the signature, checks the email is an owner/manager here (public.sso_entitled), and returns a
 // one-time magic-link token the app exchanges for a normal session with

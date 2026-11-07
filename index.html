@@ -2048,7 +2048,7 @@ function showLogin(msg,kind){cloudStatus('login');A.closeModal();document.body.c
   <div class="alinks"><button type="button" data-act="authSwap">${up?'I already have an account':'Create an account'}</button><button type="button" class="${up?'hidden':''}" data-act="cloudReset">Forgot password?</button></div>
  </form></div>`;
  a.hidden=false;$('#lgPw').addEventListener('input',authMatch);setTimeout(()=>(keep?$('#lgPw'):$('#lgEmail'))?.focus(),50)}
-const PV_ACCOUNT='https://license.proviewcrm.co.uk/account/';
+const PV_ACCOUNT='https://dashboard.proviewcrm.co.uk/';
 function pvAccount(){location.href=PV_ACCOUNT+'?app=bookings&return='+encodeURIComponent(location.origin+location.pathname+location.search)}
 function authMatch(){const a=$('#lgPw')?.value,b=$('#lgPw2')?.value,m=$('#pwMatch');if(!m)return;if(!b){m.textContent='';m.className='pw-match';return}const ok=a===b;m.textContent=ok?'✓ Passwords match':'Passwords don’t match yet';m.className='pw-match '+(ok?'ok':'bad')}
 function authNote(msg,kind){const m=$('#authMsg');if(m)m.innerHTML=msg?`<div class="notice ${kind||'bad'}">${esc(msg)}</div>`:''}
