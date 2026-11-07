@@ -595,6 +595,7 @@ html .app .side .side-me.side-me,html .side .side-foot [data-act=logout],html .s
 /* New party: floating button bottom-right instead of the header */
 #top [data-act=newParty]{display:none!important}
 .fab{display:inline-flex!important;align-items:center;justify-content:center;gap:8px;position:fixed;right:24px;bottom:24px!important;width:auto!important;height:52px!important;padding:0 22px 0 18px;border-radius:26px!important;border:0;background:var(--grad);color:#fff;font-family:inherit;font-size:15px;font-weight:600;box-shadow:0 8px 24px rgba(74,108,208,.4);z-index:36;cursor:pointer}
+body.v-allsites .fab{display:none!important}
 .fab svg{width:20px;height:20px}
 .fab:hover{filter:brightness(1.06)}
 #drawer.open~.fab,.modal-bg.show~.fab,body.gate .fab{display:none!important}
@@ -917,7 +918,7 @@ function renderTop(){
  <button class="icon-btn" data-act="notifs" title="Notifications">${ic('bell')}${unreadN?`<span class="badge">${unreadN}</span>`:''}</button>
  <button class="btn pri" data-act="newParty" title="Add a party">${ic('plus',16)} <span class="lbl-np">New party</span></button>`;
 }
-function render(){document.body.classList.toggle('dark',!!S.settings.prefs.dark);renderNav();renderTop();const c=$('#content');if(U.view==='admin')U.view='parties';c.innerHTML=licBannerHtml()+(VIEWS[U.view]||VIEWS.parties)();if(AFTER[U.view])AFTER[U.view]()}
+function render(){document.body.classList.toggle('dark',!!S.settings.prefs.dark);document.body.classList.toggle('v-allsites',U.view==='allsites');renderNav();renderTop();const c=$('#content');if(U.view==='admin')U.view='parties';c.innerHTML=licBannerHtml()+(VIEWS[U.view]||VIEWS.parties)();if(AFTER[U.view])AFTER[U.view]()}
 
 /* ================= views ================= */
 const VIEWS={},AFTER={};
