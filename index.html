@@ -88,6 +88,8 @@ body.gate #app{display:none}
 .auth .go{height:44px;border:0;border-radius:10px;background:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);color:#fff;font:inherit;font-weight:600;font-size:15px;cursor:pointer}
 .auth .go:disabled{opacity:.6;cursor:default}
 .auth .alinks{display:flex;justify-content:space-between;gap:8px}
+.or-line{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;margin:2px 0}.or-line:before,.or-line:after{content:"";flex:1;height:1px;background:var(--line)}
+.pv-sso{height:44px;border:1px solid var(--line);border-radius:10px;background:var(--card,#fff);color:var(--ink);font:inherit;font-weight:600;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}.pv-sso:hover{background:var(--bg)}
 .auth .alinks button{border:0;background:none;font:inherit;font-weight:600;font-size:13.5px;color:var(--ink);padding:8px 12px;border-radius:8px;cursor:pointer}
 .auth .alinks button:hover{background:var(--bg)}
 .auth .notice{background:#edf2fd;border:1px solid #cbd8f6;color:#213f8a;padding:10px 14px;border-radius:10px;font-size:14px;line-height:1.4}
@@ -1855,6 +1857,9 @@ async function SupabaseAdapter(c){
   async reset(e){const r=await sb.auth.resetPasswordForEmail(e,{redirectTo:location.origin+location.pathname});if(r.error)throw r.error},
   async setPw(p){const r=await sb.auth.updateUser({password:p});if(r.error)throw r.error},
   async signOut(){await sb.auth.signOut()},
+  async sso(token){const r=await fetch(c.url+'/functions/v1/sso-login',{method:'POST',headers:{'content-type':'application/json',apikey:c.anonKey},body:JSON.stringify({assertion:token})});const j=await r.json().catch(()=>({}));if(!r.ok||!j.token_hash)throw new Error(j.error||'Sign-in with your Proview account failed. Please try again.');
+   const cur=(await sb.auth.getSession()).data.session?.user;if(cur&&String(cur.email||'').toLowerCase()!==j.email)await sb.auth.signOut();
+   const v=await sb.auth.verifyOtp({token_hash:j.token_hash,type:'magiclink'});if(v.error)throw v.error;return v.data.user},
   async get(v){return one(await sb.from('bk_venue_state').select('data,updated_at').eq('id',v).maybeSingle())},
   async put(v,data,prev){const now=new Date().toISOString();const u=(await sb.auth.getUser()).data.user;
    if(prev==null){const r=await sb.from('bk_venue_state').insert({id:v,data,updated_at:now,updated_by:u?.id}).select('updated_at');if(r.error){if(r.error.code==='23505')return null;throw r.error}return r.data[0].updated_at}
@@ -1914,6 +1919,8 @@ async function cloudInit(){
  if(!c){hideAuth();return}
  CLOUD.cfg=c;CLOUD.vid=venueIdFor(c);
  try{CLOUD.ad=c.mock?MockAdapter():await SupabaseAdapter(c)}catch(e){hideAuth();cloudStatus('error','Couldn\'t reach the cloud — working offline');return}
+ const pv=location.hash.match(/[#&]pv_sso=([^&]+)/);
+ if(pv&&CLOUD.ad.sso){history.replaceState(null,'',location.pathname+location.search);try{CLOUD.user=await CLOUD.ad.sso(pv[1]);await afterSignIn();if(CLOUD.on)toast('Signed in with your Proview account');return}catch(e){showLogin(authErr(e));return}}
  const u=await CLOUD.ad.user().catch(()=>null);
  if(!u){showLogin();return}
  CLOUD.user=u;await afterSignIn();
@@ -2037,9 +2044,12 @@ function showLogin(msg,kind){cloudStatus('login');A.closeModal();document.body.c
   <label class="af">Password<div class="pw-wrap"><input id="lgPw" type="password" autocomplete="${up?'new-password':'current-password'}" placeholder="${up?'At least 8 characters':'••••••••'}" required><button type="button" class="pw-eye" data-act="authEye" data-f="lgPw" title="Show password" aria-label="Show password">${ic('eye',18)}</button></div></label>
   <label class="af ${up?'':'hidden'}">Confirm password<div><div class="pw-wrap"><input id="lgPw2" type="password" autocomplete="new-password" placeholder="Type it again" oninput="authMatch()"><button type="button" class="pw-eye" data-act="authEye" data-f="lgPw2" title="Show password" aria-label="Show password">${ic('eye',18)}</button></div><div class="pw-match" id="pwMatch"></div></div></label>
   <button class="go" type="submit" id="authGo">${up?'Create account':'Sign in'}</button>
+  ${up?'':`<div class="or-line">or</div><button type="button" class="pv-sso" onclick="pvAccount()">Sign in with Proview account</button>`}
   <div class="alinks"><button type="button" data-act="authSwap">${up?'I already have an account':'Create an account'}</button><button type="button" class="${up?'hidden':''}" data-act="cloudReset">Forgot password?</button></div>
  </form></div>`;
  a.hidden=false;$('#lgPw').addEventListener('input',authMatch);setTimeout(()=>(keep?$('#lgPw'):$('#lgEmail'))?.focus(),50)}
+const PV_ACCOUNT='https://dashboard.proviewcrm.co.uk/';
+function pvAccount(){location.href=PV_ACCOUNT+'?app=bookings&return='+encodeURIComponent(location.origin+location.pathname+location.search)}
 function authMatch(){const a=$('#lgPw')?.value,b=$('#lgPw2')?.value,m=$('#pwMatch');if(!m)return;if(!b){m.textContent='';m.className='pw-match';return}const ok=a===b;m.textContent=ok?'✓ Passwords match':'Passwords don’t match yet';m.className='pw-match '+(ok?'ok':'bad')}
 function authNote(msg,kind){const m=$('#authMsg');if(m)m.innerHTML=msg?`<div class="notice ${kind||'bad'}">${esc(msg)}</div>`:''}
 function authErr(err){const t=String(err?.message||err||'');if(/invalid login credentials/i.test(t))return 'That email or password isn’t right. Try again, or press “Forgot password?” to reset it.';if(/already registered/i.test(t))return 'There’s already an account for this email. Press “I already have an account” and sign in.';if(/rate limit|too many/i.test(t))return 'Too many attempts. Please wait a minute and try again.';return t||'Something went wrong. Please try again.'}
