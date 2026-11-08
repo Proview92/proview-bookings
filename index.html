@@ -12,6 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="Proview Bookings">
 <link rel="apple-touch-icon" href="icon-180.png?v=2">
 <link rel="icon" type="image/png" href="icon-32.png?v=2">
+<script>try{if(localStorage.getItem('pv-splash-dark')==='1')document.documentElement.classList.add('pv-dark')}catch(e){}</script>
 <style>
 :root{--pri:#4a6cd0;--pri-d:#3a59b8;--pri-l:#edf2fd;--grad:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);--grad-light:linear-gradient(90deg,#62b0ec 0%,#8b88dc 100%);--navy:#141418;--navy2:#26262e;--bg:#f4f3ef;--card:#fff;--ink:#17171c;--mut:#55555f;--line:#e4e2dc;--ok:#12a150;--okl:#e7f6ed;--warn:#d48a00;--warnl:#fdf3de;--bad:#d92d20;--badl:#fdf0ef;--pur:#6d5fc4;--purl:#efedfb;--grey:#8b8b95;--greyl:#efeee9;--r:12px;--sh:0 1px 2px rgba(20,20,30,.06),0 4px 16px rgba(20,20,30,.05)}
 body.dark{--bg:#0e0e11;--card:#18181d;--ink:#ececf1;--mut:#9a9aa5;--line:#2a2a32;--pri-l:#232a45;--greyl:#23232a;--okl:#0f2e26;--warnl:#33280e;--badl:#3a1820;--purl:#271c47}
@@ -100,7 +101,9 @@ body.gate #app{display:none}
 .auth .hidden{display:none!important}
 .boot-wait{position:fixed;inset:0;display:none;place-items:center;background:var(--bg);z-index:54}
 body.gate .boot-wait{display:grid}
-.boot-wait .logo{width:72px;height:50px;background-size:contain;background-repeat:no-repeat;opacity:.9;animation:bootp 1.2s ease-in-out infinite}
+.boot-wait .logo{width:72px;height:72px;background-size:contain;background-repeat:no-repeat;opacity:.9;animation:bootp 1.2s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.boot-wait .logo{animation:none}}
+html.pv-dark .boot-wait{background:#0e0e11}
 @keyframes bootp{50%{opacity:.35}}
 @media (max-width:1300px) and (min-width:821px){.auth-art .tv{width:300px;right:-80px;bottom:140px}}
 @media (max-width:820px){.auth{grid-template-columns:1fr}.auth-art{display:none}.auth-form{padding:24px 14px;align-content:start;min-height:100vh;box-sizing:border-box}.auth-form form{padding:26px 20px;border-radius:18px;margin-top:4vh}.auth label.af input{font-size:16px}.auth-brand .logo{width:76px;height:52px}.auth-brand .wordmark{font-size:17px}}
@@ -707,12 +710,13 @@ html .side .nav .nav-group .rail-ic{display:block!important}html .side .nav .nav
 html .logo.logo.logo.logo{background:url(icon-app.svg) center/contain no-repeat!important;border-radius:22%}
 html .side .brand .logo.logo.logo.logo,html .brand .logo.logo.logo.logo,html .app.collapsed .side .brand .logo.logo.logo.logo,html body .app .side .brand .logo.logo.logo.logo{width:30px!important;height:30px!important}
 html .auth-brand .logo.logo.logo.logo{width:60px!important;height:60px!important}
-html .boot-wait .logo.logo.logo.logo{width:64px!important;height:64px!important}
+/* loading splash (the Proview standard: 72px app icon, centred on the page background, 1.2s pulse) */
+html .boot-wait .logo.logo.logo.logo{width:72px!important;height:72px!important}
 html .wordmark span,html .wordmark span.x.x,html .wordmark2 span,html .wordmark2 span.x.x,html .wm span,html .fcols .brand .wm span{background:linear-gradient(90deg,#8B5CF6 0%,#6D28D9 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important}
 </style>
 </head>
 <body class="gate">
-<div class="boot-wait" id="bootWait"><div class="logo"></div></div>
+<div class="boot-wait pv-splash" id="bootWait" role="status" aria-label="Loading Proview Bookings"><div class="logo"></div></div>
 <div class="auth" id="auth" hidden></div>
 <div class="app" id="app">
   <aside class="side">
@@ -1016,7 +1020,7 @@ function renderTop(){
  <button class="icon-btn" data-act="notifs" title="Notifications">${ic('bell')}${unreadN?`<span class="badge">${unreadN}</span>`:''}</button>
  <button class="btn pri" data-act="newParty" title="Add a party">${ic('plus',16)} <span class="lbl-np">New party</span></button>`;
 }
-function render(){document.body.classList.toggle('dark',!!S.settings.prefs.dark);document.body.classList.toggle('v-allsites',U.view==='allsites');renderNav();renderTop();const c=$('#content');if(U.view==='admin')U.view='parties';c.innerHTML=licBannerHtml()+(VIEWS[U.view]||VIEWS.parties)();if(AFTER[U.view])AFTER[U.view]()}
+function render(){document.body.classList.toggle('dark',!!S.settings.prefs.dark);try{localStorage.setItem('pv-splash-dark',S.settings.prefs.dark?'1':'0')}catch(e){}document.body.classList.toggle('v-allsites',U.view==='allsites');renderNav();renderTop();const c=$('#content');if(U.view==='admin')U.view='parties';c.innerHTML=licBannerHtml()+(VIEWS[U.view]||VIEWS.parties)();if(AFTER[U.view])AFTER[U.view]()}
 
 /* ================= views ================= */
 const VIEWS={},AFTER={};
@@ -1999,7 +2003,7 @@ function MockAdapter(){
  const K=k=>'mockcloud:'+k,rd=k=>{try{return JSON.parse(localStorage.getItem(K(k))||'null')}catch(e){return null}},wr=(k,v)=>localStorage.setItem(K(k),JSON.stringify(v));
  const subs=[];addEventListener('storage',e=>{if(e.key&&e.key.startsWith('mockcloud:'))subs.forEach(f=>f(e.key))});
  return{kind:'mock',
-  async user(){return rd('user')},async signIn(e){const u={id:'u-'+e,email:e};wr('user',u);return u},async signUp(e){return this.signIn(e)},async reset(){},async signOut(){localStorage.removeItem(K('user'))},
+  async user(){return rd('user')},async signIn(e){const u={id:'u-'+e,email:e};wr('user',u);return u},async signUp(e){return this.signIn(e)},async sso(t){await new Promise(r=>setTimeout(r,600));const e=decodeURIComponent(t);if(!e.includes('@'))throw new Error('That sign-in link has expired. Please try again.');return this.signIn(e)},async reset(){},async signOut(){localStorage.removeItem(K('user'))},
   async get(v){return rd('vs:'+v)},
   async put(v,data,prev){const run=()=>{const cur=rd('vs:'+v);if((cur?cur.updated_at:null)!==prev)return null;const ts=new Date(Date.now()+Math.random()).toISOString()+Math.random().toString(36).slice(2,6);wr('vs:'+v,{data,updated_at:ts});return ts};return navigator.locks?navigator.locks.request('mockcloud-put',run):run()},
   onChange(v,cb){subs.push(k=>{if(k===K('vs:'+v))cb()})},
@@ -2578,6 +2582,9 @@ load();if(innerWidth<=700)U.showSide=false;render();
 
 
 cloudInit().catch(e=>{console.error(e);hideAuth()});
+// Loading splash failsafe: if the sign-in check hasn't finished after 8 seconds (offline, say), show the sign-in page
+// (signing in still completes in the background if the check finishes later).
+setTimeout(()=>{if(document.body.classList.contains('gate')&&$('#auth').hidden){try{showLogin(CLOUD.ad?'Still connecting… check your internet connection.':'',CLOUD.ad?'info':'bad')}catch(e){hideAuth()}}},8000);
 try{if('serviceWorker' in navigator&&/^https:$/.test(location.protocol)&&/(proviewcrm\.co\.uk|github\.io)$/.test(location.hostname))navigator.serviceWorker.register('sw.js')}catch(e){}
 function netBanner(){let b=$('#offline');if(navigator.onLine){b&&b.remove();return}if(!b){b=document.createElement('div');b.id='offline';b.textContent='You\'re offline — changes are saved on this device';document.body.appendChild(b)}}
 addEventListener('online',netBanner);addEventListener('offline',netBanner);netBanner();
