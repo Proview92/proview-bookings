@@ -2432,7 +2432,7 @@ function licBannerHtml(){if(!CLOUD.site)return'';const s=CLOUD.site,L=licState(s
 /* site picker in the top header, right after the page title / date bar: the Proview standard (PICKER_STANDARD + 18:07 update).
    Master: "All sites (N)", then every site by name (" · Business" only when two sites share a name).
    Several sites: "All my sites (N)" plus their sites. One site: the site name in the same box, disabled.
-   A business-wide view (opened from the All sites page) shows as the selected value but is not a list entry. */
+   A whole business (opened from the All sites page) reads "<Business> (all sites)": a hidden selected option, not in the list. */
 function siteBiz(l){const m=(CLOUD.me?.sites||[]).find(x=>x.id===l.id);return{id:String(m?.business_id||l.business||m?.business||''),name:l.business||m?.business||'No business'}}
 function sitePickHtml(){const L=LOC.cloud?(LOC.list||[]):[];if(!L.length&&!isMaster())return'';
  const wrap=sel=>`<div class="hdr-pick"><label class="sr" for="hdr-site">Site</label>${sel}</div>`;
@@ -2443,7 +2443,7 @@ function sitePickHtml(){const L=LOC.cloud?(LOC.list||[]):[];if(!L.length&&!isMas
  const sites=sorted.map(l=>o(l.id,l.name+(dup(l.name)?' · '+siteBiz(l).name:''),!all&&l.id===LOC.current)).join('');
  let h;
  if(isMaster()){const bn=fb&&((CLOUD.me?.sites||[]).find(x=>String(x.business_id)===fb)?.business||(ALLS.biz||[]).find(b=>String(b.id)===fb)?.name||'Business');
-  h=o('__all',`All sites (${L.length})`,all&&!fb)+(fb?`<option value="__biz:${esc(fb)}" selected hidden>${esc(bn)} · all sites</option>`:'')+sites}
+  h=o('__all',`All sites (${L.length})`,all&&!fb)+(fb?`<option value="__biz:${esc(fb)}" selected hidden>${esc(bn)} (all sites)</option>`:'')+sites}
  else h=o('__mine',`All my sites (${L.length})`,all)+sites;
  return wrap(`<select id="hdr-site" aria-label="Choose site" title="Switch site" data-act-change="pickSite">${h}</select>`)}
 const markOpen=id=>{try{id?sessionStorage.setItem('pv-bk-open',id):sessionStorage.removeItem('pv-bk-open');sessionStorage.removeItem('pv-bk-all')}catch(e){}};
