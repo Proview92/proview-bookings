@@ -700,11 +700,11 @@ html .side .nav .nav-group .rail-ic{display:block!important}html .side .nav .nav
 @media (min-width:701px) and (max-width:900px){
  .app,.app.collapsed{grid-template-columns:72px 1fr!important}
  .app .side{padding:0!important;gap:0!important}
- .app .side .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;padding:18px 0 14px!important;margin:0!important;height:auto!important;gap:0!important}
+ .app .side .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;padding:18px 0 14px!important;margin:0!important;height:auto!important;gap:10px!important}
  .app .side .brand .wordmark{display:none!important}
  .app .side .brand .logo{margin:0!important;width:36px!important;height:26px!important}
  .app .side #sitePick,.app .side .client-pick,.app .side .venue,.app .side #sideFoot,.app .side .nav-sec{display:none!important}
- .app #nav{padding:6px 10px!important;display:block!important}
+ .app #nav{padding:6px 10px!important;display:flex!important;flex-direction:column!important;gap:0!important}
  .app #nav button{width:52px!important;min-width:0!important;max-width:52px!important;height:56px!important;margin:0!important;padding:0 2px!important;gap:5px!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;border-radius:9px!important;box-sizing:border-box!important}
  .app #nav button svg,.app #nav button .gs-ring{width:18px!important;height:18px!important;margin:0!important;flex:none}
  .app #nav button .lbl,.app #nav button .cnt{display:none!important}
@@ -733,6 +733,44 @@ html .auth-brand .logo.logo.logo.logo{width:60px!important;height:60px!important
 /* loading splash (the Proview standard: 72px app icon, centred on the page background, 1.2s pulse) */
 html .boot-wait .logo.logo.logo.logo{width:72px!important;height:72px!important}
 html .wordmark span,html .wordmark span.x.x,html .wordmark2 span,html .wordmark2 span.x.x,html .wm span,html .fcols .brand .wm span{background:linear-gradient(90deg,#8B5CF6 0%,#6D28D9 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important}
+/* ===== Proview shell v4: exact Proview Signage values (SHELL_MATCH_SPEC.md, measured in headless Chrome) ===== */
+body{-webkit-font-smoothing:antialiased}
+.side{gap:0}
+.side .nav{display:flex;flex-direction:column;gap:0}
+.side .nav>*{flex-shrink:0}
+.side .side-foot{gap:normal}
+/* iPad header: same as Signage (Dashboard keeps its name, 12px gaps) unless the page puts the date bar in the header */
+@media (min-width:701px) and (max-width:900px){#top:not(:has(.datenav)){gap:12px}#top:not(:has(.datenav)) .pv-dash{width:auto;padding:0 13px}#top:not(:has(.datenav)) .pv-dash span{display:inline}}
+@media (pointer:coarse) and (min-width:701px){#top .top-me .top-out{width:38px;height:38px}}
+#top .top-me .top-out{padding:0}
+/* Locations page (master's All locations): page head, stats and table exactly as Proview Signage's Locations page */
+.pv-loc{max-width:1236px}   /* Signage's page area stops at 1280px (less its 22px side padding) */
+.pv-ph{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin:0 0 22px;flex-wrap:wrap}
+.pv-ph h1{margin:0;font-size:21px;font-weight:650;letter-spacing:-.01em;line-height:1.45;color:var(--ink,#17171c)}
+.pv-ph p{margin:4px 0 0;font-size:15px;line-height:1.45;color:var(--mut,#55555f)}
+.pv-ph .btn{height:38px;min-height:0;padding:0 14px;font-size:14px;font-weight:600;line-height:normal;border-radius:10px;gap:7px;box-sizing:border-box}
+.pv-ph .btn svg{width:16px;height:16px}
+.pv-ph a.btn:not(.pri):not(.primary){color:var(--ink,#17171c);text-decoration:none}
+.pv-loc .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:0 0 16px}
+.pv-loc .stats .stat{padding:14px 16px;border-radius:12px;border:1px solid var(--line,#e4e2dc);background:var(--card,#fff);box-shadow:0 1px 2px rgba(20,20,30,.06),0 4px 16px rgba(20,20,30,.05)}
+.pv-loc .stats .stat .k{font-size:12px;font-weight:400;line-height:1.45;color:var(--grey,#8b8b95);letter-spacing:normal}
+.pv-loc .stats .stat .v{font-size:26px;font-weight:700;line-height:1.45;letter-spacing:normal;margin-top:4px}
+.pv-loc>.card{border-radius:12px;border:1px solid var(--line,#e4e2dc);background:var(--card,#fff);box-shadow:0 1px 2px rgba(20,20,30,.06),0 4px 16px rgba(20,20,30,.05);padding:0}
+.pv-loc table th{font-size:12px;font-weight:600;line-height:1.45;text-transform:uppercase;letter-spacing:.04em;color:var(--grey,#8b8b95);padding:12px 16px;background:none;border-bottom:1px solid var(--line,#e4e2dc)}
+.pv-loc table td{font-size:14px;line-height:1.45;padding:12px 16px;vertical-align:middle;border-bottom:1px solid var(--line,#e4e2dc)}
+.pv-loc table tr:last-child td{border-bottom:0}
+/* header title: one line with an ellipsis, as Proview Signage (keeps its width from 701px up; the picker shrinks) */
+html :is(#top,.top):is(#top,.top)>h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:auto}
+@media (min-width:701px){html :is(#top,.top):is(#top,.top)>h2{flex-shrink:0}}
+/* collapsed menu (desktop): same geometry as Proview Signage's collapsed menu */
+@media (min-width:901px){
+html .app.collapsed :is(.side,#pv-x){padding:18px 10px!important}
+html .app.collapsed .side :is(.brand,#pv-x){justify-content:center!important;padding:4px 0 18px!important;gap:10px!important;margin:0!important}
+html .app.collapsed .side :is(.nav,#pv-x){padding:6px 10px!important}
+html .app.collapsed .side :is(.nav,#pv-x)>a,html .app.collapsed .side :is(.nav,#pv-x)>button:not(.nav-group):not(.nav-more){width:32px!important;min-width:0!important;margin:0 auto!important;padding:0 12px!important;gap:10px!important;justify-content:center!important}
+html .app.collapsed .side :is(.side-foot,#pv-x){flex-direction:column!important;align-items:center!important;justify-content:normal!important;gap:4px!important;padding:0 10px 14px!important}
+html .app.collapsed .side :is(.side-foot,#pv-x)>*{width:30px!important;height:26px!important;padding:6px 8px!important;margin:0!important;justify-content:center!important;box-sizing:border-box!important}
+}
 </style>
 </head>
 <body class="gate">
@@ -780,6 +818,7 @@ function getPath(o,p){return p.split('.').reduce((c,k)=>c==null?c:c[k],o)}
 let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200)}
 
 const ICON={
+ pvloc:'<path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"/>',
  list:'<path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
  tables:'<rect x="3" y="7" width="18" height="5" rx="1.5"/><path d="M6 12v7M18 12v7M9 16h6"/>',
  timeline:'<path d="M3 4v16h18"/><rect x="7" y="6" width="8" height="3.5" rx="1"/><rect x="10" y="12" width="9" height="3.5" rx="1"/>',
@@ -2492,11 +2531,11 @@ VIEWS.allsites=()=>{if(!canView('allsites'))return VIEWS.parties();const M=isMas
  const bareRow=b=>`<tr data-q="${q(b.name)}"><td><b>${esc(b.name)}</b></td><td class="mut">No locations yet</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td style="text-align:right"><a style="text-decoration:none;max-width:100%;white-space:normal;height:auto;min-height:36px" class="btn sm" href="${LIC_PORTAL}" target="_blank" rel="noopener">Add a location ↗</a></td></tr>`;
  const total=sites.length+bare.length,loading=!sites.length&&ALLS.biz===null;
  const empty=`<div class="pad" style="text-align:center;padding:44px 20px"><div style="opacity:.55;margin-bottom:8px">${ic('grid',30)}</div><b style="font-size:16px">No businesses yet</b><p class="mut" style="max-width:420px;margin:6px auto 16px">${M?'Businesses, locations and licences are added in the Proview licence portal. They show here as soon as they\'re set up.':`To add a location, call Proview on ${PROVIEW_PHONE}.`}</p><div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap">${M?`<a style="text-decoration:none;max-width:100%;white-space:normal;height:auto;min-height:36px" class="btn pri" href="${LIC_PORTAL}" target="_blank" rel="noopener">${ic('plus',14)} Add a business in the licence portal ↗</a>`:''}<button class="btn" data-act="allRefresh">Refresh</button></div></div>`;
- return`<div class="stats">${stat('Businesses',ALLS.biz===null&&!sites.length?'…':nBiz)}${stat('Locations',sites.length)}${stat('Licensed',sites.filter(licWorks).length)}${stat('Bookings today',sites.length?sum('b'):0)}</div>
+ return`<div class="pv-loc"><div class="pv-ph"><div><h1>${U.allBiz?esc(sites[0]?.business||(ALLS.biz||[]).find(b=>String(b.id)===U.allBiz)?.name||'Business')+' · ':''}${M?'Locations':'My locations'}</h1><p class="mut">${M&&!U.allBiz?'Every business and location on Proview Bookings, with today\'s bookings. Open a location to see it as its team does.':'Each location with today\'s bookings. Open a location to work in it.'}</p></div>
+  <div class="row" style="gap:8px;flex-wrap:wrap">${total>6?`<input class="inp" id="allQ" type="search" placeholder="Search businesses and locations" oninput="allFilter(this.value)" style="width:240px;height:38px">`:''}<button class="btn" data-act="allRefresh" title="Refresh">${ic('download',16)} Refresh</button>${M?`<a class="btn" style="text-decoration:none" href="${LIC_PORTAL}" target="_blank" rel="noopener" title="Businesses, locations and licences are managed in the licence portal">${ic('plus',16)} Add business ↗</a>`:''}</div></div>
+ <div class="stats">${stat('Businesses',ALLS.biz===null&&!sites.length?'…':nBiz)}${stat('Locations',sites.length)}${stat('Licensed',sites.filter(licWorks).length)}${stat('Bookings today',sites.length?sum('b'):0)}</div>
  ${ALLS.err?`<div class="notice bad" style="margin-bottom:12px">${esc(ALLS.err)}</div>`:''}
- <div class="card"><div class="pad row between" style="flex-wrap:wrap;gap:10px"><div><b style="font-size:16px">${U.allBiz?esc(sites[0]?.business||(ALLS.biz||[]).find(b=>String(b.id)===U.allBiz)?.name||'Business')+' · ':''}${M?'Locations':'My locations'}</b><div class="small mut">${M&&!U.allBiz?'Every business and location on Proview Bookings, with today\'s bookings. Open a location to see it as its team does.':'Each location with today\'s bookings. Open a location to work in it.'}</div></div>
-  <div class="row" style="gap:8px;flex-wrap:wrap">${total>6?`<input class="inp" id="allQ" type="search" placeholder="Search businesses and locations" oninput="allFilter(this.value)" style="width:240px;height:34px">`:''}<button class="btn sm" data-act="allRefresh" title="Refresh">${ic('download',14)} Refresh</button>${M?`<a class="btn sm" style="text-decoration:none" href="${LIC_PORTAL}" target="_blank" rel="noopener" title="Businesses, locations and licences are managed in the licence portal">${ic('plus',14)} Add business ↗</a>`:''}</div></div>
- ${total?`<table class="t" id="allT"><thead><tr><th>Business</th><th>Location</th><th>Licence</th><th>Bookings today</th><th>Covers</th><th>Seated now</th><th>Last change</th><th></th></tr></thead><tbody>${sites.map(row).join('')}${bare.map(bareRow).join('')}</tbody></table><div class="pad mut small" id="allNone" hidden>No business or location matches that search.</div>`:loading?'<div class="pad mut">Loading…</div>':empty}</div>`};
+ <div class="card">${total?`<table class="t" id="allT"><thead><tr><th>Business</th><th>Location</th><th>Licence</th><th>Bookings today</th><th>Covers</th><th>Seated now</th><th>Last change</th><th></th></tr></thead><tbody>${sites.map(row).join('')}${bare.map(bareRow).join('')}</tbody></table><div class="pad mut small" id="allNone" hidden>No business or location matches that search.</div>`:loading?'<div class="pad mut">Loading…</div>':empty}</div></div>`};
 function allFilter(v){const t=String(v||'').trim().toLowerCase();let n=0;document.querySelectorAll('#allT tbody tr').forEach(tr=>{const ok=!t||tr.dataset.q.includes(t);tr.hidden=!ok;if(ok)n++});const e=$('#allNone');if(e)e.hidden=n>0}
 AFTER.allsites=async()=>{if(!canView('allsites')||ALLS.busy||!CLOUD.ad)return;if(ALLS.at&&Date.now()-ALLS.at<60e3)return;ALLS.busy=true;const errs=[];
  if(!isMaster())ALLS.biz=[];else try{ALLS.biz=(await CLOUD.ad.sel('bk_businesses','id,name')||[]).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)))}catch(e){ALLS.biz=ALLS.biz||[];errs.push('Couldn’t load businesses: '+(e.message||e))}
@@ -2640,7 +2679,7 @@ setInterval(()=>{if(!$('#drawer').classList.contains('open')&&!$('#modal').class
    (ALLSITES_MENU_STANDARD, same in all Proview apps) */
 {const _n=renderNav;renderNav=function(){const r=_n.apply(this,arguments);const nav=$('#nav');if(!nav||!isMaster()||!LOC.cloud)return r;
   const on=U.view==='allsites',b=document.createElement('button');b.className='nav-all'+(on?' on':'');b.dataset.act='goAllSites';b.title='Locations';
-  b.innerHTML=ic('store',19)+'<span class="lbl">Locations</span><span class="slbl">Locations</span>';const more=nav.querySelector('.nav-more');more?more.after(b):nav.prepend(b);
+  b.innerHTML=ic('pvloc',19)+'<span class="lbl">Locations</span><span class="slbl">Locations</span>';const more=nav.querySelector('.nav-more');more?more.after(b):nav.prepend(b);
   if(on&&!U.allBiz)nav.querySelectorAll('button[data-act=go],button[data-act=help]').forEach(x=>{x.classList.add('nav-dis');x.classList.remove('on');x.setAttribute('aria-disabled','true');x.dataset.act='needSite';x.title=(x.title||'')+' – choose a location first'});
   return r};
  A.goAllSites=()=>{markOpen(null);U.allBiz=null;try{sessionStorage.setItem('pv-bk-all','__all')}catch(e){}U.view='allsites';render()};
