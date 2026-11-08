@@ -1990,16 +1990,16 @@ function MockAdapter(){
    if(u&&!master&&!/^new/.test(em)&&!d.prof.some(p=>p.email===em)&&!d.inv.some(p=>p.email===em)){d.prof.push({email:em,venue:'demo-venue',role:'Admin'});wr('db',d)}
    d.inv.filter(i=>i.email===em&&!d.prof.some(p=>p.email===em&&p.venue===i.venue)).forEach(i=>d.prof.push({email:em,venue:i.venue,role:i.role}));wr('db',d);return{u,d,em,master}},
   async whoami(){const{u,d,em,master}=this._me();if(!u)return null;const bn=Object.fromEntries(d.biz.map(b=>[b.id,b.name]));
-   return{email:em,is_master:master,sites:d.sites.filter(s=>master||d.prof.some(p=>p.email===em&&p.venue===s.id)).map(s=>({...s,business:bn[s.business_id],role:'Admin'}))}},
+   return{email:em,is_master:master,sites:d.sites.filter(s=>master||d.prof.some(p=>p.email===em&&p.venue===s.id)).map(s=>({...s,business:bn[s.business_id],role:master?'Admin':(d.prof.find(p=>p.email===em&&p.venue===s.id)||{}).role||'Admin'})),businesses:master?[]:d.biz.filter(b=>d.prof.some(p=>p.email===em&&d.sites.some(s=>s.id===p.venue&&s.business_id===b.id))||(d.mem||[]).some(m=>m.email===em&&m.business_id===b.id)).map(b=>({id:b.id,name:b.name}))}},
   async rpc(fn,a){const{d,em,master}=this._me();const save=()=>wr('db',d);const iv={trial:3*864e5};
    const newId=n=>{let b=(n||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,50)||'venue',c=b,i=1;while(d.sites.some(s=>s.id===c))c=b+'-'+(++i);return c};
    const setLic=(s,t,ext,expires,notes)=>{let e=null;if(t==='custom')e=expires;else if(t!=='lifetime'){const base=ext&&s.license_expires_at&&new Date(s.license_expires_at)>new Date()?new Date(s.license_expires_at):new Date();e=new Date(t==='trial'?base.getTime()+iv.trial:licPreview(t,{extend:ext,current:s.license_expires_at})).toISOString()}
     Object.assign(s,{license_type:t,license_expires_at:e,license_notes:notes||s.license_notes||null,license_updated_at:new Date().toISOString()});return s};
    if(fn==='bk_set_license'){if(!master)throw new Error('Only the Proview administrator can change licences.');const s=d.sites.find(x=>x.id===a.p_site);setLic(s,a.p_type,a.p_extend,a.p_expires,a.p_notes);save();return s}
    if(fn==='bk_add_site'){if(!master)throw new Error('Only the Proview administrator can add sites.');const b=d.biz.find(x=>x.id===a.p_business);const s={id:newId(a.p_name),business_id:b.id,name:a.p_name};d.sites.push(s);setLic(s,a.p_license||'trial');if(b.contact_email)d.inv.push({email:b.contact_email,venue:s.id,role:'Admin'});save();return s}
-   if(fn==='bk_create_my_business'){if(d.prof.some(p=>p.email===em))throw new Error('Your account already belongs to a business.');if(d.biz.some(b=>b.self_signup&&b.contact_email===em))throw new Error('This email address has already used its free trial. Call Proview to buy a licence.');
+   if(fn==='bk_create_my_business'){if(d.prof.some(p=>p.email===em))throw new Error('Your account already belongs to a business.');if(d.biz.some(b=>b.self_signup&&b.contact_email===em))throw new Error('This email address has already used its free trial. Buy a licence at license.proviewcrm.co.uk or call Proview on 020 8935 5495.');
     const b={id:'b-'+Math.random().toString(36).slice(2,8),name:a.p_business,contact_email:em,phone:a.p_phone||null,self_signup:true,notes:'Signed up online',created_at:new Date().toISOString()};d.biz.push(b);
-    const s={id:newId(a.p_site||a.p_business),business_id:b.id,name:a.p_site||a.p_business};setLic(s,'trial');d.sites.push(s);d.prof.push({email:em,venue:s.id,role:'Admin'});save();return s.id}
+    const s={id:newId(a.p_site||a.p_business),business_id:b.id,name:a.p_site||a.p_business};setLic(s,'trial');d.sites.push(s);d.prof.push({email:em,venue:s.id,role:'Owner'});save();return s.id}
    throw new Error('Unknown function '+fn)},
   async sel(t){const{d}=this._me();return JSON.parse(JSON.stringify(t==='bk_businesses'?d.biz:t==='bk_sites'?d.sites:t==='bk_staff_profiles'?d.prof.map(p=>({user_id:p.email,venue:p.venue})):d.inv))},
   async ins(t,row){const{d,master}=this._me();if(!master)throw new Error('Not allowed');const r={id:'b-'+Math.random().toString(36).slice(2,8),created_at:new Date().toISOString(),self_signup:false,...row};d.biz.push(r);wr('db',d);return r},
@@ -2284,10 +2284,10 @@ function licState(s,now=Date.now()){
  return{state:'expired',type,daysLeft,expires:exp}}
 function licSummary(s){const L=licState(s),trial=L.type==='trial';
  switch(L.state){case'none':return{text:'No licence',tone:'red',L};case'lifetime':return{text:'Lifetime licence',tone:'green',L};
-  case'active':return{text:`${trial?'Trial':'Licensed'} · until ${licDate(L.expires)}`,tone:trial?'amber':'green',L};
-  case'expiring':return{text:`${trial?'Trial':'Licence'} ends in ${plural(L.daysLeft,'day')}`,tone:'amber',L};
+  case'active':return{text:trial?`Trial – ends ${licDate(L.expires)}`:`Licensed · until ${licDate(L.expires)}`,tone:trial?'amber':'green',L};
+  case'expiring':return{text:trial?`Trial – ends ${licDate(L.expires)}`:`Licence ends in ${plural(L.daysLeft,'day')}`,tone:'amber',L};
   case'grace':return{text:`Expired · ${plural(L.graceLeft,'day')} grace left`,tone:'red',L};
-  default:return{text:trial?'Trial ended':'Licence expired',tone:'red',L}}}
+  default:return{text:trial?'Trial – expired':'Licence expired',tone:'red',L}}}
 const licChip=s=>{const{text,tone}=licSummary(s);return`<span class="chip ${tone}" title="${esc(licLabel(s.license_type))}">${esc(text)}</span>`};
 const licWorks=s=>!['none','expired'].includes(licState(s).state);
 function licPreview(type,{extend,current,custom}={}){
@@ -2323,7 +2323,8 @@ async function afterSignIn(){
  if(!sites.length){
   if(me.is_master){LOC={cloud:true,current:'',list:[]};try{localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}showMasterHome();return}
   const b=(me.businesses||[])[0];
-  await signOutWith(b?`Your login at ${b.name} doesn't have any sites yet. Ask your owner or Proview.`:"Your login isn't linked to a business yet. Ask your owner or Proview.");return}
+  if(b){await signOutWith(`Your login at ${b.name} doesn't have any sites yet. Ask your owner or Proview.`);return}   // added to a business, given no sites
+  showBusinessSetup();return}                              // no business, no invite: free 3-day trial
  const want=LOC.cloud&&sites.some(s=>s.id===LOC.current)?LOC.current:sites[0].id;
  const wasKey=KEY;LOC={cloud:true,current:want,list:sites.map(s=>({id:s.id,name:s.name,business:s.business}))};
  try{localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}
@@ -2342,20 +2343,25 @@ function showMasterHome(){CLOUD.nosite=true;CLOUD.on=false;CLOUD.vid=null;CLOUD.
 function showBusinessSetup(msg){document.body.classList.add('gate');const a=$('#auth');
  a.innerHTML=`<div class="auth-form" style="grid-column:1/-1"><form novalidate onsubmit="return bizSetupSubmit(event)">
   <div class="auth-brand"><div class="logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span></div>
-  <h1>Set up your business</h1><p class="muted">Start your free 3-day trial for one venue. No card needed.</p>
+  <h1>Set up your business</h1><p class="muted">Start your free 3-day trial. No card needed.</p>
   <div id="authMsg">${msg?`<div class="notice bad">${esc(msg)}</div>`:''}</div>
-  <label class="af">Business name<input id="bzName" placeholder="e.g. Bella Pizza" autocomplete="organization"></label>
-  <label class="af">Venue name<input id="bzSite" placeholder="e.g. Bella Pizza High Street"></label>
+  <label class="af">Business name<input id="bzName" placeholder="e.g. Bella Pizza" autocomplete="organization" oninput="bzSiteFollow(this.value)"></label>
+  <label class="af">First venue name<input id="bzSite" placeholder="Same as the business name" oninput="this.dataset.edited=this.value?'1':''"></label>
   <label class="af">Phone (optional)<input id="bzPhone" type="tel" autocomplete="tel" placeholder="So we can help you get set up"></label>
-  <button class="go" type="submit" id="authGo">Start my free trial</button>
-  <div class="small mut" style="text-align:center">Signed in as ${esc(CLOUD.user?.email||'')} · <a href="#" data-act="authSignOut">Sign out</a></div>
+  <button class="go" type="submit" id="authGo">Start free trial</button>
+  <div class="alinks"><span class="small mut" style="align-self:center">Signed in as ${esc(CLOUD.user?.email||'')}</span><button type="button" data-act="authSignOut">Sign out</button></div>
  </form></div>`;a.hidden=false;setTimeout(()=>$('#bzName')?.focus(),50)}
+function bzSiteFollow(v){const s=$('#bzSite');if(s&&!s.dataset.edited)s.value=v}
 async function bizSetupSubmit(ev){ev&&ev.preventDefault();const n=$('#bzName').value.trim(),s=$('#bzSite').value.trim()||n,go=$('#authGo');
  if(n.length<2){authNote('Enter your business name.');$('#bzName').focus();return false}
  go.disabled=true;go.textContent='Setting up…';
  try{const sid=await CLOUD.ad.rpc('bk_create_my_business',{p_business:n,p_site:s,p_phone:$('#bzPhone').value.trim()});
   LOC={cloud:true,current:sid,list:[{id:sid,name:s,business:n}]};localStorage.setItem(LOCKEY,JSON.stringify(LOC));sessionStorage.setItem('pv-newsite',s);location.reload()}
- catch(e){go.disabled=false;go.textContent='Start my free trial';authNote(authErr(e))}
+ catch(e){const t=String(e?.message||e||'');go.disabled=false;go.textContent='Start free trial';
+  if(/PGRST202|could not find the function|does not exist/i.test(t+' '+(e?.code||''))){go.hidden=true;authNote("Your login isn't linked to a business yet. Ask your owner or Proview.",'info');return false}   // trial sign-up not on this database
+  if(/already belongs to a business/i.test(t)){location.reload();return false}   // invited meanwhile: open their business
+  if(/already used its free trial/i.test(t)){go.hidden=true;const m=$('#authMsg');if(m)m.innerHTML=`<div class="notice bad">This email address has already used its free trial. Buy a licence in the <a href="${LIC_PORTAL}" target="_blank" rel="noopener">Proview licence portal ↗</a> or call Proview on <b>${PROVIEW_PHONE}</b>.</div>`;return false}
+  authNote(authErr(e))}
  return false}
 A.authSignOut=async(el,ev)=>{ev&&ev.preventDefault();await signOutWith()};
 
@@ -2367,6 +2373,7 @@ function showLicenceLock(){document.body.classList.add('gate');const s=CLOUD.sit
   <p class="muted"><b>${esc(s.name)}</b>${L.expires?` · ended ${licDate(L.expires)}`:''}. Bookings are kept safe, but this venue can't be used and online booking is paused until it's renewed.</p>
   ${canBuy()?`<button class="go" type="button" data-act="buyOnline">${L.type==='trial'||L.state==='none'?'Buy a licence online':'Renew online'}</button><div class="notice">Or call Proview on <b>${PROVIEW_PHONE}</b>.</div>`:`<div class="notice">${CLOUD.me?'Ask your manager to renew it, or call':'Call'} Proview on <b>${PROVIEW_PHONE}</b> to ${L.type==='trial'?'buy a licence':'renew'}.</div>`}
   ${others.length?`<label class="af">Open another venue<select class="inp" style="height:44px" onchange="A.openSite({dataset:{id:this.value}})"><option value="">Choose…</option>${others.map(o=>`<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('')}</select></label>`:''}
+  <a class="small" style="text-align:center" href="${LIC_PORTAL}" target="_blank" rel="noopener">Proview licence portal ↗</a>
   <div class="alinks"><button type="button" data-act="lockRetry">I've renewed — check again</button><button type="button" data-act="authSignOut">Sign out</button></div>
  </div></div>`;a.hidden=false}
 A.lockRetry=()=>location.reload();
