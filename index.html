@@ -111,16 +111,13 @@ body.gate .boot-wait{display:grid}
 @media (max-width:700px){.adm-t tr{display:grid;grid-template-columns:1fr;gap:6px;padding:12px 14px;border-bottom:1px solid var(--line)}.adm-t td{padding:0!important;border:0!important;text-align:left!important}.lockcard{padding:26px 20px}}
 .client-pick{margin:0 14px 12px}
 .client-pick:empty{display:none}
-.client-pick select,.top-pick select{width:100%;background:#23232a;color:#fff;border:1px solid #33333c;border-radius:9px;padding:9px 30px 9px 11px;font:inherit;font-size:14px;font-weight:500;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23fff' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;text-overflow:ellipsis}
+.client-pick select{width:100%;background:#23232a;color:#fff;border:1px solid #33333c;border-radius:9px;padding:9px 30px 9px 11px;font:inherit;font-size:14px;font-weight:500;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23fff' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;text-overflow:ellipsis}
 .client-pick select:hover{border-color:#4a4a55}
-.client-pick select:focus-visible,.top-pick select:focus-visible{outline:2px solid var(--pri);outline-offset:1px}
-.client-pick select option,.client-pick select optgroup,.top-pick select option,.top-pick select optgroup{background:#23232a;color:#fff}
+.client-pick select:focus-visible{outline:2px solid var(--pri);outline-offset:1px}
+.client-pick select option,.client-pick select optgroup{background:#23232a;color:#fff}
 .client-pick .sp-title{color:#9a9aa4;font-size:13px;padding:0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .app.collapsed .client-pick{display:none}
 @media (min-width:701px) and (max-width:900px){.client-pick{display:none}}
-.top-pick{display:none}
-@media (max-width:900px){.top-pick{display:block;max-width:46%;min-width:0;margin:0 6px}}
-@media (max-width:900px){.top-pick select{padding:7px 28px 7px 10px;font-size:15px;background-color:#fff;color:var(--ink);border:1px solid var(--line);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23555' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")}.top-pick select option,.top-pick select optgroup{background:#fff;color:var(--ink)}}
 @media (hover:none) and (pointer:coarse){.client-pick select{font-size:16px}}
 .side .venue{cursor:pointer;margin:10px 10px 8px}.side .venue:hover{background:#25252c}
 .side .venue .av{border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:12.5px}
@@ -510,7 +507,6 @@ body.dark .stars span{color:#4a4a55!important}
  .side .nav .nav-extra{display:flex!important}.side .nav .nav-more{display:none!important}
  .main{padding-bottom:0!important}
  .fab{bottom:calc(20px + env(safe-area-inset-bottom))!important}
- .top .top-pick{display:none!important}
  .top .icon-btn{width:36px!important;height:36px!important}
 }
 /* ===== Proview theme v2: font style and sizes from Proview Signage, same profile box and footer in all apps ===== */
@@ -582,7 +578,7 @@ label.f,.frow>label:first-child,.field2{font-size:13px;font-weight:600}
 html .app .side .side-me.side-me,html .side .side-foot [data-act=logout],html .side .side-foot [data-act=signOut],html .side .side-foot [title="Sign out"]{display:none!important}
 @media (max-width:900px){html .app .side .side-foot{display:none!important}}
 @media (max-width:700px){.top-me{margin-left:2px;padding-left:6px;gap:2px}.top-av{width:32px;height:32px;font-size:12px}}
-@media (max-width:900px){#top{gap:6px}#top .top-pick{min-width:110px;flex:0 1 auto}#top [data-act=newParty] .lbl-np{display:none}#top [data-act=newParty]{padding-left:10px;padding-right:10px}}
+@media (max-width:900px){#top{gap:6px}#top [data-act=newParty] .lbl-np{display:none}#top [data-act=newParty]{padding-left:10px;padding-right:10px}}
 @media (max-width:700px){#top .top-me{border-left:0;padding-left:0;margin-left:0}#top{gap:1px}#top .icon-btn{width:30px;min-width:30px}#top .menu-btn{width:34px}}
 @media (max-width:440px){#top .datenav>button:not(.today-btn){display:none}#top .datenav .dlabel{padding:6px 10px}}
 /* compact sidebar rows (option A), same on all Proview apps */
@@ -609,6 +605,24 @@ body.v-allsites .fab{display:none!important}
 #top .top-me{border-left:0!important;padding-left:0!important;margin-left:8px!important}
 @media (max-width:700px){.hdr-cap{padding:2px;gap:0}.hdr-cap>button,.hdr-cap>a{width:30px!important;min-width:30px!important;height:30px!important}#top .top-me{margin-left:4px!important}}
 @media (max-width:700px){#top .hdr-cap>button,#top .hdr-cap>a{width:30px!important;min-width:30px!important;height:30px!important}#top .hdr-cap>[data-act=goPage]{width:21px!important;min-width:21px!important}}
+/* site picker: in the top header right after the page title, on every screen size (copied verbatim from Proview Signage dd5e830, web/css/app.css) */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.top .hdr-pick { margin: 0 0 0 6px; flex: 0 1 auto; min-width: 0; }
+.top .hdr-pick select { display: block; width: auto; height: 38px; max-width: 320px; min-width: 170px; border-radius: 10px; border: 1px solid var(--line); background-color: #fff; color: var(--ink); font: 600 14px var(--font, "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif); padding: 0 30px 0 12px; cursor: pointer; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+.top .hdr-pick select:focus { outline: none; border-color: var(--line); }
+.top .hdr-pick select:focus-visible { outline: 2px solid #5a8dee; outline-offset: 2px; }
+.top .hdr-pick select:disabled { opacity: 1; cursor: default; color: var(--ink); appearance: none; -webkit-appearance: none; padding-right: 12px; }
+/* phones: the tray leaves no room on the title row, so the picker gets the header's second row, full width */
+@media (max-width: 700px) {
+  .top { flex-wrap: wrap !important; row-gap: 6px !important; }
+  .top .hdr-pick { order: 1; flex: 1 0 100%; margin: 0; }
+  .top .hdr-pick select { width: 100%; min-width: 0; max-width: none; height: 36px; font-size: 13px; }
+}
+/* Bookings only: small phones drop the weekday from the date bar so the title row (date, tray, Dashboard, account) fits on one line */
+@media (max-width: 420px) { #top .datenav .dwd { display: none; } #top .datenav .dlabel { padding: 6px 2px; } }
+/* Bookings only: dark mode keeps the picker readable; iPad (701-900px) has the date bar too, so Dashboard shows its icon only and the date arrows are tighter */
+body.dark .top .hdr-pick select { background-color: var(--card); }
+@media (min-width: 701px) and (max-width: 900px) { #top .datenav button { padding: 6px 2px; } .top .hdr-pick select { max-width: 100%; } #top .pv-dash { width: 38px; padding: 0; justify-content: center; } #top .pv-dash span { display: none; } }
 /* site picker in the sidebar: same as Proview WiFi */
 .side .pv-viewing{display:block;font-size:11px;line-height:15px;letter-spacing:.06em;text-transform:uppercase;color:#8b8b95;margin:0 2px 6px;font-weight:400}
 .side #sitePick select,.side #orgPick select,.side .client-pick select{width:100%!important;height:42px!important;border-radius:10px!important;border:1px solid #2c2c35!important;background-color:#1f1f25!important;color:#fff!important;font-size:14px!important;font-weight:600!important;padding:0 34px 0 12px!important;appearance:none!important;-webkit-appearance:none!important;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23b4b4bd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:right 10px center!important;background-size:16px 16px!important}
@@ -697,7 +711,6 @@ html .wordmark span,html .wordmark span.x.x,html .wordmark2 span,html .wordmark2
 <div class="app" id="app">
   <aside class="side">
     <div class="brand"><div class="logo" role="img" aria-label="Proview logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span><button class="collapse-btn" data-act="collapse" title="Collapse menu"></button></div>
-    <div class="client-pick" id="sitePick"></div>
     <nav class="nav" id="nav"></nav>
     <div class="venue" id="venueCard" data-act="locations" title="Switch location" style="cursor:pointer"></div>
     <div class="side-foot" id="sideFoot"></div>
@@ -975,7 +988,6 @@ const SHORT={"parties": "Bookings", "tables": "Tables", "planner": "Timeline", "
 const TITLES={parties:'Bookings',tables:'Table status',planner:'Timeline',floor:'Floor view',guests:'Guests & marketing',reviews:'Reviews',preorders:'Pre-orders',reports:'Insights',settings:'Settings',staff:'Staff & rota',kitchen:'Kitchen'};
 
 function renderNav(){
- {const sp=$('#sitePick');if(sp)sp.innerHTML=sitePickHtml()}
  const up=S.parties.filter(p=>p.date===today()&&['booked','arrived','waiting'].includes(p.status)).length;
   $('#nav').innerHTML=`<button class="nav-more" data-act="moreMenu" title="More">${ic('list',19)}<span class="lbl">More</span></button>`+NAV.map(n=>n[0]==='sec'?`<div class="nav-sec">${n[1]}</div>`:`<button class="${U.view===n[0]?'on':''} ${['parties','tables','planner','floor'].includes(n[0])?'nav-core':'nav-extra'}" data-act="go" data-v="${n[0]}" title="${n[1]}">${ic(n[2],19)}<span class="lbl">${n[1]}</span><span class="slbl">${SHORT[n[0]]||n[1]}</span>${n[0]==='parties'&&up?`<span class="cnt">${up}</span>`:''}</button>`).join('');
  $('#nav').insertAdjacentHTML('beforeend',`<button class="nav-extra ${U.view==='help'?'on':''}" data-act="help" title="Help">${ic('help',19)}<span class="lbl">Help</span><span class="slbl">Help</span></button>`);
@@ -989,8 +1001,8 @@ function renderNav(){
 function renderTop(){
  const dated=['parties','planner','floor','staff','kitchen'].includes(U.view)&&!(U.view==='staff'&&(U.stTab==='team'||(U.stTab==='checklists'&&S.settings.prefs.showTasks)));
  const unreadChats=S.chats.filter(c=>c.unread).length,unreadN=S.notes.filter(n=>!n.read).length,enq=S.parties.filter(p=>p.kind==='enquiry'&&p.status==='pending').length;
- $('#top').innerHTML=`<button class="icon-btn menu-btn" data-act="navToggle" title="Menu" aria-label="Open menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>${dated?`<div class="datenav"><button data-act="day" data-n="-1" title="Previous day">${ic('left')}</button><div class="dlabel">${U.date===today()?'<span class="tdy">Today · </span>':''}${fmtDate(U.date)}<input type="date" value="${U.date}" data-act-change="pickDate" aria-label="Pick a date"></div><button data-act="day" data-n="1" title="Next day">${ic('right')}</button>${U.date!==today()?`<button class="today-btn" data-act="day" data-n="0">Today</button>`:''}</div>`:`<h2>${TITLES[U.view]}</h2>`}
- <div class="sp"></div>${LOC.cloud&&((LOC.list||[]).length>1||isMaster())?`<span class="top-pick">${sitePickHtml(true)}</span>`:''}
+ $('#top').innerHTML=`<button class="icon-btn menu-btn" data-act="navToggle" title="Menu" aria-label="Open menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>${dated?`<div class="datenav"><button data-act="day" data-n="-1" title="Previous day">${ic('left')}</button><div class="dlabel">${U.date===today()?'<span class="tdy">Today · </span>':''}${fmtDate(U.date).replace(/^(\S+) /,'<span class="dwd">$1 </span>')}<input type="date" value="${U.date}" data-act-change="pickDate" aria-label="Pick a date"></div><button data-act="day" data-n="1" title="Next day">${ic('right')}</button>${U.date!==today()?`<button class="today-btn" data-act="day" data-n="0">Today</button>`:''}</div>`:`<h2>${TITLES[U.view]}</h2>`}${sitePickHtml()}
+ <div class="sp"></div>
  ${CLOUD.cfg?`<button class="icon-btn" data-act="goPage" data-v="integrations" title="${esc(syncLabel())}"><span id="syncDot" class="sync-dot ${CLOUD.status}"></span></button>`:''}
  <button class="icon-btn" data-act="search" title="Search guests & bookings (Ctrl+K)">${ic('search')}</button>
  <button class="icon-btn" data-act="chats" title="Guest messages">${ic('chat')}${unreadChats?`<span class="badge">${unreadChats}</span>`:''}</button>
@@ -2314,7 +2326,7 @@ function purgeCache(keep){const ok=keep?new Set(keep):null,gone=[];
  try{for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(!k)continue;
    const id=k.startsWith(VKEY)?k.slice(VKEY.length):k.startsWith(SKEY)?k.slice(SKEY.length):null;
    if(id!==null&&!(ok&&ok.has(id))){localStorage.removeItem(k);gone.push(id)}}
-  if(!ok){localStorage.removeItem(LOCKEY);localStorage.removeItem(WHOKEY);sessionStorage.removeItem('pv-bk-open');sessionStorage.removeItem('pv-newsite')}}catch(e){}
+  if(!ok){localStorage.removeItem(LOCKEY);localStorage.removeItem(WHOKEY);sessionStorage.removeItem('pv-bk-open');sessionStorage.removeItem('pv-bk-all');sessionStorage.removeItem('pv-bk-view');sessionStorage.removeItem('pv-newsite')}}catch(e){}
  return gone}
 async function signOutWith(msg){try{await CLOUD.ad.signOut()}catch(e){}purgeCache(null);try{if(msg)sessionStorage.setItem('pv-login-msg',msg)}catch(e){}location.reload()}
 
@@ -2338,6 +2350,8 @@ async function afterSignIn(){
  if(wasKey!=='proview-bookings-v3:'+want){location.reload();return}
  CLOUD.vid=want;CLOUD.site=sites.find(s=>s.id===want);
  if(isMaster()){let open=null;try{open=sessionStorage.getItem('pv-bk-open')}catch(e){}if(open!==want)U.view='allsites'}   // the master lands on All sites
+ try{const kv=sessionStorage.getItem('pv-bk-view');sessionStorage.removeItem('pv-bk-view');if(kv&&U.view!=='allsites')U.view=kv;   // switched site: same page
+  const ka=sessionStorage.getItem('pv-bk-all');if(ka){const b=ka.startsWith('__biz:')?ka.slice(6):null;U.view='allsites';U.allBiz=b&&sites.some(s=>String(s.business_id)===b)||b&&isMaster()?b:null}}catch(e){}
  if(!isMaster()&&!licWorks(CLOUD.site)){showLicenceLock();return}
  await cloudStart();
 }
@@ -2409,20 +2423,35 @@ function licBannerHtml(){if(!CLOUD.site)return'';const s=CLOUD.site,L=licState(s
  return`<div class="card pad row noprint licbar" style="margin-bottom:14px;${bad?'background:var(--badl);border-color:#f2b8be':'background:var(--warnl);border-color:#f0d08a'}">${ic('clock',16)}<span style="flex:1">${t}</span>${isMaster()?`<button class="btn sm" data-act="admLicence">Licence portal ↗</button>`:canBuy()?`<button class="btn sm pri" data-act="buyOnline">${L.type==='trial'||L.state==='none'?'Buy licence online':'Renew online'}</button>`:''}</div>`}
 
 /* --- master admin (Proview): businesses, sites and licences are managed at license.proviewcrm.co.uk; in the app the master switches sites with the picker --- */
-/* site picker (same as Proview Signage's client picker): master sees every site, grouped by business */
-function sitePickHtml(compact){const L=LOC.cloud?(LOC.list||[]):[];if(!L.length)return'';
- if(L.length===1&&!isMaster())return compact?'':`<div class="sp-title" title="${esc(L[0].name)}">${esc(L[0].name)}</div>`;
- const sorted=L.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
- const all=U.view==='allsites'&&isMaster(),opt=l=>`<option value="${esc(l.id)}" ${l.id===LOC.current&&!all?'selected':''}>${esc(l.name)}</option>`;
- return`${compact?'':`<label class="pv-viewing">${all?'Master view':'Viewing site'}</label>`}<select aria-label="Site" title="Switch site" data-act-change="pickSite">${isMaster()?`<option value="__all" ${all?'selected':''}>All sites (${L.length})</option>`:''}${sorted.map(opt).join('')}</select>`}
-const markOpen=id=>{try{id?sessionStorage.setItem('pv-bk-open',id):sessionStorage.removeItem('pv-bk-open')}catch(e){}};
-A.pickSite=el=>{if(el.value==='__all'){markOpen(null);U.view='allsites';render();return}markOpen(el.value);if(el.value&&el.value===LOC.current&&U.view==='allsites'){U.view='parties';render();return}if(el.value&&el.value!==LOC.current){U.view='parties';A.openSite({dataset:{id:el.value}})}};
+/* site picker in the top header, right after the page title / date bar: the Proview standard (PICKER_STANDARD, same as Signage).
+   Master: "All sites (N)", then per business (optgroup) "Business ▸ All sites" and "Business ▸ Site".
+   Several sites: "All my sites (N)" plus each of their sites. One site: the site name in the same box, disabled.
+   The "all" options open the All sites page (for a business: just that business's sites). */
+function siteBiz(l){const m=(CLOUD.me?.sites||[]).find(x=>x.id===l.id);return{id:String(m?.business_id||l.business||m?.business||''),name:l.business||m?.business||'No business'}}
+function sitePickHtml(){const L=LOC.cloud?(LOC.list||[]):[];if(!L.length&&!isMaster())return'';
+ const wrap=sel=>`<div class="hdr-pick"><label class="sr" for="hdr-site">Site</label>${sel}</div>`;
+ if(L.length===1&&!isMaster())return wrap(`<select id="hdr-site" aria-label="Choose site" title="${esc(L[0].name)}" disabled><option>${esc(L[0].name)}</option></select>`);
+ const by=a=>(x,y)=>String(a(x)).localeCompare(String(a(y))),all=U.view==='allsites',fb=all?(U.allBiz||null):null;
+ const o=(v,t,on)=>`<option value="${esc(v)}" title="${esc(t)}" ${on?'selected':''}>${esc(t)}</option>`,site=(l,pre)=>o(l.id,(pre?pre+' ▸ ':'')+l.name,!all&&l.id===LOC.current);
+ const sorted=L.slice().sort(by(l=>l.name));let h;
+ if(isMaster()){const groups=[];sorted.forEach(l=>{const b=siteBiz(l);let g=groups.find(x=>x.id===b.id);if(!g)groups.push(g={id:b.id,k:b.name,list:[]});g.list.push(l)});
+  (ALLS.biz||[]).forEach(b=>{if(!groups.some(g=>g.id===String(b.id)))groups.push({id:String(b.id),k:b.name,list:[]})});groups.sort(by(g=>g.k));   // businesses with no sites yet
+  h=o('__all',`All sites (${L.length})`,all&&!fb)+groups.map(g=>`<optgroup label="${esc(g.k)}">${o('__biz:'+g.id,g.k+' ▸ All sites',all&&fb===g.id)}${g.list.map(l=>site(l,g.k)).join('')}</optgroup>`).join('')}
+ else h=o('__mine',`All my sites (${L.length})`,all)+sorted.map(l=>site(l)).join('');
+ return wrap(`<select id="hdr-site" aria-label="Choose site" title="Switch site" data-act-change="pickSite">${h}</select>`)}
+const markOpen=id=>{try{id?sessionStorage.setItem('pv-bk-open',id):sessionStorage.removeItem('pv-bk-open');sessionStorage.removeItem('pv-bk-all')}catch(e){}};
+const SITE_VIEWS=()=>NAV.filter(n=>n[0]!=='sec').map(n=>n[0]).concat(['help','users']);
+A.pickSite=el=>{const v=el.value;
+ if(v==='__all'||v==='__mine'||v.startsWith('__biz:')){markOpen(null);U.allBiz=v.startsWith('__biz:')?v.slice(6):null;try{sessionStorage.setItem('pv-bk-all',v)}catch(e){}U.view='allsites';render();return}
+ const keep=SITE_VIEWS().includes(U.view)?U.view:'parties';markOpen(v);
+ if(v&&v===LOC.current){U.view=keep;render();return}
+ if(v){try{sessionStorage.setItem('pv-bk-view',keep)}catch(e){}U.view=keep;A.openSite({dataset:{id:v}})}};
 /* "All sites" (master admins, from the site picker): every site's licence and today's bookings at a glance */
-TITLES.allsites='All sites';
+TITLES.allsites='All sites';Object.defineProperty(TITLES,'allsites',{get:()=>isMaster()?'All sites':'All my sites',enumerable:true,configurable:true});
 const ALLS={rows:null,biz:null,busy:false,at:0,err:''};
-VIEWS.allsites=()=>{if(!isMaster())return VIEWS.parties();
- const sites=CLOUD.me?.sites||[],R=ALLS.rows,by=id=>R&&R[id];
- const withSites=new Set(sites.map(x=>x.business_id)),bare=(ALLS.biz||[]).filter(b=>!withSites.has(b.id));
+VIEWS.allsites=()=>{if(!canView('allsites'))return VIEWS.parties();const M=isMaster();
+ const sites=(CLOUD.me?.sites||[]).filter(x=>!U.allBiz||siteBiz(x).id===U.allBiz),R=ALLS.rows,by=id=>R&&R[id];
+ const withSites=new Set(sites.map(x=>x.business_id)),bare=M?(ALLS.biz||[]).filter(b=>!withSites.has(b.id)&&(!U.allBiz||String(b.id)===U.allBiz)):[];
  const nBiz=new Set([...sites.map(x=>x.business_id||x.business),...bare.map(b=>b.id)]).size;
  const sum=k=>R?sites.reduce((n,x)=>n+((by(x.id)||{})[k]||0),0):'…';
  const stat=(k,v)=>`<div class="card stat"><div class="k">${k}</div><div class="v">${v}</div></div>`;
@@ -2433,12 +2462,12 @@ VIEWS.allsites=()=>{if(!isMaster())return VIEWS.parties();
  const empty=`<div class="pad" style="text-align:center;padding:44px 20px"><div style="opacity:.55;margin-bottom:8px">${ic('grid',30)}</div><b style="font-size:16px">No businesses yet</b><p class="mut" style="max-width:420px;margin:6px auto 16px">Businesses, sites and licences are added in the Proview licence portal. They show here as soon as they're set up.</p><div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap"><a style="text-decoration:none;max-width:100%;white-space:normal;height:auto;min-height:36px" class="btn pri" href="${LIC_PORTAL}" target="_blank" rel="noopener">${ic('plus',14)} Add a business in the licence portal ↗</a><button class="btn" data-act="allRefresh">Refresh</button></div></div>`;
  return`<div class="stats">${stat('Businesses',ALLS.biz===null&&!sites.length?'…':nBiz)}${stat('Sites',sites.length)}${stat('Licensed',sites.filter(licWorks).length)}${stat('Bookings today',sites.length?sum('b'):0)}</div>
  ${ALLS.err?`<div class="notice bad" style="margin-bottom:12px">${esc(ALLS.err)}</div>`:''}
- <div class="card"><div class="pad row between" style="flex-wrap:wrap;gap:10px"><div><b style="font-size:16px">All sites</b><div class="small mut">Every business and site on Proview Bookings, with today's bookings. Open a site to see it as its team does.</div></div>
-  <div class="row" style="gap:8px;flex-wrap:wrap">${total>6?`<input class="inp" id="allQ" type="search" placeholder="Search businesses and sites" oninput="allFilter(this.value)" style="width:240px;height:34px">`:''}<button class="btn sm" data-act="allRefresh" title="Refresh">${ic('download',14)} Refresh</button><a class="btn sm" style="text-decoration:none" href="${LIC_PORTAL}" target="_blank" rel="noopener" title="Businesses, sites and licences are managed in the licence portal">${ic('plus',14)} Add business ↗</a></div></div>
+ <div class="card"><div class="pad row between" style="flex-wrap:wrap;gap:10px"><div><b style="font-size:16px">${U.allBiz?esc(sites[0]?.business||(ALLS.biz||[]).find(b=>String(b.id)===U.allBiz)?.name||'Business')+' · ':''}${M?'All sites':'All my sites'}</b><div class="small mut">${M&&!U.allBiz?'Every business and site on Proview Bookings, with today\'s bookings. Open a site to see it as its team does.':'Each site with today\'s bookings. Open a site to work in it.'}</div></div>
+  <div class="row" style="gap:8px;flex-wrap:wrap">${total>6?`<input class="inp" id="allQ" type="search" placeholder="Search businesses and sites" oninput="allFilter(this.value)" style="width:240px;height:34px">`:''}<button class="btn sm" data-act="allRefresh" title="Refresh">${ic('download',14)} Refresh</button>${M?`<a class="btn sm" style="text-decoration:none" href="${LIC_PORTAL}" target="_blank" rel="noopener" title="Businesses, sites and licences are managed in the licence portal">${ic('plus',14)} Add business ↗</a>`:''}</div></div>
  ${total?`<table class="t" id="allT"><thead><tr><th>Business</th><th>Site</th><th>Licence</th><th>Bookings today</th><th>Covers</th><th>Seated now</th><th>Last change</th><th></th></tr></thead><tbody>${sites.map(row).join('')}${bare.map(bareRow).join('')}</tbody></table><div class="pad mut small" id="allNone" hidden>No business or site matches that search.</div>`:loading?'<div class="pad mut">Loading…</div>':empty}</div>`};
 function allFilter(v){const t=String(v||'').trim().toLowerCase();let n=0;document.querySelectorAll('#allT tbody tr').forEach(tr=>{const ok=!t||tr.dataset.q.includes(t);tr.hidden=!ok;if(ok)n++});const e=$('#allNone');if(e)e.hidden=n>0}
-AFTER.allsites=async()=>{if(!isMaster()||ALLS.busy||!CLOUD.ad)return;if(ALLS.at&&Date.now()-ALLS.at<60e3)return;ALLS.busy=true;const errs=[];
- try{ALLS.biz=(await CLOUD.ad.sel('bk_businesses','id,name')||[]).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)))}catch(e){ALLS.biz=ALLS.biz||[];errs.push('Couldn’t load businesses: '+(e.message||e))}
+AFTER.allsites=async()=>{if(!canView('allsites')||ALLS.busy||!CLOUD.ad)return;if(ALLS.at&&Date.now()-ALLS.at<60e3)return;ALLS.busy=true;const errs=[];
+ if(!isMaster())ALLS.biz=[];else try{ALLS.biz=(await CLOUD.ad.sel('bk_businesses','id,name')||[]).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)))}catch(e){ALLS.biz=ALLS.biz||[];errs.push('Couldn’t load businesses: '+(e.message||e))}
  const rows={};
  if(CLOUD.ad.sb&&(CLOUD.me?.sites||[]).length){try{const r=await CLOUD.ad.sb.from('bk_venue_state').select('id,updated_at,parties:data->parties');if(r.error)throw r.error;
    const t=today();(r.data||[]).forEach(v=>{const ps=(Array.isArray(v.parties)?v.parties:[]).filter(p=>p&&p.date===t&&p.kind!=='enquiry'&&!['cancelled','deleted','noshow'].includes(p.status));
@@ -2478,7 +2507,7 @@ const VIEW_FEATURE={tables:'bookings',planner:'bookings',floor:'bookings',guests
 function hasFeature(f){if(!CLOUD.on||!CLOUD.site||isMaster())return true;const F=CLOUD.site.features;if(!F)return true;return F[f]!==false}
 function myBusiness(){const b=CLOUD.site&&CLOUD.site.business_id;return b?(CLOUD.me?.businesses||[]).find(x=>x.id===b)||null:null}
 function usersOn(){return !!(CLOUD.on&&CLOUD.ad?.kind==='supabase'&&myBusiness()&&myBusiness().can_manage_users)}
-function canView(v){if(v==='allsites')return isMaster();if(CLOUD.nosite)return v==='help';if(v==='help')return true;if(v==='users')return usersOn();
+function canView(v){if(v==='allsites')return isMaster()||(!!LOC.cloud&&!CLOUD.nosite&&(CLOUD.me?.sites||[]).length>1);if(CLOUD.nosite)return v==='help';if(v==='help')return true;if(v==='users')return usersOn();
  if(v==='parties')return hasFeature('bookings')||hasFeature('queue')||hasFeature('enquiries');const f=VIEW_FEATURE[v];return !f||hasFeature(f)}
 function firstView(){if(CLOUD.nosite)return'allsites';const n=NAV.find(n=>n[0]!=='sec'&&canView(n[0]));return n?n[0]:'noaccess'}
 NAV.push(['users','Users','users']);SHORT.users='Users';TITLES.users='Users';TITLES.noaccess='No access';
