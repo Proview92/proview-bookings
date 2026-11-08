@@ -41,6 +41,20 @@ Deno.serve(async (req) => {
     const body = await req.json();
     if (!user || !(await isStaff(user.id, body.venue))) return json({ error: "Not allowed" }, 403);
     const out: Record<string, unknown> = {};
+    // People without the guests feature never see contact details: the app sends the guest's id
+    // and the address is looked up here (bk_guests, supabase/005_guest_privacy.sql).
+    if ((body.email && !body.email.to && body.email.guest) || (body.sms && !body.sms.to && body.sms.guest)) {
+      const id = String(body.email?.guest || body.sms?.guest);
+      const rows = await db(`bk_guests?venue=eq.${encodeURIComponent(body.venue)}&id=eq.${encodeURIComponent(id)}&select=data`);
+      const g = Array.isArray(rows) && rows[0] ? rows[0].data : null;
+      if (body.email && !body.email.to) { body.email.to = String(g?.email || "").trim(); if (!body.email.to) out.email = "skipped: no email address"; }
+      if (body.sms && !body.sms.to) { body.sms.to = String(g?.phone || "").trim(); if (!body.sms.to) out.sms = "skipped: no phone number"; }
+    }
+    if (body.email?.to) {   // the manage-booking link carries the address: {{guest_email}}
+      const enc = encodeURIComponent(String(body.email.to));
+      body.email.text = String(body.email.text || "").split("{{guest_email}}").join(enc);
+      if (typeof body.email.html === "string") body.email.html = body.email.html.split("{{guest_email}}").join(enc);
+    }
     if (body.email?.to) {
       const key = env("BK_RESEND_API_KEY");
       if (!key) out.email = "skipped: BK_RESEND_API_KEY not set";
