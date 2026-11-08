@@ -789,7 +789,7 @@ const SIZE={sq:[64,64],rect:[100,64],round:[74,74],long:[74,150],big:[130,80]};
 const STATUS_LABEL={booked:'Booked',arrived:'Arrived',waiting:'Waiting',seated:'Seated',dessert:'Dessert',paying:'Paying',finished:'Finished',cancelled:'Cancelled',noshow:'No-show',deleted:'Deleted',pending:'Enquiry',declined:'Declined'};
 const DEAD=['cancelled','noshow','deleted','pending','declined'];
 const ACTIVE=['seated','dessert','paying'];
-function save(){LEARN=null;if(typeof CLOUD!=='undefined'&&CLOUD.on)setTimeout(()=>schedulePush());try{localStorage.setItem(KEY,JSON.stringify(S));const l=LOC.list.find(x=>x.id===LOC.current);if(l&&S.venue)l.name=S.venue.name;localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}}
+function save(){LEARN=null;if(typeof CLOUD!=='undefined'&&CLOUD.nosite)return;if(typeof CLOUD!=='undefined'&&CLOUD.on)setTimeout(()=>schedulePush());try{localStorage.setItem(KEY,JSON.stringify(S));const l=LOC.list.find(x=>x.id===LOC.current);if(l&&S.venue)l.name=S.venue.name;localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}}
 function load(){try{const r=localStorage.getItem(KEY);if(r){S=upgrade(JSON.parse(r));return}}catch(e){}S=upgrade(seed());save()}
 
 function seed(){
@@ -1578,7 +1578,7 @@ A.tableStatus=el=>{const tid=el.dataset.id,v=el.value,p=activeParty(tid);
 A.addTable=()=>{let n=1;while(S.tables.some(t=>t.name==='N'+n))n++;const k=S.tables.filter(t=>t.area===U.area).length;const t={id:uid(),name:'N'+n,min:2,max:4,area:U.area,x:40+(k*30)%400,y:420-(k*10)%80,shape:'sq',open:true};S.tables.push(t);U.selTable=t.id;U.selDecor=null;save();render()};
 A.delTable=()=>{const id=U.selTable;const n=S.parties.filter(p=>p.tables.includes(id)&&p.date>=today()&&!DEAD.includes(p.status)).length;ask(`Remove table ${tName(id)}?${n?` ${n} upcoming booking${n>1?'s':''} will lose this table and show as "No table".`:''}`,()=>{S.tables=S.tables.filter(t=>t.id!==id);S.parties.forEach(p=>{p.tables=p.tables.filter(t=>t!==id)});S.combos=S.combos.filter(c=>!c.tables.includes(id));delete S.dirty[id];U.selTable=null;save();render()},'Remove')};
 A.resetDemo=()=>ask('This replaces every booking, guest and setting with fresh sample data.',()=>{try{localStorage.removeItem(KEY)}catch(e){}S=upgrade(seed());U.area=S.areas[0].id;U.date=today();save();render();toast('Sample data reset')},'Reset');
-A.logout=()=>{if(!CLOUD.ad){A.closeModal();toast('Sign-in is turned on once the cloud is connected');return}ask('Sign out of Proview Bookings on this device?',async()=>{try{if(CLOUD.on&&typeof cloudPush==='function')await cloudPush()}catch(e){}try{await CLOUD.ad.signOut()}catch(e){}try{localStorage.removeItem(KEY);localStorage.removeItem('proview-synced:'+KEY)}catch(e){}location.reload()},'Sign out')};
+A.logout=()=>{if(!CLOUD.ad){A.closeModal();toast('Sign-in is turned on once the cloud is connected');return}ask('Sign out of Proview Bookings on this device?',async()=>{try{if(CLOUD.on&&typeof cloudPush==='function')await cloudPush()}catch(e){}await signOutWith()},'Sign out')};
 A.newGuest=()=>{openDrawer('Add guest',`<label class="f">Full name</label><input class="inp" id="ngName"><label class="f">Phone</label><input class="inp" id="ngPhone"><label class="f">Email</label><input class="inp" id="ngEmail" type="email"><label class="row" style="margin-top:12px"><input type="checkbox" id="ngMkt"> Opted in to marketing</label>`,`<button class="btn" data-act="closeDrawer">Cancel</button><button class="btn pri" data-act="saveNewGuest">Add guest</button>`);$('#ngName').focus()};
 A.saveNewGuest=()=>{const n=$('#ngName').value.trim(),em=$('#ngEmail').value.trim().toLowerCase();if(!n){toast('Enter the guest\'s name');return}if(em&&S.guests.some(g=>g.email.toLowerCase()===em)){toast('A guest with that email already exists');return}const g={id:uid(),name:n,phone:$('#ngPhone').value.trim(),email:em,tags:[],notes:'',marketing:$('#ngMkt').checked,created:today()};S.guests.push(g);save();render();openGuest(g.id);toast('Guest added')};
 A.delGuest=el=>{const id=el.dataset.id;ask(`Delete ${esc(guestById(id).name)}? Their past bookings stay but are no longer linked to a guest.`,()=>{const g=guestById(id);S.parties.forEach(p=>{if(p.guest===id){p.name=shortName(g.name);p.guest=null}});S.guests=S.guests.filter(x=>x.id!==id);S.chats=S.chats.filter(c=>c.guest!==id);save();closeDrawer();render();toast('Guest deleted')})};
@@ -2015,7 +2015,7 @@ async function cloudInit(){
  const pv=location.hash.match(/[#&]pv_sso=([^&]+)/);
  if(pv&&CLOUD.ad.sso){history.replaceState(null,'',location.pathname+location.search);try{CLOUD.user=await CLOUD.ad.sso(pv[1]);await afterSignIn();if(CLOUD.on)toast('Signed in with your Proview account');return}catch(e){showLogin(authErr(e));return}}
  const u=await CLOUD.ad.user().catch(()=>null);
- if(!u){showLogin();return}
+ if(!u){let lm=null;try{lm=sessionStorage.getItem('pv-login-msg');sessionStorage.removeItem('pv-login-msg')}catch(e){}lm?showLogin(lm,'info'):showLogin();return}
  CLOUD.user=u;await afterSignIn();
 }
 const ID_ARRAYS=new Set(['parties','guests','tables','decor','staff','shifts','tasks','taskTemplates','chats','notes','reviews','menus','channels','schedules','overrides','combos','guestTags','partyTags']);
@@ -2096,7 +2096,7 @@ function mergeState(L,Rm){
  if(out.guests&&out.parties&&!gsOn()){const keep={},remap={};out.guests.forEach(g=>{const e=(g.email||'').toLowerCase();if(!e)return;if(!keep[e]||g.id<keep[e])keep[e]=g.id});out.guests=out.guests.filter(g=>{const e=(g.email||'').toLowerCase();if(e&&keep[e]!==g.id){remap[g.id]=keep[e];del[g.id]=Date.now();return false}return true});if(Object.keys(remap).length)out.parties.forEach(p=>{if(remap[p.guest]){p.guest=remap[p.guest];p._u=Date.now()}})}
  const cut=Date.now()-30*864e5;for(const id in del)if(del[id]<cut)delete del[id];
  out._m=m;out._del=del;return out}
-function localSave(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function localSave(){if(CLOUD.nosite)return;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 async function cloudStart(){hideAuth();
  CLOUD.on=true;cloudStatus('syncing');
  try{const r=await CLOUD.ad.get(CLOUD.vid);
@@ -2298,20 +2298,45 @@ function licPreview(type,{extend,current,custom}={}){
 const isMaster=()=>!!(CLOUD.me&&CLOUD.me.is_master);
 const bookUrl=id=>location.origin+location.pathname.replace(/[^/]*$/,'')+'book/?v='+encodeURIComponent(id);
 
+/* --- device cache: only the signed-in person's own sites stay on this device ---
+ Venue documents live in localStorage under proview-bookings-v3:<site> (+ proview-synced:… link flags).
+ Anything the server no longer gives this login (deleted venue, access removed) is dropped and never shown or uploaded again;
+ everything is dropped on sign-out and when a different person signs in on this device. */
+const WHOKEY='proview-bookings-who',VKEY='proview-bookings-v3:',SKEY='proview-synced:proview-bookings-v3:';
+function purgeCache(keep){const ok=keep?new Set(keep):null,gone=[];
+ try{for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(!k)continue;
+   const id=k.startsWith(VKEY)?k.slice(VKEY.length):k.startsWith(SKEY)?k.slice(SKEY.length):null;
+   if(id!==null&&!(ok&&ok.has(id))){localStorage.removeItem(k);gone.push(id)}}
+  if(!ok){localStorage.removeItem(LOCKEY);localStorage.removeItem(WHOKEY);sessionStorage.removeItem('pv-bk-open');sessionStorage.removeItem('pv-newsite')}}catch(e){}
+ return gone}
+async function signOutWith(msg){try{await CLOUD.ad.signOut()}catch(e){}purgeCache(null);try{if(msg)sessionStorage.setItem('pv-login-msg',msg)}catch(e){}location.reload()}
+
 /* --- after sign-in: pick the site this login can open --- */
 async function afterSignIn(){
+ const who=String(CLOUD.user?.id||CLOUD.user?.email||'');let was=null;try{was=localStorage.getItem(WHOKEY)}catch(e){}
+ if(who&&was&&was!==who){purgeCache(null);try{localStorage.setItem(WHOKEY,who)}catch(e){}location.reload();return}   // someone else signed in on this device
+ if(who)try{localStorage.setItem(WHOKEY,who)}catch(e){}
  let me=null;try{me=CLOUD.ad.whoami?await CLOUD.ad.whoami():null}catch(e){console.error('whoami',e)}
  if(!me){await cloudStart();return}                      // database without sites yet: old single-venue mode
  CLOUD.me=me;const sites=me.sites||[];
- if(!sites.length){if(me.is_master){showNoSites();return}if((me.businesses||[]).length){showNoAccess();return}showBusinessSetup();return}
+ purgeCache(sites.map(s=>s.id));
+ if(!sites.length){
+  if(me.is_master){LOC={cloud:true,current:'',list:[]};try{localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}showMasterHome();return}
+  const b=(me.businesses||[])[0];
+  await signOutWith(b?`Your login at ${b.name} doesn't have any sites yet. Ask your owner or Proview.`:"Your login isn't linked to a business yet. Ask your owner or Proview.");return}
  const want=LOC.cloud&&sites.some(s=>s.id===LOC.current)?LOC.current:sites[0].id;
  const wasKey=KEY;LOC={cloud:true,current:want,list:sites.map(s=>({id:s.id,name:s.name,business:s.business}))};
  try{localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}
  if(wasKey!=='proview-bookings-v3:'+want){location.reload();return}
  CLOUD.vid=want;CLOUD.site=sites.find(s=>s.id===want);
+ if(isMaster()){let open=null;try{open=sessionStorage.getItem('pv-bk-open')}catch(e){}if(open!==want)U.view='allsites'}   // the master lands on All sites
  if(!isMaster()&&!licWorks(CLOUD.site)){showLicenceLock();return}
  await cloudStart();
 }
+/* master with no sites on the platform: the All sites page with nothing open (no venue document, nothing synced) */
+function showMasterHome(){CLOUD.nosite=true;CLOUD.on=false;CLOUD.vid=null;CLOUD.site=null;
+ S=upgrade(seed());['parties','guests','reviews','chats','notes','tasks','shifts','staff'].forEach(k=>S[k]=[]);S.venue.name='Proview';
+ U.view='allsites';hideAuth();render()}
 
 /* --- online sign-up: set up the business (3-day trial) --- */
 function showBusinessSetup(msg){document.body.classList.add('gate');const a=$('#auth');
@@ -2332,9 +2357,8 @@ async function bizSetupSubmit(ev){ev&&ev.preventDefault();const n=$('#bzName').v
   LOC={cloud:true,current:sid,list:[{id:sid,name:s,business:n}]};localStorage.setItem(LOCKEY,JSON.stringify(LOC));sessionStorage.setItem('pv-newsite',s);location.reload()}
  catch(e){go.disabled=false;go.textContent='Start my free trial';authNote(authErr(e))}
  return false}
-A.authSignOut=async(el,ev)=>{ev&&ev.preventDefault();try{await CLOUD.ad.signOut()}catch(e){}try{localStorage.removeItem(LOCKEY)}catch(e){}location.reload()};
+A.authSignOut=async(el,ev)=>{ev&&ev.preventDefault();await signOutWith()};
 
-function showNoSites(){document.body.classList.add('gate');const a=$('#auth');a.innerHTML=`<div class="auth-form" style="grid-column:1/-1"><div class="lockcard"><div class="auth-brand"><div class="logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span></div><h1>No venues yet</h1><p class="muted">Add businesses, venues and licences in the Proview licence portal, then come back here.</p><a class="go" style="display:grid;place-items:center;text-decoration:none" href="https://license.proviewcrm.co.uk" target="_blank" rel="noopener">Open licence portal ↗</a><div class="alinks"><button type="button" data-act="lockRetry">Check again</button><button type="button" data-act="authSignOut">Sign out</button></div></div></div>`;a.hidden=false}
 /* --- licence ended: lock the app (staff) --- */
 function showLicenceLock(){document.body.classList.add('gate');const s=CLOUD.site,L=licState(s),a=$('#auth');const others=(LOC.list||[]).filter(x=>x.id!==s.id);
  a.innerHTML=`<div class="auth-form" style="grid-column:1/-1"><div class="lockcard">
@@ -2377,28 +2401,42 @@ function sitePickHtml(compact){const L=LOC.cloud?(LOC.list||[]):[];if(!L.length)
  const sorted=L.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
  const all=U.view==='allsites'&&isMaster(),opt=l=>`<option value="${esc(l.id)}" ${l.id===LOC.current&&!all?'selected':''}>${esc(l.name)}</option>`;
  return`${compact?'':`<label class="pv-viewing">${all?'Master view':'Viewing site'}</label>`}<select aria-label="Site" title="Switch site" data-act-change="pickSite">${isMaster()?`<option value="__all" ${all?'selected':''}>All sites (${L.length})</option>`:''}${sorted.map(opt).join('')}</select>`}
-A.pickSite=el=>{if(el.value==='__all'){U.view='allsites';render();return}if(el.value&&el.value===LOC.current&&U.view==='allsites'){U.view='parties';render();return}if(el.value&&el.value!==LOC.current){U.view='parties';A.openSite({dataset:{id:el.value}})}};
+const markOpen=id=>{try{id?sessionStorage.setItem('pv-bk-open',id):sessionStorage.removeItem('pv-bk-open')}catch(e){}};
+A.pickSite=el=>{if(el.value==='__all'){markOpen(null);U.view='allsites';render();return}markOpen(el.value);if(el.value&&el.value===LOC.current&&U.view==='allsites'){U.view='parties';render();return}if(el.value&&el.value!==LOC.current){U.view='parties';A.openSite({dataset:{id:el.value}})}};
 /* "All sites" (master admins, from the site picker): every site's licence and today's bookings at a glance */
 TITLES.allsites='All sites';
-const ALLS={rows:null,busy:false,at:0,err:''};
+const ALLS={rows:null,biz:null,busy:false,at:0,err:''};
 VIEWS.allsites=()=>{if(!isMaster())return VIEWS.parties();
  const sites=CLOUD.me?.sites||[],R=ALLS.rows,by=id=>R&&R[id];
+ const withSites=new Set(sites.map(x=>x.business_id)),bare=(ALLS.biz||[]).filter(b=>!withSites.has(b.id));
+ const nBiz=new Set([...sites.map(x=>x.business_id||x.business),...bare.map(b=>b.id)]).size;
  const sum=k=>R?sites.reduce((n,x)=>n+((by(x.id)||{})[k]||0),0):'…';
  const stat=(k,v)=>`<div class="card stat"><div class="k">${k}</div><div class="v">${v}</div></div>`;
- const row=x=>{const r=by(x.id);return`<tr><td><b>${esc(x.name)}</b>${x.business?`<div class="small mut">${esc(x.business)}</div>`:''}</td><td>${licChip(x)}</td><td>${r?r.b:'…'}</td><td>${r?r.c:'…'}</td><td>${r?r.s:'…'}</td><td class="small mut">${r&&r.at?esc(new Date(r.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})):'—'}</td><td style="text-align:right"><button class="btn sm ${x.id===LOC.current?'':'pri'}" data-act="allOpen" data-id="${esc(x.id)}">${x.id===LOC.current?'Back to this site':'Open'}</button></td></tr>`};
- return`<div class="stats">${stat('Sites',sites.length)}${stat('Licensed',sites.filter(licWorks).length)}${stat('Bookings today',sum('b'))}${stat('Covers today',sum('c'))}</div>
+ const q=(...a)=>esc(a.filter(Boolean).join(' ').toLowerCase());
+ const row=x=>{const r=by(x.id),cur=x.id===LOC.current&&!CLOUD.nosite;return`<tr data-q="${q(x.business,x.name,x.id)}"><td><b>${esc(x.business||'—')}</b></td><td>${esc(x.name)}</td><td>${licChip(x)}</td><td>${r?r.b:'…'}</td><td>${r?r.c:'…'}</td><td>${r?r.s:'…'}</td><td class="small mut">${r&&r.at?esc(new Date(r.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})):'—'}</td><td style="text-align:right"><button class="btn sm ${cur?'':'pri'}" data-act="allOpen" data-id="${esc(x.id)}">${cur?'Back to this site':'Open'}</button></td></tr>`};
+ const bareRow=b=>`<tr data-q="${q(b.name)}"><td><b>${esc(b.name)}</b></td><td class="mut">No sites yet</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td style="text-align:right"><a style="text-decoration:none;max-width:100%;white-space:normal;height:auto;min-height:36px" class="btn sm" href="${LIC_PORTAL}" target="_blank" rel="noopener">Add a site ↗</a></td></tr>`;
+ const total=sites.length+bare.length,loading=!sites.length&&ALLS.biz===null;
+ const empty=`<div class="pad" style="text-align:center;padding:44px 20px"><div style="opacity:.55;margin-bottom:8px">${ic('grid',30)}</div><b style="font-size:16px">No businesses yet</b><p class="mut" style="max-width:420px;margin:6px auto 16px">Businesses, sites and licences are added in the Proview licence portal. They show here as soon as they're set up.</p><div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap"><a style="text-decoration:none;max-width:100%;white-space:normal;height:auto;min-height:36px" class="btn pri" href="${LIC_PORTAL}" target="_blank" rel="noopener">${ic('plus',14)} Add a business in the licence portal ↗</a><button class="btn" data-act="allRefresh">Refresh</button></div></div>`;
+ return`<div class="stats">${stat('Businesses',ALLS.biz===null&&!sites.length?'…':nBiz)}${stat('Sites',sites.length)}${stat('Licensed',sites.filter(licWorks).length)}${stat('Bookings today',sites.length?sum('b'):0)}</div>
  ${ALLS.err?`<div class="notice bad" style="margin-bottom:12px">${esc(ALLS.err)}</div>`:''}
- <div class="card"><div class="pad row between"><div><b style="font-size:16px">Every site</b><div class="small mut">Today's bookings across all businesses. Open a site to see it as its team does.</div></div><a class="btn sm" href="${LIC_PORTAL}" target="_blank" rel="noopener">Licences ↗</a></div>
- ${sites.length?`<table class="t"><thead><tr><th>Site</th><th>Licence</th><th>Bookings today</th><th>Covers</th><th>Seated now</th><th>Last change</th><th></th></tr></thead><tbody>${sites.map(row).join('')}</tbody></table>`:`<div class="pad mut">No sites yet. Add businesses and sites in the licence portal.</div>`}</div>`};
-AFTER.allsites=async()=>{if(!isMaster()||ALLS.busy||!CLOUD.ad?.sb)return;if(ALLS.at&&Date.now()-ALLS.at<60e3)return;ALLS.busy=true;
- try{const r=await CLOUD.ad.sb.from('bk_venue_state').select('id,updated_at,parties:data->parties');if(r.error)throw r.error;
-  const t=today(),rows={};(r.data||[]).forEach(v=>{const ps=(Array.isArray(v.parties)?v.parties:[]).filter(p=>p&&p.date===t&&p.kind!=='enquiry'&&!['cancelled','deleted','noshow'].includes(p.status));
-   rows[v.id]={b:ps.length,c:ps.reduce((n,p)=>n+(+p.size||0),0),s:ps.filter(p=>ACTIVE.includes(p.status)).length,at:v.updated_at}});
-  (CLOUD.me?.sites||[]).forEach(x=>{if(!rows[x.id])rows[x.id]={b:0,c:0,s:0,at:null}});ALLS.rows=rows;ALLS.at=Date.now();ALLS.err=''}
- catch(e){ALLS.err='Couldn’t load today’s bookings: '+(e.message||e);ALLS.at=Date.now()}
- ALLS.busy=false;if(U.view==='allsites')render()};
-A.allOpen=el=>{const id=el.dataset.id;U.view='parties';if(id===LOC.current){render();return}A.openSite({dataset:{id}})};
-A.openSite=el=>{const id=el.dataset.id;if(!id)return;if(id===CLOUD.vid)return;save();LOC.current=id;if(!LOC.list.some(x=>x.id===id)){LOC.list.push({id,name:id})}LOC.cloud=true;localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload()};
+ <div class="card"><div class="pad row between" style="flex-wrap:wrap;gap:10px"><div><b style="font-size:16px">All sites</b><div class="small mut">Every business and site on Proview Bookings, with today's bookings. Open a site to see it as its team does.</div></div>
+  <div class="row" style="gap:8px;flex-wrap:wrap">${total>6?`<input class="inp" id="allQ" type="search" placeholder="Search businesses and sites" oninput="allFilter(this.value)" style="width:240px;height:34px">`:''}<button class="btn sm" data-act="allRefresh" title="Refresh">${ic('download',14)} Refresh</button><a class="btn sm" style="text-decoration:none" href="${LIC_PORTAL}" target="_blank" rel="noopener" title="Businesses, sites and licences are managed in the licence portal">${ic('plus',14)} Add business ↗</a></div></div>
+ ${total?`<table class="t" id="allT"><thead><tr><th>Business</th><th>Site</th><th>Licence</th><th>Bookings today</th><th>Covers</th><th>Seated now</th><th>Last change</th><th></th></tr></thead><tbody>${sites.map(row).join('')}${bare.map(bareRow).join('')}</tbody></table><div class="pad mut small" id="allNone" hidden>No business or site matches that search.</div>`:loading?'<div class="pad mut">Loading…</div>':empty}</div>`};
+function allFilter(v){const t=String(v||'').trim().toLowerCase();let n=0;document.querySelectorAll('#allT tbody tr').forEach(tr=>{const ok=!t||tr.dataset.q.includes(t);tr.hidden=!ok;if(ok)n++});const e=$('#allNone');if(e)e.hidden=n>0}
+AFTER.allsites=async()=>{if(!isMaster()||ALLS.busy||!CLOUD.ad)return;if(ALLS.at&&Date.now()-ALLS.at<60e3)return;ALLS.busy=true;const errs=[];
+ try{ALLS.biz=(await CLOUD.ad.sel('bk_businesses','id,name')||[]).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)))}catch(e){ALLS.biz=ALLS.biz||[];errs.push('Couldn’t load businesses: '+(e.message||e))}
+ const rows={};
+ if(CLOUD.ad.sb&&(CLOUD.me?.sites||[]).length){try{const r=await CLOUD.ad.sb.from('bk_venue_state').select('id,updated_at,parties:data->parties');if(r.error)throw r.error;
+   const t=today();(r.data||[]).forEach(v=>{const ps=(Array.isArray(v.parties)?v.parties:[]).filter(p=>p&&p.date===t&&p.kind!=='enquiry'&&!['cancelled','deleted','noshow'].includes(p.status));
+    rows[v.id]={b:ps.length,c:ps.reduce((n,p)=>n+(+p.size||0),0),s:ps.filter(p=>ACTIVE.includes(p.status)).length,at:v.updated_at}})}
+  catch(e){errs.push('Couldn’t load today’s bookings: '+(e.message||e))}}
+ (CLOUD.me?.sites||[]).forEach(x=>{if(!rows[x.id])rows[x.id]={b:0,c:0,s:0,at:null}});ALLS.rows=rows;ALLS.at=Date.now();ALLS.err=errs.join(' · ');
+ ALLS.busy=false;if(U.view==='allsites'){const q=$('#allQ')?.value;render();if(q&&$('#allQ')){$('#allQ').value=q;allFilter(q)}}};
+A.allRefresh=async()=>{let me=null;try{me=await CLOUD.ad.whoami()}catch(e){toast('Couldn’t refresh: '+(e.message||e));return}if(!me)return;
+ const ids=x=>(x?.sites||[]).map(s=>s.id).join('|'),changed=ids(CLOUD.me)!==ids(me);CLOUD.me=me;
+ if(changed){markOpen(null);location.reload();return}ALLS.at=0;ALLS.rows=null;render();toast('Up to date')};
+A.allOpen=el=>{const id=el.dataset.id;markOpen(id);U.view='parties';if(id===LOC.current){render();return}A.openSite({dataset:{id}})};
+A.openSite=el=>{const id=el.dataset.id;if(!id)return;if(id===CLOUD.vid)return;markOpen(id);save();LOC.current=id;if(!LOC.list.some(x=>x.id===id)){LOC.list.push({id,name:id})}LOC.cloud=true;localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload()};
 /* licences are managed in the Proview licence portal */
 const LIC_PORTAL='https://license.proviewcrm.co.uk';
 A.admLicence=()=>window.open(LIC_PORTAL,'_blank','noopener');
@@ -2426,18 +2464,17 @@ const VIEW_FEATURE={tables:'bookings',planner:'bookings',floor:'bookings',guests
 function hasFeature(f){if(!CLOUD.on||!CLOUD.site||isMaster())return true;const F=CLOUD.site.features;if(!F)return true;return F[f]!==false}
 function myBusiness(){const b=CLOUD.site&&CLOUD.site.business_id;return b?(CLOUD.me?.businesses||[]).find(x=>x.id===b)||null:null}
 function usersOn(){return !!(CLOUD.on&&CLOUD.ad?.kind==='supabase'&&myBusiness()&&myBusiness().can_manage_users)}
-function canView(v){if(v==='allsites')return isMaster();if(v==='help')return true;if(v==='users')return usersOn();
+function canView(v){if(v==='allsites')return isMaster();if(CLOUD.nosite)return v==='help';if(v==='help')return true;if(v==='users')return usersOn();
  if(v==='parties')return hasFeature('bookings')||hasFeature('queue')||hasFeature('enquiries');const f=VIEW_FEATURE[v];return !f||hasFeature(f)}
-function firstView(){const n=NAV.find(n=>n[0]!=='sec'&&canView(n[0]));return n?n[0]:'noaccess'}
+function firstView(){if(CLOUD.nosite)return'allsites';const n=NAV.find(n=>n[0]!=='sec'&&canView(n[0]));return n?n[0]:'noaccess'}
 NAV.push(['users','Users','users']);SHORT.users='Users';TITLES.users='Users';TITLES.noaccess='No access';
 VIEWS.noaccess=()=>`<div class="card pad" style="max-width:560px"><b style="font-size:16px">Nothing to show</b><p class="mut">Your login doesn't have any pages switched on at ${esc(S.venue.name)}. Ask your manager or the business owner.</p></div>`;
-function showNoAccess(){document.body.classList.add('gate');const a=$('#auth');a.innerHTML=`<div class="auth-form" style="grid-column:1/-1"><div class="lockcard"><div class="auth-brand"><div class="logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span></div><h1>No sites yet</h1><p class="muted">You've been added to ${esc((CLOUD.me?.businesses||[])[0]?.name||'a business')}, but no sites have been given to you yet. Ask the owner or an admin to tick your sites on the Users page.</p><div class="alinks"><button type="button" data-act="lockRetry">Check again</button><button type="button" data-act="authSignOut">Sign out</button></div></div></div>`;a.hidden=false}
 {const _render=render,_nav=renderNav,_top=renderTop;
  render=function(){if(!canView(U.view))U.view=firstView();if(U.view==='settings'&&U.setPage==='account'&&U.setTab==='team'&&!usersOn()&&!hasFeature('users'))U.setTab=null;return _render.apply(this,arguments)};
  renderNav=function(){const r=_nav.apply(this,arguments);document.querySelectorAll('#nav [data-act=go]').forEach(b=>{if(!canView(b.dataset.v))b.remove()});
   document.querySelectorAll('#nav .nav-sec').forEach(sec=>{let n=sec.nextElementSibling;if(!n||n.classList.contains('nav-sec')||n.dataset.act==='help')sec.remove()});return r};
  renderTop=function(){const r=_top.apply(this,arguments);const t=$('#top');if(t){const hide={chats:'messages',enquiries:'enquiries',newParty:'bookings'};
-  for(const[k,f]of Object.entries(hide))if(!hasFeature(f))t.querySelectorAll('[data-act='+k+']').forEach(e=>e.remove());if(!hasFeature('settings'))t.querySelectorAll('[data-act=goPage]').forEach(e=>e.remove())}return r};
+  for(const[k,f]of Object.entries(hide))if(!hasFeature(f))t.querySelectorAll('[data-act='+k+']').forEach(e=>e.remove());if(!hasFeature('settings'))t.querySelectorAll('[data-act=goPage]').forEach(e=>e.remove());if(CLOUD.nosite)t.querySelectorAll('[data-act=goPage],[data-act=search],[data-act=chats],[data-act=enquiries],[data-act=notifs],[data-act=newParty]').forEach(e=>e.remove())}if(CLOUD.nosite){const vc=$('#venueCard');if(vc){vc.removeAttribute('data-act');vc.style.cursor='default'}}return r};
  const guard=(name,f)=>{const o=A[name];if(o)A[name]=function(){if(!f())return toast('You don\'t have access to that');return o.apply(this,arguments)}};
  guard('chats',()=>hasFeature('messages'));guard('enquiries',()=>hasFeature('enquiries'));guard('newParty',()=>hasFeature('bookings'));
  guard('goPage',()=>hasFeature('settings'));guard('guideGo',()=>hasFeature('settings'));guard('goTags',()=>hasFeature('guests'));guard('goChannels',()=>hasFeature('guests'));guard('myAccount',()=>hasFeature('settings'));
