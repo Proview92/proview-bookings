@@ -1352,6 +1352,7 @@ VIEWS.settings=()=>{
  const P={
   account:()=>{const [t,tb]=stabs([['loc','Location details'],['me','My details'],['team','Team members']]);
    if(t==='me')return tb+`<div class="card pad" style="max-width:640px"><label class="f" style="margin-top:0">Your name</label>${txt('venue.me.name','100%')}<label class="f">Email</label>${txt('venue.me.email','100%')}<label class="f">Phone</label>${txt('venue.me.phone','100%')}<label class="f">Change password</label><div class="grid2"><input class="inp" type="password" placeholder="New password" id="pw1"><input class="inp" type="password" placeholder="Confirm password" id="pw2"></div><button class="btn sm" style="margin-top:12px" data-act="changePw">Update password</button></div>`;
+   if(t==='team'&&usersOn())return tb+VIEWS.users();
    if(t==='team')return tb+`<div class="card"><div class="pad row between"><b>Team members</b><div class="row"><input class="inp" style="width:160px" placeholder="Name" id="nuName"><input class="inp" style="width:220px" placeholder="Email address" id="nuEmail"><button class="btn sm pri" data-act="addUser">${ic('plus',14)} Add member</button></div></div><table class="t"><thead><tr><th>Name</th><th>Email address</th><th>Role</th><th>Since</th><th></th></tr></thead><tbody>${S.venue.users.map((u,i)=>`<tr><td><div class="row"><div class="av">${initials(u.name)}</div><b>${esc(u.name)}</b></div></td><td>${esc(u.email)}</td><td><select class="inp" style="width:130px" data-act-change="userRole" data-i="${i}">${['Admin','Manager','Host','Viewer'].map(r=>`<option ${u.role===r||(r==='Admin'&&u.role==='Owner')?'selected':''}>${r}</option>`).join('')}</select></td><td>${u.since?fmtDate(u.since,{day:'numeric',month:'short',year:'numeric'}):'—'}</td><td>${i?`<button class="icon-btn" data-act="delUser" data-i="${i}" title="Remove">${ic('x',15)}</button>`:''}</td></tr>`).join('')}</tbody></table></div>`;
    return tb+`<div class="card pad" style="max-width:760px"><label class="f" style="margin-top:0">Location name</label><div class="small mut">The name guests see once you're online</div>${txt('venue.name','100%')}<label class="f">Location area</label>${txt('venue.area','100%')}
     <label class="f">Address</label><div class="grid2">${txt('venue.line1','100%','Address line 1')}${txt('venue.line2','100%','Address line 2 (optional)')}${txt('venue.city','100%','City')}${txt('venue.postcode','100%','Post code')}</div><div style="margin-top:12px">${txt('venue.country','100%','Country')}</div>
@@ -1939,7 +1940,9 @@ async function SupabaseAdapter(c){
   async get(v){return one(await sb.from('bk_venue_state').select('data,updated_at').eq('id',v).maybeSingle())},
   async put(v,data,prev){const now=new Date().toISOString();const u=(await sb.auth.getUser()).data.user;
    if(prev==null){const r=await sb.from('bk_venue_state').insert({id:v,data,updated_at:now,updated_by:u?.id}).select('updated_at');if(r.error){if(r.error.code==='23505')return null;throw r.error}return r.data[0].updated_at}
-   const r=await sb.from('bk_venue_state').update({data,updated_at:now,updated_by:u?.id}).eq('id',v).eq('updated_at',prev).select('updated_at');if(r.error)throw r.error;return r.data.length?r.data[0].updated_at:null},
+   const r=await sb.from('bk_venue_state').update({data,updated_at:now,updated_by:u?.id}).eq('id',v).eq('updated_at',prev).select('updated_at,g:data->_g');if(r.error)throw r.error;
+   if(r.data.length&&(r.data[0].g??null)!==(data._g??null))this._guarded=true;   // the server undid changes this login isn't allowed to make
+   return r.data.length?r.data[0].updated_at:null},
   onChange(v,cb){sb.channel('vs-'+v).on('postgres_changes',{event:'*',schema:'public',table:'bk_venue_state',filter:'id=eq.'+v},()=>cb()).subscribe()},
   async inbox(v){return one(await sb.from('bk_inbox').select('*').eq('venue',v).eq('processed',false).order('created_at'))},
   async claim(id){const r=await sb.from('bk_inbox').update({processed:true}).eq('id',id).eq('processed',false).select('id');if(r.error)throw r.error;return r.data.length>0},
@@ -2045,7 +2048,8 @@ async function cloudPush(){
  try{stampChanges();
   for(let i=0;i<5;i++){const r=await CLOUD.ad.get(CLOUD.vid);const prev=r?r.updated_at:null;
    if(r&&r.data&&prev!==CLOUD.ver)S=upgrade(mergeState(S,r.data));
-   const v=await CLOUD.ad.put(CLOUD.vid,S,prev);if(v){CLOUD.ver=v;CLOUD.snap=JSON.stringify(S);localSave();break}}
+   const v=await CLOUD.ad.put(CLOUD.vid,S,prev);if(v){CLOUD.ver=v;CLOUD.snap=JSON.stringify(S);localSave();
+    if(CLOUD.ad._guarded){CLOUD.ad._guarded=false;CLOUD.ver='guarded';CLOUD.pullAfter=true;toast('Some changes weren\'t saved: you don\'t have access to that part')}break}}
   await publishPublic();cloudStatus(navigator.onLine?'synced':'offline');
  }catch(e){console.error(e);cloudStatus(navigator.onLine?'error':'offline');setTimeout(()=>schedulePush(),8000)}
  CLOUD.busy=false;CLOUD.pushT=null;if(CLOUD.again){CLOUD.again=false;schedulePush(200)}else if(CLOUD.pullAfter){CLOUD.pullAfter=false;cloudPull()}}
@@ -2226,7 +2230,7 @@ async function afterSignIn(){
  let me=null;try{me=CLOUD.ad.whoami?await CLOUD.ad.whoami():null}catch(e){console.error('whoami',e)}
  if(!me){await cloudStart();return}                      // database without sites yet: old single-venue mode
  CLOUD.me=me;const sites=me.sites||[];
- if(!sites.length){if(me.is_master){showNoSites();return}showBusinessSetup();return}
+ if(!sites.length){if(me.is_master){showNoSites();return}if((me.businesses||[]).length){showNoAccess();return}showBusinessSetup();return}
  const want=LOC.cloud&&sites.some(s=>s.id===LOC.current)?LOC.current:sites[0].id;
  const wasKey=KEY;LOC={cloud:true,current:want,list:sites.map(s=>({id:s.id,name:s.name,business:s.business}))};
  try{localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}
@@ -2271,7 +2275,7 @@ function showLicenceLock(){document.body.classList.add('gate');const s=CLOUD.sit
 A.lockRetry=()=>location.reload();
 
 /* --- buy or renew this venue's licence online (prices and Stripe links come from the Proview licence portal) --- */
-const canBuy=()=>!!(CLOUD.site&&CLOUD.me&&!isMaster()&&((CLOUD.me.sites||[]).find(x=>x.id===CLOUD.site.id)?.role==='Admin'));
+const canBuy=()=>!!(CLOUD.site&&CLOUD.me&&!isMaster()&&['Admin','Owner'].includes((CLOUD.me.sites||[]).find(x=>x.id===CLOUD.site.id)?.role));
 const BUY_ORDER=['m1','m3','m6','m12','m24','m36','lifetime'];
 const buyMoney=p=>new Intl.NumberFormat('en-GB',{style:'currency',currency:(p.currency||'gbp').toUpperCase()}).format(p.amount/100);
 A.buyOnline=async()=>{let plans={};try{plans=await CLOUD.ad.rpc('licence_buy_plans')||{}}catch(e){}
@@ -2336,6 +2340,79 @@ function topMe(act){const t=document.getElementById('top'),vc=document.getElemen
 function canDash(){return !!(CLOUD.on&&(isMaster()||['Admin','Owner','Manager'].includes(CLOUD.site?.role)))}
 function dashLinkEl(){const d=document.createElement('a');d.className='pv-dash';d.href='https://dashboard.proviewcrm.co.uk/';d.title='Proview dashboard: all your Proview apps';d.setAttribute('aria-label','Proview dashboard');d.innerHTML='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Dashboard</span>';return d}
 {const _rt=renderTop,_rn=renderNav;renderTop=function(){const r=_rt.apply(this,arguments);try{const t=document.getElementById('top');if(t&&!t.querySelector('.hdr-cap')){const ks=['goPage','search','chats','enquiries','notifs'].map(k=>t.querySelector(':scope>[data-act='+k+']')).filter(Boolean);if(ks.length){const cap=document.createElement('div');cap.className='hdr-cap';ks[0].before(cap);ks.forEach(e=>cap.appendChild(e))}}}catch(e){}topMe('logout');return r};renderNav=function(){const r=_rn.apply(this,arguments);topMe('logout');return r}}
+
+/* ================= access: roles, sites and features (supabase/004_business_access.sql) =================
+   Owner/Admin: every site of their business and every feature. Manager/Staff: their sites only, and the
+   features switched on for them (a missing key = the role's default). The database enforces the same rules. */
+const FEATURES=[['bookings','Bookings & tables','Bookings, Table status, Timeline, Floor view'],['enquiries','Enquiries','Group enquiries'],['queue','Queue','Waitlist and walk-in queue'],
+ ['messages','Guest messages','Two-way texts with guests'],['guests','Guests & marketing','Guest book, occasions, tags, sign-up form'],['campaigns','Email campaigns','Create and send marketing emails'],
+ ['reviews','Reviews',''],['preorders','Pre-orders','Pre-orders and menus'],['reports','Insights','Reports'],['staff','Staff & rota','Team, shifts and checklists'],
+ ['kitchen','Kitchen','Kitchen screen'],['settings','Settings','Venue details, hours, floor plan, booking rules'],['users','Users','Invite people and set their access']];
+const FEATURE_DEFAULT=(role,f)=>['Owner','Admin','Manager'].includes(role)?true:!['users','campaigns'].includes(f);
+const VIEW_FEATURE={tables:'bookings',planner:'bookings',floor:'bookings',guests:'guests',reviews:'reviews',preorders:'preorders',reports:'reports',staff:'staff',kitchen:'kitchen',settings:'settings',users:'users'};
+function hasFeature(f){if(!CLOUD.on||!CLOUD.site||isMaster())return true;const F=CLOUD.site.features;if(!F)return true;return F[f]!==false}
+function myBusiness(){const b=CLOUD.site&&CLOUD.site.business_id;return b?(CLOUD.me?.businesses||[]).find(x=>x.id===b)||null:null}
+function usersOn(){return !!(CLOUD.on&&CLOUD.ad?.kind==='supabase'&&myBusiness()&&myBusiness().can_manage_users)}
+function canView(v){if(v==='allsites')return isMaster();if(v==='help')return true;if(v==='users')return usersOn();
+ if(v==='parties')return hasFeature('bookings')||hasFeature('queue')||hasFeature('enquiries');const f=VIEW_FEATURE[v];return !f||hasFeature(f)}
+function firstView(){const n=NAV.find(n=>n[0]!=='sec'&&canView(n[0]));return n?n[0]:'noaccess'}
+NAV.push(['users','Users','users']);SHORT.users='Users';TITLES.users='Users';TITLES.noaccess='No access';
+VIEWS.noaccess=()=>`<div class="card pad" style="max-width:560px"><b style="font-size:16px">Nothing to show</b><p class="mut">Your login doesn't have any pages switched on at ${esc(S.venue.name)}. Ask your manager or the business owner.</p></div>`;
+function showNoAccess(){document.body.classList.add('gate');const a=$('#auth');a.innerHTML=`<div class="auth-form" style="grid-column:1/-1"><div class="lockcard"><div class="auth-brand"><div class="logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span></div><h1>No sites yet</h1><p class="muted">You've been added to ${esc((CLOUD.me?.businesses||[])[0]?.name||'a business')}, but no sites have been given to you yet. Ask the owner or an admin to tick your sites on the Users page.</p><div class="alinks"><button type="button" data-act="lockRetry">Check again</button><button type="button" data-act="authSignOut">Sign out</button></div></div></div>`;a.hidden=false}
+{const _render=render,_nav=renderNav,_top=renderTop;
+ render=function(){if(!canView(U.view))U.view=firstView();if(U.view==='settings'&&U.setPage==='account'&&U.setTab==='team'&&!usersOn()&&!hasFeature('users'))U.setTab=null;return _render.apply(this,arguments)};
+ renderNav=function(){const r=_nav.apply(this,arguments);document.querySelectorAll('#nav [data-act=go]').forEach(b=>{if(!canView(b.dataset.v))b.remove()});
+  document.querySelectorAll('#nav .nav-sec').forEach(sec=>{let n=sec.nextElementSibling;if(!n||n.classList.contains('nav-sec')||n.dataset.act==='help')sec.remove()});return r};
+ renderTop=function(){const r=_top.apply(this,arguments);const t=$('#top');if(t){const hide={chats:'messages',enquiries:'enquiries',newParty:'bookings'};
+  for(const[k,f]of Object.entries(hide))if(!hasFeature(f))t.querySelectorAll('[data-act='+k+']').forEach(e=>e.remove());if(!hasFeature('settings'))t.querySelectorAll('[data-act=goPage]').forEach(e=>e.remove())}return r};
+ const guard=(name,f)=>{const o=A[name];if(o)A[name]=function(){if(!f())return toast('You don\'t have access to that');return o.apply(this,arguments)}};
+ guard('chats',()=>hasFeature('messages'));guard('enquiries',()=>hasFeature('enquiries'));guard('newParty',()=>hasFeature('bookings'));
+ guard('goPage',()=>hasFeature('settings'));guard('guideGo',()=>hasFeature('settings'));guard('goTags',()=>hasFeature('guests'));guard('goChannels',()=>hasFeature('guests'));guard('myAccount',()=>hasFeature('settings'));
+ const _go=A.go;A.go=el=>{if(!canView(el.dataset.v))return toast('You don\'t have access to that');return _go(el)};
+ const _more=A.moreMenu;A.moreMenu=function(){const r=_more.apply(this,arguments);document.querySelectorAll('#modal [data-act=go]').forEach(b=>{if(!canView(b.dataset.v))b.remove()});return r};
+}
+
+/* Users page: Owner/Admin (and master) invite people, set role, sites and features */
+const UM={data:null,busy:false,err:'',biz:null};
+const ROLE_INFO={Owner:'Whole business, all sites and features, manages users',Admin:'Whole business, all sites and features, manages users',Manager:'Chosen sites; can manage staff logins there',Host:'Staff: chosen sites and features',Viewer:'Staff: chosen sites and features'};
+function umRoles(){const r=UM.data?.my_role;return r==='Manager'?['Host','Viewer']:r==='Admin'?['Admin','Manager','Host','Viewer']:['Owner','Admin','Manager','Host','Viewer']}
+VIEWS.users=()=>{if(!usersOn())return VIEWS.noaccess();const b=myBusiness();
+ if(UM.biz!==b.id){UM.biz=b.id;UM.data=null;UM.err=''}
+ const D=UM.data,siteName=id=>(D?.sites||[]).find(s=>s.id===id)?.name||id;
+ const fSum=m=>['Owner','Admin'].includes(m.role)?'<span class="small mut">Everything</span>':(()=>{const off=FEATURES.filter(([k])=>!(m.features[k]??FEATURE_DEFAULT(m.role,k)));return off.length?`<span class="small">Off: ${off.map(f=>esc(f[1])).join(', ')}</span>`:'<span class="small mut">All (role default)</span>'})();
+ const row=m=>`<tr><td><div class="row"><div class="av">${esc(initials(m.name||m.email))}</div><div><b>${esc(m.name||m.email.split('@')[0])}</b>${m.me?' <span class="chip">You</span>':''}<div class="small mut">${esc(m.email)}${m.joined?'':' · invited, not signed in yet'}</div></div></div></td>
+  <td><b>${esc(m.role==='Host'||m.role==='Viewer'?m.role+' (staff)':m.role)}</b></td>
+  <td class="small">${['Owner','Admin'].includes(m.role)?'<span class="mut">All sites</span>':(m.site_ids.length?m.site_ids.map(id=>esc(siteName(id))).join(', '):'<span style="color:var(--bad)">No sites</span>')}</td>
+  <td>${fSum(m)}</td>
+  <td style="text-align:right;white-space:nowrap">${m.me&&!isMaster()?'':(umRoles().includes(m.role)?`<button class="btn sm" data-act="umEdit" data-e="${esc(m.email)}">Edit</button> <button class="icon-btn" data-act="umDel" data-e="${esc(m.email)}" title="Remove">${ic('x',15)}</button>`:'')}</td></tr>`;
+ return`<div class="card"><div class="pad row between"><div><b style="font-size:16px">Users · ${esc(b.name)}</b><div class="small mut">Owners and admins see every site and page. Managers and staff see only the sites and pages you tick. People can't change their own access.</div></div><button class="btn sm pri" data-act="umEdit">${ic('plus',14)} Add person</button></div>
+ ${UM.err?`<div class="pad"><div class="notice bad">${esc(UM.err)}</div></div>`:''}
+ ${D?(D.members.length?`<table class="t"><thead><tr><th>Person</th><th>Role</th><th>Sites</th><th>Pages</th><th></th></tr></thead><tbody>${D.members.map(row).join('')}</tbody></table>`:'<div class="pad mut">No one yet.</div>'):'<div class="pad mut">Loading…</div>'}</div>`};
+async function umLoad(force){if(!usersOn()||UM.busy)return;if(UM.data&&!force)return;UM.busy=true;
+ try{UM.data=await CLOUD.ad.rpc('bk_list_members',{p_business:myBusiness().id});UM.err=''}catch(e){UM.err=e.message||String(e);UM.data=UM.data||{members:[],sites:[]}}
+ UM.busy=false;if(U.view==='users'||(U.view==='settings'&&U.setPage==='account'))render()}
+AFTER.users=()=>umLoad();
+{const _as=AFTER.settings;AFTER.settings=function(){if(U.setPage==='account'&&U.setTab==='team'&&usersOn())umLoad();if(_as)return _as.apply(this,arguments)}}
+A.umEdit=el=>{const D=UM.data;if(!D)return;const m=el.dataset.e?D.members.find(x=>x.email===el.dataset.e):null;const roles=umRoles();const role=m?m.role:roles[roles.length-2]||roles[0];
+ const mm=$('#modal');mm.innerHTML=`<div class="modal card" style="max-width:560px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><b style="font-size:16px">${m?'Edit '+esc(m.name||m.email):'Add a person'}</b><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div class="pad">
+  <label class="f" style="margin-top:0">Email address</label><input class="inp" id="umEmail" type="email" value="${esc(m?.email||'')}" ${m?'disabled':''} placeholder="name@example.com">
+  <label class="f">Name</label><input class="inp" id="umName" value="${esc(m?.name||'')}" placeholder="Optional">
+  <label class="f">Role</label><select class="inp" id="umRole">${roles.map(r=>`<option value="${r}" ${r===role?'selected':''}>${r==='Host'||r==='Viewer'?r+' (staff)':r}</option>`).join('')}</select><div class="small mut" id="umRoleInfo"></div>
+  <div id="umScoped"><label class="f">Sites</label><div class="grid2">${D.sites.map(s=>`<label class="row small"><input type="checkbox" class="umSite" value="${esc(s.id)}" ${m&&m.site_ids.includes(s.id)?'checked':''}> ${esc(s.name)}</label>`).join('')||'<span class="mut small">No sites</span>'}</div>
+  <label class="f">Pages and features</label><div class="grid2" id="umFeats"></div></div>
+  <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn" data-act="closeModal">Cancel</button><button class="btn pri" id="umSave">${m?'Save':'Add person'}</button></div>
+  <div class="small mut" style="margin-top:8px">${m?'':'They sign in at this site with this email (Create your account the first time).'}</div></div></div>`;
+ mm.classList.add('show');
+ const feats=()=>{const r=$('#umRole').value;$('#umRoleInfo').textContent=ROLE_INFO[r]||'';const scoped=!['Owner','Admin'].includes(r);$('#umScoped').style.display=scoped?'':'none';
+  $('#umFeats').innerHTML=FEATURES.map(([k,l,d])=>{const on=m&&m.role===r&&k in m.features?m.features[k]:FEATURE_DEFAULT(r,k);return`<label class="row small" title="${esc(d)}"><input type="checkbox" class="umFeat" value="${k}" ${on?'checked':''}> ${esc(l)}</label>`}).join('')};
+ $('#umRole').onchange=feats;feats();
+ $('#umSave').onclick=async()=>{const r=$('#umRole').value,em=(m?m.email:$('#umEmail').value).trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){toast('Enter a valid email address');return}
+  const sites=[...document.querySelectorAll('.umSite:checked')].map(x=>x.value),f={};document.querySelectorAll('.umFeat').forEach(x=>f[x.value]=x.checked);
+  if(!['Owner','Admin'].includes(r)&&!sites.length&&!confirm('No sites ticked: this person won\'t see anything yet. Save anyway?'))return;
+  try{await CLOUD.ad.rpc('bk_save_member',{p_business:myBusiness().id,p_email:em,p_role:r,p_site_ids:['Owner','Admin'].includes(r)?[]:sites,p_features:['Owner','Admin'].includes(r)?{}:f,p_name:$('#umName').value.trim()||null});
+   A.closeModal();toast(m?'Saved':'Added '+em);umLoad(true)}catch(e){toast(e.message||'Couldn\'t save')}}};
+A.umDel=el=>{const em=el.dataset.e;ask(`Remove ${esc(em)}? They lose access to every site of this business.`,async()=>{try{await CLOUD.ad.rpc('bk_remove_member',{p_business:myBusiness().id,p_email:em});toast('Removed');umLoad(true)}catch(e){toast(e.message||'Couldn\'t remove')}},'Remove')};
 load();if(innerWidth<=700)U.showSide=false;render();
 
 
