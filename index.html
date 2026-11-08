@@ -623,6 +623,11 @@ body.v-allsites .fab{display:none!important}
 /* Bookings only: dark mode keeps the picker readable; iPad (701-900px) has the date bar too, so Dashboard shows its icon only and the date arrows are tighter */
 body.dark .top .hdr-pick select { background-color: var(--card); }
 @media (min-width: 701px) and (max-width: 900px) { #top .datenav button { padding: 6px 2px; } .top .hdr-pick select { max-width: 100%; } #top .pv-dash { width: 38px; padding: 0; justify-content: center; } #top .pv-dash span { display: none; } }
+/* master on All sites: usual pages greyed until a site is picked; the dropdown pulses when one is clicked */
+html .side .nav button.nav-dis{opacity:.45!important;cursor:not-allowed!important}
+html .side .nav button.nav-dis:hover{background:transparent!important;color:#c9c9d1!important}
+.top .hdr-pick.pulse select{animation:pvPickPulse 1s ease-out}
+@keyframes pvPickPulse{0%{box-shadow:0 0 0 0 rgba(90,141,238,.75)}100%{box-shadow:0 0 0 8px rgba(90,141,238,0)}}
 /* site picker in the sidebar: same as Proview WiFi */
 .side .pv-viewing{display:block;font-size:11px;line-height:15px;letter-spacing:.06em;text-transform:uppercase;color:#8b8b95;margin:0 2px 6px;font-weight:400}
 .side #sitePick select,.side #orgPick select,.side .client-pick select{width:100%!important;height:42px!important;border-radius:10px!important;border:1px solid #2c2c35!important;background-color:#1f1f25!important;color:#fff!important;font-size:14px!important;font-weight:600!important;padding:0 34px 0 12px!important;appearance:none!important;-webkit-appearance:none!important;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23b4b4bd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:right 10px center!important;background-size:16px 16px!important}
@@ -2514,7 +2519,7 @@ NAV.push(['users','Users','users']);SHORT.users='Users';TITLES.users='Users';TIT
 VIEWS.noaccess=()=>`<div class="card pad" style="max-width:560px"><b style="font-size:16px">Nothing to show</b><p class="mut">Your login doesn't have any pages switched on at ${esc(S.venue.name)}. Ask your manager or the business owner.</p></div>`;
 {const _render=render,_nav=renderNav,_top=renderTop;
  render=function(){if(!canView(U.view))U.view=firstView();if(U.view==='settings'&&U.setPage==='account'&&U.setTab==='team'&&!usersOn()&&!hasFeature('users'))U.setTab=null;return _render.apply(this,arguments)};
- renderNav=function(){const r=_nav.apply(this,arguments);document.querySelectorAll('#nav [data-act=go]').forEach(b=>{if(!canView(b.dataset.v))b.remove()});
+ renderNav=function(){const r=_nav.apply(this,arguments);const greyed=isMaster()&&U.view==='allsites'&&!U.allBiz;document.querySelectorAll('#nav [data-act=go]').forEach(b=>{if(!greyed&&!canView(b.dataset.v))b.remove()});
   document.querySelectorAll('#nav .nav-sec').forEach(sec=>{let n=sec.nextElementSibling;if(!n||n.classList.contains('nav-sec')||n.dataset.act==='help')sec.remove()});return r};
  renderTop=function(){const r=_top.apply(this,arguments);const t=$('#top');if(t){const hide={chats:'messages',enquiries:'enquiries',newParty:'bookings'};
   for(const[k,f]of Object.entries(hide))if(!hasFeature(f))t.querySelectorAll('[data-act='+k+']').forEach(e=>e.remove());if(!hasFeature('settings'))t.querySelectorAll('[data-act=goPage]').forEach(e=>e.remove());if(CLOUD.nosite)t.querySelectorAll('[data-act=goPage],[data-act=search],[data-act=chats],[data-act=enquiries],[data-act=notifs],[data-act=newParty]').forEach(e=>e.remove())}if(CLOUD.nosite){const vc=$('#venueCard');if(vc){vc.removeAttribute('data-act');vc.style.cursor='default'}}return r};
@@ -2574,6 +2579,21 @@ try{if('serviceWorker' in navigator&&/^https:$/.test(location.protocol)&&/(provi
 function netBanner(){let b=$('#offline');if(navigator.onLine){b&&b.remove();return}if(!b){b=document.createElement('div');b.id='offline';b.textContent='You\'re offline — changes are saved on this device';document.body.appendChild(b)}}
 addEventListener('online',netBanner);addEventListener('offline',netBanner);netBanner();
 setInterval(()=>{if(!$('#drawer').classList.contains('open')&&!$('#modal').classList.contains('show')&&!U.editFloor&&!['settings','guests','preorders','reviews','reports'].includes(U.view)){if(U.view==='planner')U.keepScroll=$('#gwrap')?.scrollLeft||1;render()}},60000);
+
+/* master: "All sites" first in the left menu; on All sites the usual pages stay in place but greyed until a site is picked
+   (ALLSITES_MENU_STANDARD, same in all Proview apps) */
+{const _n=renderNav;renderNav=function(){const r=_n.apply(this,arguments);const nav=$('#nav');if(!nav||!isMaster()||!LOC.cloud)return r;
+  const on=U.view==='allsites',b=document.createElement('button');b.className='nav-all'+(on?' on':'');b.dataset.act='goAllSites';b.title='All sites';
+  b.innerHTML=ic('store',19)+'<span class="lbl">All sites</span><span class="slbl">All sites</span>';const more=nav.querySelector('.nav-more');more?more.after(b):nav.prepend(b);
+  if(on&&!U.allBiz)nav.querySelectorAll('button[data-act=go],button[data-act=help]').forEach(x=>{x.classList.add('nav-dis');x.classList.remove('on');x.setAttribute('aria-disabled','true');x.dataset.act='needSite';x.title=(x.title||'')+' – choose a site first'});
+  return r};
+ A.goAllSites=()=>{markOpen(null);U.allBiz=null;try{sessionStorage.setItem('pv-bk-all','__all')}catch(e){}U.view='allsites';render()};
+ A.needSite=()=>{toast('Choose a site in the dropdown first');const s=$('#hdr-site');if(!s)return;s.focus();const w=s.closest('.hdr-pick');w.classList.remove('pulse');void w.offsetWidth;w.classList.add('pulse');setTimeout(()=>w.classList.remove('pulse'),1000)};
+ // "<Business> ▸ All sites": a page opens in that business (its first site) if the loaded site belongs to another one
+ const _g=A.go;A.go=el=>{if(isMaster()&&U.view==='allsites'&&U.allBiz){const cur=(LOC.list||[]).find(l=>l.id===LOC.current);
+  if(!cur||siteBiz(cur).id!==U.allBiz){const f=(LOC.list||[]).filter(l=>siteBiz(l).id===U.allBiz).sort((a,b)=>String(a.name).localeCompare(String(b.name)))[0];if(!f)return A.needSite();
+   try{sessionStorage.setItem('pv-bk-view',el.dataset.v)}catch(e){}markOpen(f.id);U.view=el.dataset.v;return A.openSite({dataset:{id:f.id}})}}return _g(el)};
+}
 </script>
 </body>
 </html>
