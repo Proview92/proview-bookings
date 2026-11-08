@@ -628,6 +628,7 @@ html .side .nav button.nav-dis{opacity:.45!important;cursor:not-allowed!importan
 html .side .nav button.nav-dis:hover{background:transparent!important;color:#c9c9d1!important}
 .top .hdr-pick.pulse select{animation:pvPickPulse 1s ease-out}
 @keyframes pvPickPulse{0%{box-shadow:0 0 0 0 rgba(90,141,238,.75)}100%{box-shadow:0 0 0 8px rgba(90,141,238,0)}}
+.biz-open{color:inherit;text-decoration:none}.biz-open:hover b{text-decoration:underline}
 /* site picker in the sidebar: same as Proview WiFi */
 .side .pv-viewing{display:block;font-size:11px;line-height:15px;letter-spacing:.06em;text-transform:uppercase;color:#8b8b95;margin:0 2px 6px;font-weight:400}
 .side #sitePick select,.side #orgPick select,.side .client-pick select{width:100%!important;height:42px!important;border-radius:10px!important;border:1px solid #2c2c35!important;background-color:#1f1f25!important;color:#fff!important;font-size:14px!important;font-weight:600!important;padding:0 34px 0 12px!important;appearance:none!important;-webkit-appearance:none!important;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23b4b4bd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:right 10px center!important;background-size:16px 16px!important}
@@ -2428,21 +2429,22 @@ function licBannerHtml(){if(!CLOUD.site)return'';const s=CLOUD.site,L=licState(s
  return`<div class="card pad row noprint licbar" style="margin-bottom:14px;${bad?'background:var(--badl);border-color:#f2b8be':'background:var(--warnl);border-color:#f0d08a'}">${ic('clock',16)}<span style="flex:1">${t}</span>${isMaster()?`<button class="btn sm" data-act="admLicence">Licence portal ↗</button>`:canBuy()?`<button class="btn sm pri" data-act="buyOnline">${L.type==='trial'||L.state==='none'?'Buy licence online':'Renew online'}</button>`:''}</div>`}
 
 /* --- master admin (Proview): businesses, sites and licences are managed at license.proviewcrm.co.uk; in the app the master switches sites with the picker --- */
-/* site picker in the top header, right after the page title / date bar: the Proview standard (PICKER_STANDARD, same as Signage).
-   Master: "All sites (N)", then per business (optgroup) "Business ▸ All sites" and "Business ▸ Site".
-   Several sites: "All my sites (N)" plus each of their sites. One site: the site name in the same box, disabled.
-   The "all" options open the All sites page (for a business: just that business's sites). */
+/* site picker in the top header, right after the page title / date bar: the Proview standard (PICKER_STANDARD + 18:07 update).
+   Master: "All sites (N)", then every site by name (" · Business" only when two sites share a name).
+   Several sites: "All my sites (N)" plus their sites. One site: the site name in the same box, disabled.
+   A business-wide view (opened from the All sites page) shows as the selected value but is not a list entry. */
 function siteBiz(l){const m=(CLOUD.me?.sites||[]).find(x=>x.id===l.id);return{id:String(m?.business_id||l.business||m?.business||''),name:l.business||m?.business||'No business'}}
 function sitePickHtml(){const L=LOC.cloud?(LOC.list||[]):[];if(!L.length&&!isMaster())return'';
  const wrap=sel=>`<div class="hdr-pick"><label class="sr" for="hdr-site">Site</label>${sel}</div>`;
  if(L.length===1&&!isMaster())return wrap(`<select id="hdr-site" aria-label="Choose site" title="${esc(L[0].name)}" disabled><option>${esc(L[0].name)}</option></select>`);
  const by=a=>(x,y)=>String(a(x)).localeCompare(String(a(y))),all=U.view==='allsites',fb=all?(U.allBiz||null):null;
- const o=(v,t,on)=>`<option value="${esc(v)}" title="${esc(t)}" ${on?'selected':''}>${esc(t)}</option>`,site=(l,pre)=>o(l.id,(pre?pre+' ▸ ':'')+l.name,!all&&l.id===LOC.current);
- const sorted=L.slice().sort(by(l=>l.name));let h;
- if(isMaster()){const groups=[];sorted.forEach(l=>{const b=siteBiz(l);let g=groups.find(x=>x.id===b.id);if(!g)groups.push(g={id:b.id,k:b.name,list:[]});g.list.push(l)});
-  (ALLS.biz||[]).forEach(b=>{if(!groups.some(g=>g.id===String(b.id)))groups.push({id:String(b.id),k:b.name,list:[]})});groups.sort(by(g=>g.k));   // businesses with no sites yet
-  h=o('__all',`All sites (${L.length})`,all&&!fb)+groups.map(g=>`<optgroup label="${esc(g.k)}">${o('__biz:'+g.id,g.k+' ▸ All sites',all&&fb===g.id)}${g.list.map(l=>site(l,g.k)).join('')}</optgroup>`).join('')}
- else h=o('__mine',`All my sites (${L.length})`,all)+sorted.map(l=>site(l)).join('');
+ const o=(v,t,on)=>`<option value="${esc(v)}" title="${esc(t)}" ${on?'selected':''}>${esc(t)}</option>`;
+ const sorted=L.slice().sort(by(l=>l.name)),dup=n=>L.filter(x=>String(x.name).toLowerCase()===String(n).toLowerCase()).length>1;
+ const sites=sorted.map(l=>o(l.id,l.name+(dup(l.name)?' · '+siteBiz(l).name:''),!all&&l.id===LOC.current)).join('');
+ let h;
+ if(isMaster()){const bn=fb&&((CLOUD.me?.sites||[]).find(x=>String(x.business_id)===fb)?.business||(ALLS.biz||[]).find(b=>String(b.id)===fb)?.name||'Business');
+  h=o('__all',`All sites (${L.length})`,all&&!fb)+(fb?`<option value="__biz:${esc(fb)}" selected hidden>${esc(bn)} · all sites</option>`:'')+sites}
+ else h=o('__mine',`All my sites (${L.length})`,all)+sites;
  return wrap(`<select id="hdr-site" aria-label="Choose site" title="Switch site" data-act-change="pickSite">${h}</select>`)}
 const markOpen=id=>{try{id?sessionStorage.setItem('pv-bk-open',id):sessionStorage.removeItem('pv-bk-open');sessionStorage.removeItem('pv-bk-all')}catch(e){}};
 const SITE_VIEWS=()=>NAV.filter(n=>n[0]!=='sec').map(n=>n[0]).concat(['help','users']);
@@ -2461,7 +2463,7 @@ VIEWS.allsites=()=>{if(!canView('allsites'))return VIEWS.parties();const M=isMas
  const sum=k=>R?sites.reduce((n,x)=>n+((by(x.id)||{})[k]||0),0):'…';
  const stat=(k,v)=>`<div class="card stat"><div class="k">${k}</div><div class="v">${v}</div></div>`;
  const q=(...a)=>esc(a.filter(Boolean).join(' ').toLowerCase());
- const row=x=>{const r=by(x.id),cur=x.id===LOC.current&&!CLOUD.nosite;return`<tr data-q="${q(x.business,x.name,x.id)}"><td><b>${esc(x.business||'—')}</b></td><td>${esc(x.name)}</td><td>${licChip(x)}</td><td>${r?r.b:'…'}</td><td>${r?r.c:'…'}</td><td>${r?r.s:'…'}</td><td class="small mut">${r&&r.at?esc(new Date(r.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})):'—'}</td><td style="text-align:right"><button class="btn sm ${cur?'':'pri'}" data-act="allOpen" data-id="${esc(x.id)}">${cur?'Back to this site':'Open'}</button></td></tr>`};
+ const row=x=>{const r=by(x.id),cur=x.id===LOC.current&&!CLOUD.nosite;return`<tr data-q="${q(x.business,x.name,x.id)}"><td>${M&&!U.allBiz&&x.business_id?`<a href="#" class="biz-open" data-act="allBiz" data-id="${esc(x.business_id)}" title="Open ${esc(x.business||'')}: all its sites"><b>${esc(x.business||'—')}</b></a>`:`<b>${esc(x.business||'—')}</b>`}</td><td>${esc(x.name)}</td><td>${licChip(x)}</td><td>${r?r.b:'…'}</td><td>${r?r.c:'…'}</td><td>${r?r.s:'…'}</td><td class="small mut">${r&&r.at?esc(new Date(r.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})):'—'}</td><td style="text-align:right"><button class="btn sm ${cur?'':'pri'}" data-act="allOpen" data-id="${esc(x.id)}">${cur?'Back to this site':'Open'}</button></td></tr>`};
  const bareRow=b=>`<tr data-q="${q(b.name)}"><td><b>${esc(b.name)}</b></td><td class="mut">No sites yet</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td style="text-align:right"><a style="text-decoration:none;max-width:100%;white-space:normal;height:auto;min-height:36px" class="btn sm" href="${LIC_PORTAL}" target="_blank" rel="noopener">Add a site ↗</a></td></tr>`;
  const total=sites.length+bare.length,loading=!sites.length&&ALLS.biz===null;
  const empty=`<div class="pad" style="text-align:center;padding:44px 20px"><div style="opacity:.55;margin-bottom:8px">${ic('grid',30)}</div><b style="font-size:16px">No businesses yet</b><p class="mut" style="max-width:420px;margin:6px auto 16px">Businesses, sites and licences are added in the Proview licence portal. They show here as soon as they're set up.</p><div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap"><a style="text-decoration:none;max-width:100%;white-space:normal;height:auto;min-height:36px" class="btn pri" href="${LIC_PORTAL}" target="_blank" rel="noopener">${ic('plus',14)} Add a business in the licence portal ↗</a><button class="btn" data-act="allRefresh">Refresh</button></div></div>`;
@@ -2483,6 +2485,7 @@ AFTER.allsites=async()=>{if(!canView('allsites')||ALLS.busy||!CLOUD.ad)return;if
 A.allRefresh=async()=>{let me=null;try{me=await CLOUD.ad.whoami()}catch(e){toast('Couldn’t refresh: '+(e.message||e));return}if(!me)return;
  const ids=x=>(x?.sites||[]).map(s=>s.id).join('|'),changed=ids(CLOUD.me)!==ids(me);CLOUD.me=me;
  if(changed){markOpen(null);location.reload();return}ALLS.at=0;ALLS.rows=null;render();toast('Up to date')};
+A.allBiz=(el,e)=>{e&&e.preventDefault&&e.preventDefault();markOpen(null);U.allBiz=String(el.dataset.id);try{sessionStorage.setItem('pv-bk-all','__biz:'+U.allBiz)}catch(x){}U.view='allsites';render()};
 A.allOpen=el=>{const id=el.dataset.id;markOpen(id);U.view='parties';if(id===LOC.current){render();return}A.openSite({dataset:{id}})};
 A.openSite=el=>{const id=el.dataset.id;if(!id)return;if(id===CLOUD.vid)return;markOpen(id);save();LOC.current=id;if(!LOC.list.some(x=>x.id===id)){LOC.list.push({id,name:id})}LOC.cloud=true;localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload()};
 /* licences are managed in the Proview licence portal */
