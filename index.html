@@ -1101,6 +1101,167 @@ html.menu-bottom #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
 }
 @media print{html.menu-bottom .side{display:none!important}}
 </style>
+<style id="pvx-css">
+/* ===== Proview Bookings: prototype features (Flow, Activity, alerts, walk-in map, Punch in, settings cards, Reports tabs, Online booking) ===== */
+/* sidebar: folded pages as small sub-items, Manager button */
+@media (min-width:901px){.app:not(.collapsed) .side #nav#nav>button.nav-sub{min-height:30px!important;height:30px!important;padding-top:0!important;padding-bottom:0!important;padding-left:52px!important;font-size:13px!important;opacity:.82}
+.app:not(.collapsed) .side #nav#nav>button.nav-sub svg{display:none!important}}
+.side #nav#nav>button.nav-sub.on{opacity:1}
+html.menu-bottom .app .side #nav#nav>button.nav-sub{display:none!important}
+.side .nav button.pv-mgrb.on{color:var(--ok)}
+/* shared */
+.pvbar,.bar.pvbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 12px}
+.pvbar .sp{flex:1}
+.pvbar .inp{flex:1 1 200px;max-width:320px}
+.pvdn{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pvdlg h2,.pvsc h2,.pvon h2,.pvday h2,.pvol-w h2,.pvlock h2,.pvact h2,.pvpunch h2{font-size:17px;margin:0 0 10px}
+.pvdlg-f{justify-content:flex-end;gap:8px;margin-top:16px;flex-wrap:wrap}
+.pvdlg label.f small,.pvdlg label.f .mut{font-weight:500}
+.psz{display:inline-flex;align-items:center;gap:3px;font-weight:700;color:var(--ink);background:color-mix(in srgb,var(--ink) 8%,transparent);border-radius:999px;padding:2px 8px 2px 6px;font-size:13px;font-variant-numeric:tabular-nums}
+.psz svg{width:11px;height:11px}
+.pvdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:0}
+.bad{color:var(--bad)}.ok{color:var(--ok)}
+.pvtsh{margin:0 0 12px}
+/* Flow */
+.pvflow .pvarea{margin:0 0 10px}
+.fopts{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:0 0 10px}
+.pvtlh .fopts{margin-bottom:12px}
+.pvstripc{padding:6px 10px!important}
+.fph{display:flex;align-items:center;gap:8px;padding:4px 4px 0}.fph .sp{flex:1}
+.fps{display:flex;gap:3px;overflow-x:auto;padding:4px 2px 6px}
+.fp{flex:1 0 38px;display:grid;grid-template-rows:var(--fph,44px) auto auto;justify-items:center;align-items:end;gap:1px;padding:3px 0;border-radius:8px;font-size:12px;border:1px solid transparent}
+.fp b{font-size:12px}.fp small{color:var(--mut);font-size:10.5px}
+.fp.cur{border-color:var(--pri);background:var(--pril,var(--pri-l))}
+.fpb{width:60%;max-width:26px;border-radius:5px 5px 2px 2px;background:var(--pri);opacity:.55;min-height:2px}
+.fp.fpt .fpb{opacity:1}
+.flc{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px;align-items:start;margin-top:10px}
+.flc>.card,.flu .card{padding:0;overflow:hidden;container-type:inline-size}
+.flu{margin-top:12px}
+.flc h2,.flu h2{margin:0;padding:10px 12px;font-size:15px;display:flex;align-items:center;gap:8px}
+.flc h2 small,.flu h2 small{color:var(--mut);font-weight:600;font-size:12px}
+.fr2{display:grid;grid-template-columns:34px 44px minmax(0,1fr) 42px 58px;gap:6px;align-items:center;padding:8px 10px;border-top:1px solid var(--line)}
+.fr2 .tm{font-weight:800;font-variant-numeric:tabular-nums;font-size:14px}
+.fr2 .fnm{min-width:0;border:0;background:none;text-align:left;font:inherit;font-weight:700;cursor:pointer;color:inherit;padding:0}
+.fr2 .fnm span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.2;word-break:break-word}
+.fr2 .fnm small{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;font-weight:500;color:var(--mut);overflow:hidden;line-height:1.25;font-size:12px}
+.fr2 .bad{color:var(--bad);font-weight:700}.fr2 .bwp{justify-self:center}.fr2 .bwx{justify-self:end}.fr2 .bws{display:flex;justify-content:center}
+.stb{width:34px;height:30px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--mut);display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer;flex:none}
+.stb.s-arrived{border-color:var(--warn);color:var(--warn)}
+.stb.s-seated,.stb.s-dessert,.stb.s-paying{background:var(--pri);border-color:var(--pri);color:var(--pv-on-accent,#fff)}
+.stb.s-late{border-color:var(--bad);color:var(--bad);background:var(--badl)}
+.pvtile{position:relative;width:52px;height:46px;box-sizing:border-box;border-radius:11px;border:2px solid var(--pri);background:var(--pril,var(--pri-l));color:var(--pri);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;cursor:pointer;padding:0 2px;font:inherit;line-height:1.05}
+.pvtile b{font-size:15px;font-weight:800;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pvtile.none{border-style:dashed;border-color:var(--line);background:none;color:var(--mut)}
+.pvtile.t-seat{background:var(--pri);color:var(--pv-on-accent,#fff)}
+.pvtile.t-late{border-color:var(--pv-amber,var(--warn));color:var(--pv-amber,var(--warn));background:var(--warnl)}
+.fempty{padding:12px;color:var(--mut);border-top:1px solid var(--line)}
+.ftb{display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--line);flex-wrap:wrap}
+.ftb b{min-width:64px}.ftb .fl2{flex:1;color:var(--mut);font-size:13px}
+.fchips{display:flex;flex-wrap:wrap;gap:5px;padding:2px 12px 10px}
+.fslot{display:flex;align-items:center;gap:8px;width:100%;border:0;border-top:1px solid var(--line);background:color-mix(in srgb,var(--ink) 5%,var(--card));padding:8px 12px;font:inherit;text-align:left;cursor:pointer;color:inherit}
+.fslot b{font-size:15px;font-variant-numeric:tabular-nums}.fslot .fsm{color:var(--mut);font-size:13px}.fslot .fsc{margin-left:auto;color:var(--mut)}
+@media(max-width:600px){.fpen{display:inline-flex}.fp{flex-basis:30px}.fr2{grid-template-columns:32px 42px minmax(0,1fr) 38px 52px;padding:8px}}
+/* Activity */
+.fch{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 10px}.fch .fl{font-size:12px;font-weight:600;color:var(--mut);min-width:44px}
+.seg.sm button{padding:4px 10px!important;font-size:13px!important}
+.ag{padding:0!important;margin-bottom:10px;overflow:hidden}
+.agh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:color-mix(in srgb,var(--ink) 5%,var(--card));border:0;border-bottom:1px solid var(--line);width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.agh:hover{background:color-mix(in srgb,var(--ink) 9%,var(--card))}.agh[aria-expanded=false]{border-bottom:0}
+.agh b{font-size:15px}.agh .agc{color:var(--mut);font-size:13px;width:14px}.agh .agl{margin-left:auto}
+.ag .ar{display:grid;grid-template-columns:minmax(48px,auto) 86px minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 14px;border-top:1px solid var(--line);font-size:13.5px}
+.ag .agh+.ar,.ag .asub+.ar{border-top:0}
+.ar .at{font-variant-numeric:tabular-nums;color:var(--mut)}.ar .ak{font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}.ar .ax{min-width:0;overflow-wrap:anywhere}
+.asub{padding:6px 14px 2px;font-size:12px;font-weight:700;color:var(--mut);border-top:1px solid var(--line)}
+@media(max-width:560px){.ag .ar{grid-template-columns:minmax(44px,auto) minmax(0,1fr) auto}.ar .ak{display:none}}
+/* alerts: they sit between the header and the page, so they never cover anything */
+#pv-alerts{display:grid;gap:8px;padding:0 22px;flex:none;max-height:45vh;overflow:auto}
+#pv-alerts:not(:empty){padding-top:12px;padding-bottom:2px}
+body:has(#modal.show) #pv-alerts{display:none}
+.pv-al{background:var(--card);border:1px solid var(--bad);border-left:5px solid var(--bad);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.18);padding:12px 14px;display:grid;gap:8px;max-width:640px}
+.pv-al.pv-al-bk{border-color:var(--warn);border-left-color:var(--warn);gap:10px}
+.pv-alt{font-size:15px}
+.wl-r{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.wl-b{display:flex;gap:6px;flex-wrap:wrap}
+.bka-r{display:grid;gap:5px;padding-top:8px;border-top:1px solid var(--line)}.bka-r:first-of-type{border-top:0;padding-top:0}
+.bka-h{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.bka-f{display:flex;gap:6px;flex-wrap:wrap}.bka-f .chip{white-space:normal}
+@media(max-width:640px){#pv-alerts{padding:0 12px;max-height:34vh}#pv-alerts:not(:empty){padding-top:10px}}
+@media print{#pv-alerts{display:none!important}}
+/* Walk-in dialog */
+.pvwi{max-width:900px;width:min(900px,calc(100vw - 24px))}
+.pvwi-r{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.pvwi-r .stepper .val{width:64px;text-align:center;font-weight:700;font-size:18px}
+.pvwmap{position:relative;width:100%;height:0;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--ink) 3%,var(--card));overflow:hidden}
+.pvwin{position:absolute;inset:0}
+.pvwt{position:absolute;box-sizing:border-box;border:2px solid var(--ok);background:color-mix(in srgb,var(--ok) 10%,var(--card));color:var(--ink);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font:inherit;padding:0;line-height:1.1;overflow:hidden}
+.pvwt.sh-round{border-radius:50%}
+.pvwt b{font-size:clamp(10px,1.6vw,15px)}.pvwt small{font-size:clamp(8px,1.1vw,11.5px);color:var(--ok);font-weight:600}
+.pvwt.ov{border-style:dashed;border-color:var(--warn)}.pvwt.ov small{color:var(--warn)}
+.pvwt.no{border-style:dashed;border-color:var(--line);background:none;color:var(--mut);cursor:not-allowed;opacity:.7}.pvwt.no small{color:var(--mut)}
+.pvwt.cur{background:var(--pri);border:2px solid var(--pri);color:var(--pv-on-accent,#fff);box-shadow:0 0 0 3px var(--pv-ring,rgba(63,95,208,.25))}.pvwt.cur small{color:inherit}
+.pvwd{position:absolute;border:1px dashed var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:11px;overflow:hidden}
+/* booking drawer extras */
+.pvqt .tagpick button.on.pvq-al{background:var(--badl);color:var(--bad);border-color:var(--bad)}
+textarea.pv-alnote{border-color:var(--bad)}
+.pvmk{margin-top:12px;align-items:flex-start;gap:8px}.pvmk input{margin-top:3px}
+/* Punch in */
+.pn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-bottom:14px}
+.pn-c{padding:14px!important;display:grid;gap:10px;align-content:start}
+.pn-c.on{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 7%,var(--card))}
+.pn-c.brk{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 8%,var(--card))}
+.pn-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.pn-h b{font-size:16px}.pn-e{margin-left:auto;background:none;border:0;color:var(--pri);font-weight:600;cursor:pointer;padding:4px}
+.pn-s{min-height:42px;line-height:1.5}
+.pn-bs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pn-b{width:100%;padding:12px 6px!important;font-size:15px!important;justify-content:center}
+.pn-b.out{background:var(--badl);color:var(--bad);border-color:var(--bad)}
+.pvmg{display:grid;gap:14px}.pvmg>.card{padding:0;overflow:hidden}.pvmg>.pvlock{padding:18px!important}
+.pvtw{overflow-x:auto}
+.pn-t{width:100%;border-collapse:collapse;min-width:640px}.pn-t th,.pn-t td{padding:9px 10px;border-top:1px solid var(--line);text-align:left}.pn-t th{font-size:12px;color:var(--mut);border-top:0}
+.pn-t th small,.pn-t td small{display:block;color:var(--mut);font-weight:500}.pn-t .n{text-align:right}.pn-t tfoot td{background:color-mix(in srgb,var(--ink) 4%,var(--card))}
+.pn-wk{font-weight:600;padding:0 6px;white-space:nowrap}.pn-note{padding:10px 16px;margin:0}
+.pn-r{display:grid;grid-template-columns:minmax(90px,1fr) 100px 150px 80px auto;gap:10px;align-items:center;padding:10px 16px;border-top:1px solid var(--line)}
+@media(max-width:620px){.pn-r{grid-template-columns:1fr auto}.pn-r>span{grid-column:1}.pn-r .btn{grid-column:2;grid-row:1}}
+/* Settings cards */
+.pvset{margin-top:22px}.pvseth{margin-bottom:12px;gap:10px;flex-wrap:wrap}
+.setcols{display:flex;flex-direction:column}.setcols .scol{display:contents}
+@media(min-width:900px){.setcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 14px;align-items:start}.setcols .scol{display:block;min-width:0}}
+.pvsc{margin:0 0 14px}
+.pvsc>h2.sh{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;min-height:40px;margin:-6px 0 4px;user-select:none;-webkit-user-select:none}
+.pvsc>h2.sh::after{content:"";width:9px;height:9px;border-right:2.5px solid currentColor;border-bottom:2.5px solid currentColor;transform:rotate(45deg) translate(-2px,-2px);opacity:.6;flex:none;margin-right:6px;transition:transform .15s}
+.pvsc.shut>h2.sh{margin-bottom:-6px}.pvsc.shut>h2.sh::after{transform:rotate(-45deg)}.pvsc.shut .pvsb{display:none}
+.pvsb>p:first-child{margin-top:0}
+.pvfl{display:flex;flex-direction:column;gap:5px;margin:10px 0 0;font-weight:600;font-size:13px}
+.pvfl>span small{display:block;font-weight:500;color:var(--mut);font-size:12px;margin-top:1px}
+.pvg3{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:0 12px}
+.plg{display:grid;gap:2px;margin-top:10px}
+.pvchk{display:flex;align-items:flex-start;gap:9px;padding:6px 0;cursor:pointer}.pvchk input{margin-top:3px;width:auto;flex:none}
+.pvchk span b{display:block;font-size:14px}.pvchk span small{display:block;color:var(--mut);font-size:12px}
+.pvchk.sm{padding:0;align-items:center;font-size:13px;white-space:nowrap}.pvchk.sm input{margin:0}
+.pvpre{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}.pvpre .btn{gap:6px}.pvpre .btn.on{border-color:var(--pri);box-shadow:0 0 0 2px var(--pv-ring,rgba(63,95,208,.25))}
+.pvsw{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid var(--line)}
+.pvcolin{width:100%;height:40px;border:1px solid var(--line);border-radius:9px;background:var(--card);padding:3px;cursor:pointer}
+.pvhrs{display:grid;gap:6px;margin-bottom:10px}
+.pvhr{display:grid;grid-template-columns:100px 82px minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:center}.pvhr .inp{min-width:0}
+@media(max-width:480px){.pvhr{grid-template-columns:1fr auto}.pvhr .inp{grid-column:span 1}}
+.pvsd{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line);flex-wrap:wrap}.pvsd>span{flex:1;min-width:0}
+.pvsdadd{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}.pvsdadd .inp{flex:1 1 130px;min-width:0;max-width:200px}
+.pvprev{background:color-mix(in srgb,var(--ink) 5%,var(--card));border-radius:10px;padding:10px 12px;margin:8px 0;font-size:13px}
+.pvh3{margin:12px 0 4px;font-size:13px}
+.pvcb{display:grid;grid-template-columns:minmax(0,1fr) 84px 84px 34px;gap:4px 10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.pvcb>.mut{grid-column:1;grid-row:2}.pvcb label{grid-row:1/span 2;font-size:12px;color:var(--mut);display:grid;gap:2px}.pvcb .icon-btn{grid-row:1/span 2}
+#pv-tryr{margin-top:6px;min-height:22px}
+/* Reports */
+.pvrt{max-width:100%}
+.pvhb{display:grid;grid-template-columns:52px minmax(0,1fr) 80px;gap:8px;align-items:center;padding:4px 0;font-size:13px}.pvhb i{height:10px;border-radius:5px;background:color-mix(in srgb,var(--ink) 8%,transparent);overflow:hidden}.pvhb i b{display:block;height:100%;background:var(--pri);border-radius:5px}
+.pvcopy{font-family:inherit;font-size:13px;min-height:150px}
+.pvol{display:grid;grid-template-columns:90px minmax(0,1fr) auto auto;gap:10px;align-items:center;width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:inherit;font:inherit;cursor:pointer;margin-bottom:8px;text-align:left}
+.pvol.on{border-color:var(--pri);box-shadow:0 0 0 2px var(--pv-ring,rgba(63,95,208,.25)) inset}
+.pvolb{display:flex;height:14px;border-radius:7px;background:color-mix(in srgb,var(--ink) 6%,transparent);overflow:hidden}.pvolb .bk{background:var(--pri)}.pvolb .ex{background:color-mix(in srgb,var(--pri) 35%,transparent)}
+@media(max-width:600px){.pvol{grid-template-columns:1fr auto}.pvolb{grid-column:1/-1}}
+.pvhp{display:flex;gap:4px;align-items:flex-end;overflow-x:auto;padding:6px 0}
+.pvhc{flex:1 0 34px;display:grid;justify-items:center;gap:2px;font-size:12px}.pvhc i{width:60%;max-width:26px;background:var(--pri);border-radius:5px 5px 2px 2px;min-height:2px;opacity:.75}.pvhc small{color:var(--mut)}.pvhc b{font-size:11.5px;background:var(--pril,var(--pri-l));color:var(--pri);border-radius:6px;padding:0 5px}
+.pvgd{margin:10px 0 0;padding-left:18px;line-height:1.6}
+.pvslots{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.pvon .stepper .val{min-width:26px;text-align:center;font-weight:700}
+</style>
+<script id="pvx-pre">/* Proview colours before first paint (set in Settings > Colours) */try{var pc=JSON.parse(localStorage.getItem("pv.colors")||"null");if(pc&&pc.main){var r=document.documentElement;r.style.setProperty("--main",pc.main);r.style.setProperty("--bgc",pc.bg||"#f2f4f9")}}catch(e){}</script>
 </head>
 <body class="gate">
 <div class="boot-wait pv-splash" id="bootWait" role="status" aria-label="Loading Proview Bookings"><div class="logo"></div></div>
@@ -2595,7 +2756,7 @@ function handleInbox(row){const pl=row.payload||{};
  if(row.kind==='sms'){const from=String(pl.from||'').replace(/\D/g,'').slice(-10);const g=pl.guest_id?GS.take(pl.guest_id,pl.guest):S.guests.find(x=>x.phone&&x.phone.replace(/\D/g,'').slice(-10)===from);const body=String(pl.body||'').trim();
   if(g){let c=S.chats.find(x=>x.guest===g.id);if(!c){c={id:uid(),guest:g.id,unread:true,messages:[]};S.chats.push(c)}c.messages.push({from:'g',text:body,at:Date.now()});c.unread=true;
    const nb=S.parties.filter(p=>p.guest===g.id&&p.status==='booked'&&p.date>=today()).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[0];
-   if(nb&&body==='1'){nb.confirm='confirmed';logH(nb,'Confirmed by SMS reply')}if(nb&&body==='5'){nb.status='cancelled';logH(nb,'Cancelled by SMS reply');notify('ban',`${shortName(g.name)} cancelled by text`)}}
+   const rk=typeof pvReplyKind==='function'?pvReplyKind(body):'';if(nb&&(body==='1'||rk==='yes')){nb.confirm='confirmed';logH(nb,'Confirmed by SMS reply')}if(nb&&(body==='5'||rk==='no')){nb.status='cancelled';logH(nb,'Cancelled by SMS reply');notify('ban',`${shortName(g.name)} cancelled by text`)}}
   else notify('chat',`Text from ${pl.from?'a number ending '+String(pl.from).slice(-4):'a number not in the guest book'}: ${body.slice(0,80)}`);return true}
  return false}
 function findOrCreateGuest(pl){if(pl.guest_id)return GS.take(pl.guest_id,pl.guest);const em=String(pl.email||'').trim().toLowerCase(),ph=String(pl.phone||'').trim();let g=em&&S.guests.find(x=>x.email&&x.email.toLowerCase()===em);if(!g&&ph)g=S.guests.find(x=>x.phone&&x.phone.replace(/\D/g,'')===ph.replace(/\D/g,''));
@@ -3035,6 +3196,312 @@ setInterval(()=>{if(!$('#drawer').classList.contains('open')&&!$('#modal').class
   if(!cur||siteBiz(cur).id!==U.allBiz){const f=(LOC.list||[]).filter(l=>siteBiz(l).id===U.allBiz).sort((a,b)=>String(a.name).localeCompare(String(b.name)))[0];if(!f)return A.needSite();
    try{sessionStorage.setItem('pv-bk-view',el.dataset.v)}catch(e){}markOpen(f.id);U.view=el.dataset.v;return A.openSite({dataset:{id:f.id}})}}return _g(el)};
 }
+</script>
+<script id="pvx-js">
+/* =====================================================================
+   Proview Bookings: features from the design prototype (v190)
+   Flow, Activity log, pop-up alerts, walk-in floor map, booking dialog
+   fields, Punch in, Manager PIN, staff permissions, Plan, Colours,
+   service settings cards, Reports tabs, Online booking page, Loyalty.
+   New data lives in the venue document: S.settings.pv (settings),
+   S.audit (activity log) and S.punches (punch in). No schema changes.
+   ===================================================================== */
+ID_ARRAYS.add('audit');ID_ARRAYS.add('punches');
+Object.assign(ICON,{
+ grid4:'<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>',
+ activity:'<path d="M4 6h16M4 12h10M4 18h6"/><circle cx="18" cy="16" r="3.2"/><path d="M18 14.6V16l1 .8"/>',
+ lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+ unlock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/>',
+ warn:'<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17v.01"/>',
+ punch:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/>',
+ table1:'<path d="M4 9h16M6 9v9M18 9v9M5 9l1-3h12l1 3"/>'
+});
+/* ---------- settings in the venue document ---------- */
+const PV_DEF={feat:{},perm:{},clash:30,over:1,replyYes:'Y, Yes, Yeah, Yep, Yup, Yes please, Confirm, Confirmed, OK, Okay',replyNo:'N, No, Nope, No thanks, Cancel, Cancel please',
+ loy:{on:true,n:3,pct:10},lab:{spend:22,rate:13.5,perStaff:8,minStaff:2,target:30,typical:0},ob:{lastBefore:60,hold:0,rooms:null},col:null,pin:''};
+function pvUpgrade(s){
+ const st=s.settings;st.pv=st.pv||{};const c=st.pv;
+ for(const k in PV_DEF){if(c[k]===undefined)c[k]=JSON.parse(JSON.stringify(PV_DEF[k]))}
+ c.loy=Object.assign({},PV_DEF.loy,c.loy);c.lab=Object.assign({},PV_DEF.lab,c.lab);c.ob=Object.assign({},PV_DEF.ob,c.ob);
+ if(!Array.isArray(s.audit))s.audit=[];if(typeof pvBackfill==='function')pvBackfill(s);
+ if(!Array.isArray(s.punches)){s.punches=[];pvSamplePunches(s)}
+ if(s.partyTags&&!s.partyTags.some(t=>t.id==='celebrating'))s.partyTags.push({id:'celebrating',name:'Celebrating',cat:'Occasions'});
+ return s}
+function pvSamplePunches(s){const st=(s.staff||[]).filter(x=>x.active!==false);if(!st.length||(s.parties||[]).length<5)return;const now=Date.now();
+ for(let d=1;d<=13;d++)st.slice(0,6).forEach((x,i)=>{if((i+d)%7===0)return;const day=new Date();day.setDate(day.getDate()-d);day.setHours(7+(i%3)*3,(i*7+d*3)%30,0,0);const h=6+((i+d)%4)*.75;s.punches.push({id:uid(),staff:x.id,in:day.getTime(),out:day.getTime()+h*36e5,br:[{s:day.getTime()+3*36e5,e:day.getTime()+3.5*36e5}]})});
+ [[0,5],[2,3],[5,4]].forEach(([i,h])=>{if(st[i])s.punches.push({id:uid(),staff:st[i].id,in:now-h*36e5-7*6e4,out:null,br:[]})})}
+{const _up=upgrade;upgrade=function(s){return pvUpgrade(_up(s))}}
+if(S)pvUpgrade(S);
+const pvC=()=>{if(!S.settings.pv)pvUpgrade(S);return S.settings.pv};
+const pvFT=k=>{const f=pvC().feat||{};return f[k]!==false};
+const PV_FEATS=[['floor','Flow page','Live board and hour by hour view of every table'],['guests','Guests page','Guest list, tags and notes'],['loyalty','Loyalty and discounts','Rewards for regulars and sending discounts'],['reports','Reports and Outlook','Numbers, forecast and labour guidance'],['staff','Staff, rota and punch in','Hours, pay rates and rota upload'],['briefing','Heads-up alerts','Pop-up when a booking has an allergy, note, discount or tag, and the briefing on the printout'],['online','Online booking set-up','Rules for a website widget'],['activity','Activity log','Who did what and when']];
+const PV_BASIC={guests:false,loyalty:false,reports:false,staff:false,briefing:false,online:false};
+const pvPlanName=()=>{const f=pvC().feat||{},off=PV_FEATS.filter(x=>f[x[0]]===false).map(x=>x[0]);if(!off.length)return'full';const b=Object.keys(PV_BASIC);return off.length===b.length&&b.every(k=>off.includes(k))?'basic':'custom'};
+
+/* ---------- manager PIN and staff permissions ---------- */
+const pvHash=p=>{let h=2166136261;const t='pv|'+p;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)}return'h'+(h>>>0).toString(36)};
+function pvMgr(peek){if(!U.mgr)return false;if(Date.now()-(U.mgrT||0)>6e5){U.mgr=false;return false}if(!peek)U.mgrT=Date.now();return true}
+const PV_PERMS=[['view',[['viewReports','The Reports page'],['viewGuests','The Guests page, guest profiles and loyalty'],['settings','The Settings page'],['export','Print bookings and export the venue summary'],['viewActivity','The Activity log']]],['change',[['editBook','Add and edit bookings'],['cancelBook','Cancel bookings and mark no-shows'],['discounts','Apply and send loyalty discounts'],['layout','Edit the floor layout']]]];
+const pvCan=k=>pvMgr()||((pvC().perm||{})[k]!==false);
+const pvLocked=m=>`<div class="card pad pvlock"><h2>Manager only</h2><p class="mut">${m}</p><button class="btn pri" data-act="mgrin">${pvC().pin?'Manager sign in':'Set a manager PIN'}</button></div>`;
+function pvMgrModal(t,note,btn,two){const m=$('#modal');m.innerHTML=`<div class="modal card pvdlg" style="max-width:420px" role="dialog" aria-modal="true" aria-label="${t}"><div class="pad"><h2>${t}</h2><label class="f">${two?'New PIN (4 to 6 numbers)':'Manager PIN'}</label><input class="inp" id="m-pin" type="password" inputmode="numeric" maxlength="6" autocomplete="off">${two?`<label class="f">Repeat the PIN</label><input class="inp" id="m-pin2" type="password" inputmode="numeric" maxlength="6" autocomplete="off">`:''}${note?`<p class="mut small" style="margin:12px 0 0">${note}</p>`:''}<div class="row pvdlg-f"><button class="btn" data-act="closeModal">Cancel</button><button class="btn pri" data-act="${btn}">${two?'Save PIN':'Sign in'}</button></div></div></div>`;m.classList.add('show');const i=$('#m-pin');i.focus();m.querySelectorAll('input').forEach(x=>x.onkeydown=e=>{if(e.key==='Enter')A[btn]()})}
+const pvMgrOn=()=>{U.mgr=true;U.mgrT=Date.now();U.mgrF=0;A.closeModal();render();toast('Manager access on. It locks after 10 minutes of no use.')};
+Object.assign(A,{
+ mgrin:()=>pvC().pin?pvMgrModal('Manager sign in','','mgrok',false):pvMgrModal('Set a manager PIN','Staff will not see pay rates, labour cost or sales until this PIN is entered. Write it down somewhere safe: it cannot be recovered.','mgrnew',true),
+ mgrok:()=>{if((U.mgrLock||0)>Date.now()){toast('Too many tries. Wait half a minute.');return}const v=($('#m-pin')||{}).value||'';if(pvHash(v.trim())!==pvC().pin){U.mgrF=(U.mgrF||0)+1;if(U.mgrF>=5){U.mgrLock=Date.now()+3e4;U.mgrF=0;toast('Too many tries. Wait half a minute.')}else toast('That PIN is not right');$('#m-pin').value='';return}pvMgrOn()},
+ mgrnew:()=>{const a=$('#m-pin').value.trim(),b=$('#m-pin2').value.trim();if(!/^\d{4,6}$/.test(a)){toast('Use 4 to 6 numbers');return}if(a!==b){toast('The two PINs do not match');return}pvC().pin=pvHash(a);save();pvMgrOn()},
+ mgrchg:()=>{if(!pvMgr()){A.mgrin();return}pvMgrModal('Change manager PIN','','mgrnew',true)},
+ mgrout:()=>{U.mgr=false;render();toast('Locked')},
+ pvMgrBtn:()=>pvMgr()?A.mgrout():A.mgrin()
+});
+setInterval(()=>{if(U.mgr&&!pvMgr(true)){render()}},30000);
+
+/* ---------- navigation: SERVICE / GROW / TEAM / MANAGE like the prototype ---------- */
+const PV_SUB={tables:'floor',planner:'flow'};
+{const users=NAV.find(n=>n[0]==='users');NAV.length=0;
+ NAV.push(['sec','Service'],['parties','Bookings','list'],['floor','Tables','tables'],['tables','Table status','tables'],['flow','Flow','grid4'],['planner','Timeline','timeline'],['activity','Activity','activity'],
+  ['sec','Grow'],['guests','Guests','guests'],['reports','Reports','chart'],['online','Online booking','globe'],['reviews','Reviews','star'],['preorders','Pre-orders','menu'],
+  ['sec','Team'],['punch','Punch in','punch'],['staff','Staff & rota','users'],['kitchen','Kitchen','chef'],
+  ['sec','Manage'],['settings','Settings','cog']);if(users)NAV.push(users)}
+Object.assign(SHORT,{floor:'Tables',tables:'Table status',flow:'Flow',planner:'Timeline',activity:'Activity',reports:'Reports',online:'Online booking',punch:'Punch in',staff:'Staff & rota',guests:'Guests'});
+Object.assign(TITLES,{floor:'Tables',tables:'Table status',flow:'Flow',planner:'Timeline',activity:'Activity',reports:'Reports',online:'Online booking',punch:'Punch in',guests:'Guests'});
+Object.assign(VIEW_FEATURE,{flow:'bookings',activity:'bookings',online:'settings',punch:'staff'});
+const PV_CORE=['parties','floor','flow','activity'];
+function pvNavOk(v){
+ if(['flow','planner'].includes(v))return pvFT('floor');
+ if(v==='guests')return pvFT('guests')&&pvCan('viewGuests');
+ if(v==='reports')return pvFT('reports')&&pvCan('viewReports');
+ if(v==='punch'||v==='staff')return pvFT('staff');
+ if(v==='activity')return pvFT('activity')&&pvCan('viewActivity');
+ if(v==='online')return pvFT('online')&&pvCan('settings');
+ if(v==='settings')return pvCan('settings');
+ return true}
+{const _cv=canView;canView=function(v){return _cv(v)&&(!S||pvNavOk(v))}}
+{const _n=renderNav;renderNav=function(){const r=_n.apply(this,arguments);const nav=$('#nav');if(!nav)return r;
+ nav.querySelectorAll('button[data-v]').forEach(b=>{const v=b.dataset.v;b.classList.toggle('nav-core',PV_CORE.includes(v));b.classList.toggle('nav-extra',!PV_CORE.includes(v));if(PV_SUB[v]){b.classList.add('nav-sub');if(U.view===PV_SUB[v])b.classList.add('sub-show')}});
+ const M=pvMgr(true),mb=document.createElement('button');mb.className='nav-extra pv-mgrb'+(M?' on':'');mb.dataset.act='pvMgrBtn';mb.title=M?'Manager signed in: tap to lock':'Manager sign in';
+ mb.innerHTML=ic(M?'unlock':'lock',19)+`<span class="lbl">${M?'Lock':'Manager'}</span><span class="slbl">${M?'Lock':'Manager'}</span>`;
+ const help=nav.querySelector('[data-act=help]');if(help)help.before(mb);else nav.appendChild(mb);
+ const vc=$('#venueCard');if(vc&&!LOC.cloud){const s=vc.querySelector('.side-me-t span');if(s&&!/Manager|Staff/.test(s.textContent))s.insertAdjacentText('beforeend',' · '+(M?'Manager':'Staff'))}
+ return r}}
+{const _t=renderTop;renderTop=function(){if(U.view==='flow'){U.view='planner';try{_t.apply(this,arguments)}finally{U.view='flow'}const h=document.querySelector('#top .pv-tt h2');if(h)h.textContent='Flow';return}return _t.apply(this,arguments)}}
+A.moreMenu=()=>{const m=$('#modal');const items=NAV.filter(n=>n[0]!=='sec'&&!PV_CORE.includes(n[0])&&canView(n[0]));const M=pvMgr(true);
+ m.innerHTML=`<div class="modal card" style="max-width:420px;margin-top:auto"><div class="pad row between" style="border-bottom:1px solid var(--line)"><b>${esc(S.venue.name)}</b><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div>${items.map(n=>`<div class="sres" style="padding:14px 18px" data-act="moreGo" data-v="${n[0]}">${ic(n[2],20)}<b>${n[1]}</b></div>`).join('')}<div class="sres" style="padding:14px 18px" data-act="pvMoreMgr">${ic(M?'unlock':'lock',20)}<b>${M?'Lock manager access':'Manager sign in'}</b></div><div class="sres" style="padding:14px 18px" data-act="locations">${ic('store',20)}<b>Switch location</b></div><div class="sres" style="padding:14px 18px" data-act="help">${ic('help',20)}<b>Help</b></div><div class="sres" style="padding:14px 18px" data-act="logout">${ic('out',20)}<b>Sign out</b></div></div>`;m.classList.add('show')};
+A.pvMoreMgr=()=>{A.closeModal();A.pvMgrBtn()};
+
+/* ---------- permission guards on actions ---------- */
+{const STAFF_NO="Staff cannot do this. Ask a manager to sign in.";
+ const G={editBook:['newParty','pdSave','pvWalkSeat','pvWalkWait','walkIn','enqAccept','pdAuto'],cancelBook:['noshow','cancelParty','pdCancel','delParty','pdDelete','pdResolve','pvBulk'],layout:['toggleEdit','addTable','addCombo'],export:['print','pvActExp','daySummary','exportGuests','exportCsv'],discounts:['pvLoyGive']};
+ const wrap=()=>{for(const[k,list]of Object.entries(G))list.forEach(n=>{const o=A[n];if(!o||o._pv)return;const f=function(){if(!pvCan(k))return toast(STAFF_NO);return o.apply(this,arguments)};f._pv=1;A[n]=f})};
+ wrap();setTimeout(wrap,0);window.pvWrapGuards=wrap}
+const PV_MGR_ONLY=['pvStfSave','pvStfDel','pvPEdit','pvPSave','pvPDel','pvPwk'];
+
+/* ---------- colours ---------- */
+const PV_PRESETS=[['Proview blue','#3f5fd0','#f2f4f9'],['Coffee','#6b4226','#fbf7f2'],['Forest','#2f6b4f','#f3f7f4'],['Berry','#9b2c5a','#fbf3f6'],['Slate','#374151','#f3f4f6'],['Sunset','#c2561a','#fdf6f0']];
+const pvLum=h=>{const m=/^#?([0-9a-f]{6})$/i.exec(h||'');if(!m)return 0;const n=parseInt(m[1],16);return .299*(n>>16)+.587*(n>>8&255)+.114*(n&255)};
+function pvApplyColors(){const c=(S&&pvC().col)||null,r=document.documentElement;
+ if(c&&c.main){r.style.setProperty('--main',c.main);r.style.setProperty('--bgc',c.bg||'#f2f4f9');const light=r.getAttribute('data-theme')==='light';
+  if(light&&pvLum(c.main)>165){r.style.setProperty('--pv-on-accent','#14161f');r.style.setProperty('--onpri','#14161f')}else{r.style.removeProperty('--pv-on-accent');r.style.setProperty('--onpri',light?'#fff':'#0d0f15')}
+  try{localStorage.setItem('pv.colors',JSON.stringify(c))}catch(e){}}
+ else{['--main','--bgc','--pv-on-accent','--onpri'].forEach(k=>r.style.removeProperty(k));try{localStorage.removeItem('pv.colors')}catch(e){}}}
+A.pvCol=el=>{pvC().col={main:el.dataset.m,bg:el.dataset.b};save();pvApplyColors();render();toast('Colours saved')};
+A.pvColIn=el=>{const c=pvC().col||{main:'#3f5fd0',bg:'#f2f4f9'};c[el.dataset.k]=el.value;pvC().col={main:c.main,bg:c.bg};save();pvApplyColors();render()};
+A.pvColReset=()=>{pvC().col=null;save();pvApplyColors();render();toast('Back to Proview blue')};
+new MutationObserver(()=>pvApplyColors()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+/* ---------- reply words (SMS Y/N) ---------- */
+const pvNorm=t=>String(t||'').toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,'').replace(/\s+/g,' ').trim();
+const pvWords=s=>String(s||'').split(',').map(pvNorm).filter(Boolean);
+function pvReplyKind(t){const n=pvNorm(t);if(!n)return'';if(pvWords(pvC().replyYes).includes(n))return'yes';if(pvWords(pvC().replyNo).includes(n))return'no';return''}
+window.ProviewReply={kind:pvReplyKind};
+
+/* ---------- loyalty ---------- */
+const pvOrd=n=>n+(['th','st','nd','rd'][(n%100-20)%10]||['th','st','nd','rd'][n%100]||'th');
+function pvLoy(gid){const L=pvC().loy;if(!gid||!L.on||!pvFT('loyalty'))return null;const V=visits(gid),n=Math.max(2,+L.n||3);return{V,n,pct:+L.pct||10,prog:V%n,due:V%n===n-1}}
+const pvLoyText=gid=>{const I=pvLoy(gid);if(!I)return'';return I.due?`${pvOrd(I.V+1)} visit: give ${I.pct}% off on the EPOS`:`Loyalty ${I.prog}/${I.n}`};
+
+/* ---------- Activity log: a snapshot diff on every save ---------- */
+const pvClk=ms=>{const d=new Date(ms);return pad(d.getHours())+':'+pad(d.getMinutes())};
+const pvFmtMin=n=>{n=Math.max(0,Math.round(n));return n<60?n+'m':Math.floor(n/60)+'h '+pad(n%60)+'m'};
+const pvLm=n=>{n=Math.round(n);return n<60?n+' min':pvFmtMin(n)};
+const pvTn=t=>t?String(t).split('+').filter(Boolean).map(tRaw).join(' + '):'';
+const pvTags=p=>(p.tags||[]).map(id=>(S.partyTags.find(t=>t.id===id)||{name:id}).name).join(', ');
+const pvSnapOf=p=>({s:p.status,k:p.kind,t:(p.tables||[]).join('+'),d:p.date,tm:p.time,z:p.size,du:p.dur,nt:p.notes||'',tg:pvTags(p),n:pName(p),g:p.guest||('p:'+p.id)});
+function pvSnapInit(){U.pvRef=S;U.pvSnap={};(S.parties||[]).forEach(p=>U.pvSnap[p.id]=pvSnapOf(p));U.pvDirty=Object.assign({},S.dirty||{})}
+const pvWho=()=>U.pvSys?'Auto':pvMgr(true)?'Manager':'Staff';
+const pvBy=()=>(typeof CLOUD!=='undefined'&&CLOUD.user&&CLOUD.user.email)||(S.venue.me&&S.venue.me.name)||'';
+function pvAudit(){
+ if(!S||!S.parties)return;if(!U.pvSnap||U.pvRef!==S){pvSnapInit();return}
+ if(!pvFT('activity')){pvSnapInit();return}
+ S.audit=S.audit||[];const ev=[],now=Date.now(),w=pvWho(),by=pvBy(),seen={},touched={};
+ const add=(p,k,x,o)=>{ev.push({id:uid(),t:now,p:p.id,g:o.g,n:o.n,z:o.z,k,x,w,by});String(o.t||'').split('+').forEach(i=>{if(i)touched[i]=1})};
+ const live=['booked','arrived','waiting'];
+ S.parties.forEach(p=>{seen[p.id]=1;const n=pvSnapOf(p),o=U.pvSnap[p.id];
+  if(!o){if(p.kind==='queue')add(p,'new',`Joined the waitlist, ${p.size} guest${p.size===1?'':'s'}`+(p.quote?`, quoted ${p.quote} min`:''),n);
+   else if(p.kind==='walkin'){add(p,'new',`Walk-in, ${p.size} guest${p.size===1?'':'s'}`,n);if(ACTIVE.includes(p.status))add(p,'seat','Seated at '+(pvTn(n.t)||'no table'),n)}
+   else add(p,'new',`${p.kind==='enquiry'?'Enquiry':'Booked'} for ${p.time} on ${fmtDate(p.date)}, ${p.size} guest${p.size===1?'':'s'}${n.t?', '+pvTn(n.t):', no table'}${p.channel&&chanById(p.channel)?' ('+chanById(p.channel).name+')':''}`,n);return}
+  const st=o.s!==n.s,toSeat=st&&ACTIVE.includes(n.s)&&!ACTIVE.includes(o.s);
+  if(st){
+   if(toSeat){const late=p.date===today()&&p.seatedAt!=null?p.seatedAt-toMin(p.time):0;add(p,'seat','Seated at '+(pvTn(n.t)||'no table')+(o.k==='queue'?' (from the waitlist)':'')+(late>=5?'. '+pvLm(late)+' after the booked time':''),n)}
+   else if(ACTIVE.includes(o.s)&&ACTIVE.includes(n.s))add(p,'course',n.s==='dessert'?'Moved to dessert':n.s==='paying'?'Bill requested':'Back to seated',n);
+   else if(ACTIVE.includes(o.s)&&n.s==='finished'){const mm=p.seatedAt!=null&&p.endedAt!=null?p.endedAt-p.seatedAt:null;add(p,'left','Left'+(mm!=null&&mm>=0?' after '+pvFmtMin(mm)+' on the table':'')+(o.t?' ('+pvTn(o.t)+')':''),n)}
+   else if(ACTIVE.includes(o.s)&&live.includes(n.s))add(p,'unseat','Unseated, back to '+STATUS_LABEL[n.s].toLowerCase()+(o.t?' ('+pvTn(o.t)+')':''),n);
+   else if(n.s==='arrived'){const lt=p.date===today()?nowMin()-toMin(p.time):0;add(p,'arrive',(lt>=5?'Arrived '+pvLm(lt)+' late':lt<=-10?'Arrived '+pvLm(-lt)+' early':'Arrived on time')+' (booked for '+n.tm+')',n)}
+   else if(n.s==='noshow')add(p,'noshow','Marked as no-show',n);
+   else if(n.s==='cancelled')add(p,'cancel','Cancelled',n);
+   else if(n.s==='deleted')add(p,'del','Booking deleted',n);
+   else if(n.s==='declined')add(p,'cancel','Enquiry declined',n);
+   else if(n.s==='finished')add(p,'left','Completed',n);
+   else if(live.includes(n.s))add(p,'reopen',(o.s==='pending'?'Enquiry accepted as a booking':'Reopened as '+STATUS_LABEL[n.s].toLowerCase()),n)}
+  if(!toSeat){
+   if(o.t!==n.t)add(p,'table',(o.t?pvTn(o.t):'No table')+' → '+(n.t?pvTn(n.t):'No table'),n);
+   if(o.d!==n.d)add(p,'date',fmtDate(o.d)+' → '+fmtDate(n.d),n);
+   if(o.tm!==n.tm&&!(n.k==='walkin'&&o.k==='queue')){const df=toMin(n.tm)-toMin(o.tm);add(p,'time','Time '+o.tm+' → '+n.tm+' ('+pvLm(Math.abs(df))+(df>0?' later, delayed':' earlier')+'). Slot now '+n.tm+' to '+fromMin(toMin(n.tm)+(+p.dur||0)),n)}}
+  if(o.z!==n.z)add(p,'size','Party '+o.z+' → '+n.z,n);
+  if(o.du!==n.du)add(p,'dur','Stay '+o.du+' → '+n.du+' min',n);
+  if(o.nt!==n.nt)add(p,'note',n.nt?'Note: '+n.nt:'Note removed',n);
+  if(o.tg!==n.tg)add(p,'tags','Tags: '+(n.tg||'none'),n)});
+ Object.keys(U.pvSnap).forEach(id=>{if(!seen[id]){const o=U.pvSnap[id];ev.push({id:uid(),t:now,p:id,g:o.g,n:o.n,z:o.z,k:'del',x:'Booking deleted',w,by})}});
+ const D=S.dirty||{},od=U.pvDirty||{};new Set([...Object.keys(D),...Object.keys(od)]).forEach(id=>{const a=!!od[id],b=!!D[id];if(a!==b&&!touched[id]&&S.tables.some(t=>t.id===id))ev.push({id:uid(),t:now,p:'',g:'',n:tRaw(id),z:0,k:'tab',x:'Table set to '+(b?'Needs clearing':'Free'),w,by})});
+ if(ev.length){S.audit.push(...ev);if(S.audit.length>1800)S.audit.splice(0,S.audit.length-1500)}
+ U.pvSnap={};S.parties.forEach(p=>{U.pvSnap[p.id]=pvSnapOf(p)});U.pvDirty=Object.assign({},D)}
+{const _s=save;save=function(){try{pvAudit()}catch(e){console.error(e)}return _s.apply(this,arguments)}}
+if(typeof processInbox==='function'){const _pi=processInbox;processInbox=async function(){U.pvSys=1;try{return await _pi.apply(this,arguments)}finally{U.pvSys=0}}}
+
+/* first run: fill the log from each booking's own history (last 14 days) */
+function pvBackfill(s){if(!s||!Array.isArray(s.parties)||(s.audit&&s.audit.length)||s._pvAud)return;s._pvAud=1;const cut=Date.now()-14*864e5,E=[];
+ const kind=t=>/^Seated|Walk-in seated/i.test(t)?'seat':/arrived/i.test(t)?'arrive':/no-show/i.test(t)?'noshow':/^Cancel|cancelled/i.test(t)?'cancel':/^Deleted/i.test(t)?'del':/^Restored|accepted/i.test(t)?'reopen':/^Finished|complet/i.test(t)?'left':/dessert|Bill requested/i.test(t)?'course':/^Moved/i.test(t)?'table':/^Edited/i.test(t)?'time':/created|Booked|Enquiry received|queue/i.test(t)?'new':'note';
+ s.parties.forEach(p=>(p.history||[]).forEach(h=>{if(!h.at||h.at<cut||h.at>Date.now())return;const g=s.guests&&s.guests.find(x=>x.id===p.guest);E.push({id:Math.random().toString(36).slice(2,10),t:h.at,p:p.id,g:p.guest||('p:'+p.id),n:g?g.name:(p.name||'Walk-in'),z:p.size,k:kind(h.text),x:h.text,w:h.by==='System'?'Auto':'Staff',by:h.by||''})}));
+ E.sort((a,b)=>a.t-b.t);s.audit=E.slice(-1500)}
+/* ---------- pop-up alerts: Waiting too long and Heads up ---------- */
+function pvBeep(){try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const c=new C(),o=c.createOscillator(),g=c.createGain();o.frequency.value=880;g.gain.value=.08;o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.25);setTimeout(()=>{try{c.close()}catch(e){}},600)}catch(e){}try{navigator.vibrate&&navigator.vibrate([120,80,120])}catch(e){}}
+const pvHr=n=>n<60?n+' min':pvFmtMin(n);
+const pvWaited=p=>Math.max(0,Math.round((Date.now()-(p.joinedAt||Date.now()))/6e4));
+const pvWlList=()=>{const now=Date.now();return S.parties.filter(p=>p.kind==='queue'&&p.status==='waiting'&&p.date===today()&&quoteOf(p)>0&&pvWaited(p)>quoteOf(p)&&!p.notifiedAt&&!p.wack&&!(p.wsnz&&p.wsnz>now))};
+function pvFlags(p){const F=[],g=guestById(p.guest),pt=(p.tags||[]).map(id=>S.partyTags.find(t=>t.id===id)).filter(Boolean),gt=(g?g.tags:[]).map(id=>S.guestTags.find(t=>t.id===id)).filter(Boolean);
+ const al=[...pt.filter(t=>t.cat==='Allergens'),...gt.filter(t=>t.cat==='Allergies'||t.id==='allergy')].map(t=>t.name).filter(n=>n!=='Allergy');
+ const hasAl=al.length||gt.some(t=>t.id==='allergy')||/allerg/i.test(p.notes||'');
+ if(hasAl)F.push(['red','Allergy'+(al.length?': '+[...new Set(al)].join(', '):'')+(p.notes&&/allerg/i.test(p.notes)?' · '+p.notes:'')]);
+ if(p.notes&&!/allerg/i.test(p.notes))F.push(['amber','Note: '+p.notes]);
+ if(g&&g.notes)F.push(['amber','Guest note: '+g.notes]);
+ const L=pvLoy(p.guest);if(L&&L.due)F.push(['green','Discount due: '+L.pct+'% off']);
+ gt.filter(t=>t.id==='vip'||t.id==='regular').forEach(t=>F.push(['blue',t.name]));
+ pt.filter(t=>['celebrating','bday','anniv'].includes(t.id)).forEach(t=>F.push(['blue',t.id==='celebrating'?'Celebrating':'Celebrating: '+t.name]));
+ return F}
+const pvBkList=()=>{if(!pvFT('briefing'))return[];const n=nowMin(),now=Date.now();return S.parties.filter(p=>p.date===today()&&p.kind==='booking'&&['booked','arrived'].includes(p.status)&&!p.aack&&!(p.asnz&&p.asnz>now)&&(p.status==='arrived'||(toMin(p.time)-n<=30&&toMin(p.time)+(+p.dur||0)>n))&&pvFlags(p).length).sort((a,b)=>a.time.localeCompare(b.time))};
+function pvAlerts(){if(!S||!$('#content'))return;let host=$('#pv-alerts');if(!host){host=document.createElement('div');host.id='pv-alerts';host.setAttribute('role','alert');$('#content').before(host)}
+ if(['allsites','noaccess','kitchen'].includes(U.view)||(typeof CLOUD!=='undefined'&&CLOUD.nosite)){host.innerHTML='';host.dataset.h='';return}
+ const W=pvWlList(),B=pvBkList();let fresh=false;W.forEach(p=>{if(!p.walr){p.walr=1;fresh=true}});B.forEach(p=>{if(!p.aalr){p.aalr=1;fresh=true}});
+ const h=(W.length?`<div class="pv-al pv-al-wl"><b class="pv-alt">Waiting too long</b>${W.map(p=>`<div class="wl-r"><span><b>${esc(pName(p))}</b> (${p.size}) has waited ${pvHr(pvWaited(p))}, quoted ${pvHr(quoteOf(p))}</span><span class="wl-b"><button class="btn sm pri" data-act="pvWseat" data-id="${p.id}">Seat now</button><button class="btn sm" data-act="pvWsnz" data-id="${p.id}">Snooze 5 min</button><button class="btn sm" data-act="pvWdis" data-id="${p.id}">Dismiss</button></span></div>`).join('')}</div>`:'')+
+  (B.length?`<div class="pv-al pv-al-bk"><b class="pv-alt">Heads up</b>${B.map(p=>`<div class="bka-r"><div class="bka-h"><span><b>${esc(pName(p))}</b> (${p.size}) ${p.status==='arrived'?'has arrived':'at '+p.time}${p.tables.length?' · '+p.tables.map(tName).join(' + '):''}</span><span class="wl-b"><button class="btn sm pri" data-act="pvBkack" data-id="${p.id}">Got it</button><button class="btn sm" data-act="pvBksnz" data-id="${p.id}">Snooze 10 min</button></span></div><div class="bka-f">${pvFlags(p).map(f=>`<span class="chip ${f[0]}">${esc(f[1])}</span>`).join('')}</div></div>`).join('')}</div>`:'');
+ if(host.dataset.h!==h){host.innerHTML=h;host.dataset.h=h}
+ if(fresh){try{localSave()}catch(e){}pvBeep()}}
+const pvP=el=>S.parties.find(x=>x.id===el.dataset.id);
+Object.assign(A,{
+ pvWseat:el=>{const p=pvP(el);if(!p)return;if(!pvCan('editBook'))return toast('Staff cannot do this. Ask a manager to sign in.');if(p.status==='waiting'&&!p.tables.length){const t=autoTable(today(),fromMin(nowMin()),p.dur,p.size,p.id);if(!t.length){toast('No free table fits '+p.size+' right now');editParty(p.id);return}p.tables=t}A.advance({dataset:{id:p.id}},{stopPropagation(){}})},
+ pvWsnz:el=>{const p=pvP(el);if(p){p.wsnz=Date.now()+3e5;save();pvAlerts()}},
+ pvWdis:el=>{const p=pvP(el);if(p){p.wack=true;save();pvAlerts()}},
+ pvBkack:el=>{const p=pvP(el);if(p){p.aack=true;save();pvAlerts()}},
+ pvBksnz:el=>{const p=pvP(el);if(p){p.asnz=Date.now()+6e5;save();pvAlerts()}}
+});
+setInterval(pvAlerts,15000);
+/* a changed time resets "Got it" */
+{const _ps=A.pdSave;A.pdSave=function(){const o=D&&D.id&&S.parties.find(x=>x.id===D.id);const t0=o&&o.time;const r=_ps.apply(this,arguments);if(o){const n=S.parties.find(x=>x.id===o.id);if(n&&n.time!==t0){n.aack=false;n.aalr=false;localSave()}}return r}}
+
+/* ---------- Flow page (Flow | Timeline) ---------- */
+const pvFmode=()=>{try{return localStorage.getItem(KEY+'-fmode')||'flow'}catch(e){return'flow'}};
+A.pvFmode=el=>{const v=el.dataset.v;try{localStorage.setItem(KEY+'-fmode',v)}catch(e){}U.view=v==='timeline'?'planner':'flow';render();$('#content').scrollTop=0};
+const pvFSwitch=cur=>`<div class="seg pvfsw" role="tablist" aria-label="Flow or Timeline"><button class="${cur==='flow'?'on':''}" data-act="pvFmode" data-v="flow">Flow</button><button class="${cur==='timeline'?'on':''}" data-act="pvFmode" data-v="timeline">Timeline</button></div>`;
+const pvAreaTabs=()=>{const a=U.pvArea||'all';const col=['#5a7bf0','#e0791f','#12a150','#b54fa3','#0ea5a4','#d48a00'];return S.areas.length>1?`<div class="seg pvarea" role="tablist" aria-label="Area">${[['all','All areas'],...S.areas.map(x=>[x.id,x.name])].map(([k,l],i)=>`<button class="${a===k?'on':''}" data-act="pvArea" data-v="${k}">${k==='all'?'':`<i class="pvdot" style="background:${col[(i-1)%col.length]}"></i>`}${esc(l)}</button>`).join('')}</div>`:''};
+A.pvArea=el=>{U.pvArea=el.dataset.v;render()};
+const pvPsz=n=>`<span class="psz">${ic('people',12)}${n}</span>`;
+function pvStatBtn(p){const late=isUnresolved(p);const k=late?'warn':p.status==='arrived'?'walk':ACTIVE.includes(p.status)?'seat':p.status==='finished'?'check':'clock';
+ const lbl=late?'Overdue: tap to complete':p.status==='booked'?'Mark as arrived':p.status==='arrived'?'Seat now':p.status==='seated'?'Move to dessert':p.status==='dessert'?'Bill requested':p.status==='paying'?'Finish':STATUS_LABEL[p.status];
+ return`<button class="stb s-${late?'late':p.status}" data-act="advance" data-id="${p.id}" title="${esc(lbl)}" aria-label="${esc(lbl)}">${ic(k,17)}</button>`}
+function pvTile(p){const t=p.tables||[];const nm=t.map(tRaw).join('+');return`<button class="pvtile ${t.length?'':'none'} ${ACTIVE.includes(p.status)?'t-seat':''} ${isUnresolved(p)?'t-late':''}" data-act="pvOpen" data-id="${p.id}" title="${t.length?'Table '+esc(nm):'No table yet'}">${ic('table1',14)}<b style="${nm.length>4?'font-size:'+(nm.length>8?10:12)+'px':''}">${t.length?esc(nm):'—'}</b></button>`}
+A.pvOpen=el=>{U.pdTab='details';editParty(el.dataset.id)};
+const pvOnTable=p=>p.seatedAt==null?0:Math.max(0,nowMin()-p.seatedAt);
+const pvAllow=p=>{const l=p.seatedAt==null?0:p.seatedAt-toMin(p.time);return l>=5?Math.max(5,p.dur-l):p.dur};
+VIEWS.flow=()=>{
+ const d=U.date,isT=d===today(),nm=nowMin(),area=U.pvArea||'all';
+ const hrs=hoursFor(d),o0=toMin(hrs.open||'09:00'),c0=closeM(hrs);
+ const all=S.parties.filter(p=>p.date===d&&['booking','walkin'].includes(p.kind)&&!['deleted','declined','pending'].includes(p.status));
+ const tIn=t=>area==='all'||t.area===area,inA=p=>area==='all'||!p.tables.length||p.tables.some(id=>{const t=S.tables.find(x=>x.id===id);return!t||tIn(t)});
+ const P=all.filter(inA),liveP=P.filter(p=>!['cancelled','noshow'].includes(p.status));
+ let o=o0,c=c0;liveP.forEach(p=>{o=Math.min(o,toMin(p.time));c=Math.max(c,toMin(p.time)+30)});
+ const bk=P.filter(p=>['booked','arrived'].includes(p.status)&&!isUnresolved(p)).sort((a,b)=>a.time.localeCompare(b.time));
+ const over=isT?P.filter(p=>isUnresolved(p)&&p.date===today()):[];
+ const soon=isT?bk.filter(p=>p.status==='arrived'||toMin(p.time)<=nm+60):[],later=bk.filter(p=>!soon.includes(p));
+ const seated=P.filter(p=>ACTIVE.includes(p.status)).sort((a,b)=>(pvAllow(a)-pvOnTable(a))-(pvAllow(b)-pvOnTable(b)));
+ const tt=S.tables.filter(t=>tIn(t)&&tableUsable(t)),clear=tt.filter(t=>tableStatus(t.id)==='dirty'),freeT=tt.filter(t=>tableStatus(t.id)==='available');
+ const nextOf=t=>{const n=P.filter(p=>['booked','arrived'].includes(p.status)&&p.tables.includes(t.id)&&toMin(p.time)>nm-15).map(p=>toMin(p.time)).sort((a,b)=>a-b)[0];return n==null?null:Math.max(0,n-nm)};
+ const noT=P.filter(p=>['booked','arrived'].includes(p.status)&&!p.tables.length).length,gst=a=>a.reduce((x,p)=>x+p.size,0);
+ const slots=[];for(let x=Math.floor(o/30)*30;x<c;x+=30)slots.push({x,g:liveP.filter(p=>toMin(p.time)>=x&&toMin(p.time)<x+30).reduce((a,p)=>a+p.size,0)});
+ const mx=Math.max(1,...slots.map(z=>z.g)),curX=Math.floor(nm/30)*30;U.pvFP={slots,mx,cur:isT?curX:-1};
+ const strip=pvStrip(slots,mx,isT?curX:-1,44);
+ const late=p=>{const l=nm-toMin(p.time);return p.status==='arrived'?'Arrived, waiting':l>0?`<span class="bad">${l} min late</span>`:l>=-5?'Due now':'In '+pvLm(-l)};
+ const row=(p,extra)=>`<div class="fr2"><span class="bws">${pvStatBtn(p)}</span><b class="tm">${p.time}</b><button class="fnm" data-act="pvOpen" data-id="${p.id}"><span${p.notes?` title="${esc(p.notes)}"`:''}>${esc(pName(p))}${p.notes?' ★':''}</span><small>${extra||(isT&&['booked','arrived'].includes(p.status)?late(p):'')}</small></button><span class="bwp">${pvPsz(p.size)}</span><div class="bwx">${pvTile(p)}</div></div>`;
+ const lane1=isT?`<div class="card"><h2>Arriving <small>next hour${over.length?' · '+over.length+' overdue':''}</small></h2>${over.map(p=>row(p,'<span class="bad">Overdue</span>')).join('')}${soon.length?soon.map(p=>row(p)).join(''):(over.length?'':`<div class="fempty">Nobody due in the next hour.</div>`)}</div>`:'';
+ const lane2=isT?`<div class="card"><h2>Seated <small>${seated.length} part${seated.length===1?'y':'ies'} · ${gst(seated)} guests</small></h2>${seated.length?seated.map(p=>{const l=pvAllow(p)-pvOnTable(p),t=l>=0?`<span class="${l<=10?'bad':'ok'}">${pvLm(l)} left</span>`:`<span class="bad">over by ${pvLm(-l)}</span>`;return row(p,`on table ${pvFmtMin(pvOnTable(p))}<br>${t}`)}).join(''):`<div class="fempty">Nobody seated.</div>`}</div>`:'';
+ const by={};freeT.forEach(t=>{(by[t.max]=by[t.max]||[]).push(t)});const open=U.pvFlfree;
+ const lane3=isT?`<div class="card"><h2>Tables <small>${freeT.length} free of ${tt.length}</small><button class="btn sm pri" style="margin-left:auto" data-act="walkIn">Walk-in</button></h2>${clear.map(t=>`<div class="ftb"><b class="bad">Clear</b><span class="fl2">${esc(t.name)} needs clearing</span><button class="btn sm" data-act="pvCleared" data-id="${t.id}">Cleared</button></div>`).join('')}${Object.keys(by).sort((a,b)=>a-b).map(k=>{const L=by[k],nx=L.map(nextOf).filter(x=>x!=null).sort((a,b)=>a-b)[0];return`<div class="ftb"><b>${k} seat${+k===1?'':'s'}</b><span class="fl2">${L.length} free${nx==null?'':(nx<=0?' · a booking is due now':' · next booked in '+pvLm(nx))}</span></div>${open?`<div class="fchips">${L.map(t=>{const n=nextOf(t);return`<span class="chip ${n!=null&&n<90?'amber':'green'}" title="${n==null?'Free for the rest of the day':'Booked in '+pvLm(n)}">${esc(t.name)}${n!=null&&n<90?' · '+pvLm(n):''}</span>`}).join('')}</div>`:''}`}).join('')||(clear.length?'':`<div class="fempty">No free tables right now.</div>`)}${freeT.length?`<div class="ftb"><span class="fl2"><button class="btn sm" data-act="pvFlfree">${open?'Hide table names':'Show table names'}</button></span></div>`:''}</div>`:'';
+ const grp={};later.forEach(p=>{const x=Math.floor(toMin(p.time)/30)*30;(grp[x]=grp[x]||[]).push(p)});
+ const ks=Object.keys(grp).map(Number).sort((a,b)=>a-b),fo=x=>U.pvFls&&x in U.pvFls?U.pvFls[x]:grp[x].length<=3;
+ const lu=ks.length?ks.map(x=>{const g=grp[x],n=g.filter(p=>!p.tables.length).length,op=fo(x);return`<button class="fslot" data-act="pvFlslot" data-v="${x}" data-o="${op?1:0}" aria-expanded="${op}"><b>${fromMin(x)}</b><span class="fsm">${g.length} part${g.length===1?'y':'ies'} · ${gst(g)} guests</span>${n?`<span class="chip red">${n} need${n===1?'s':''} a table</span>`:''}<span class="fsc">${op?'▾':'▸'}</span></button>${op?g.map(p=>row(p)).join(''):''}`}).join(''):`<div class="fempty">${isT?'Nothing later today.':'No bookings on this day.'}</div>`;
+ return`<div class="pvflow">${pvAreaTabs()}<div class="fopts flw">${pvFSwitch('flow')}<span class="chip">${isT?soon.length+' arriving soon':bk.length+' bookings'}</span>${isT?`<span class="chip blue">${seated.length} seated</span>`:''}${noT?`<span class="chip red">${noT} need a table</span>`:''}<span class="mut small">${gst(liveP)} guests ${isT?'today':'this day'}</span></div>
+ <div class="card pad pvstripc"><div class="mut small fph">Guests arriving each half hour<span class="sp"></span><button class="btn sm fpen" data-act="pvFpen">Enlarge</button></div>${strip}</div>
+ ${isT?`<div class="flc">${lane1}${lane2}${lane3}</div>`:''}
+ <div class="flu"><div class="card"><h2>${isT?'Later today':fmtDate(d,{weekday:'long',day:'numeric',month:'long'})}<small>${later.length} booking${later.length===1?'':'s'}</small></h2>${lu}</div></div></div>`};
+function pvStrip(slots,mx,cur,H){return`<div class="fps" role="img" aria-label="Guests arriving in each half hour" style="--fph:${H}px">${slots.map(z=>`<div class="fp${z.x===cur?' cur':''}${z.g===mx&&z.g>0?' fpt':''}" title="${z.g} guests arriving ${fromMin(z.x)} to ${fromMin(z.x+30)}"><span class="fpb" style="height:${z.g?Math.max(6,Math.round(z.g/mx*H)):2}px"></span><b>${z.g||'·'}</b><small>${fromMin(z.x)}</small></div>`).join('')}</div>`}
+Object.assign(A,{
+ pvFlslot:el=>{const x=+el.dataset.v;U.pvFls=U.pvFls||{};U.pvFls[x]=el.dataset.o!=='1';render()},
+ pvFlfree:()=>{U.pvFlfree=!U.pvFlfree;render()},
+ pvCleared:el=>{delete S.dirty[el.dataset.id];save();render();toast(tRaw(el.dataset.id)+' is free')},
+ pvFpen:()=>{const F=U.pvFP;if(!F)return;const m=$('#modal');m.innerHTML=`<div class="modal card pvdlg" style="max-width:900px"><div class="pad"><div class="row between"><h2 style="margin:0">Guests arriving each half hour</h2><button class="icon-btn" data-act="closeModal" aria-label="Close">${ic('x')}</button></div><p class="mut small">${fmtDate(U.date,{weekday:'long',day:'numeric',month:'long'})}. The current half hour is outlined, the busiest is solid.</p>${pvStrip(F.slots,F.mx,F.cur,160)}</div></div>`;m.classList.add('show')}
+});
+{const _pl=VIEWS.planner;VIEWS.planner=function(){return`<div class="pvflow pvtlh">${pvAreaTabsNote()}<div class="fopts flw">${pvFSwitch('timeline')}<span class="mut small">Tap an empty slot to book, drag a booking to move it.</span></div></div>`+_pl.apply(this,arguments)}}
+const pvAreaTabsNote=()=>'';
+/* Tables page: Floor plan | List (Table status) */
+const pvTSwitch=cur=>`<div class="seg pvtsw" role="tablist" aria-label="Floor plan or list"><button class="${cur==='floor'?'on':''}" data-act="go" data-v="floor">Floor plan</button><button class="${cur==='tables'?'on':''}" data-act="go" data-v="tables">Table status</button></div>`;
+{const _t=VIEWS.tables;VIEWS.tables=function(){return`<div class="pvtsh">${pvTSwitch('tables')}</div>`+_t.apply(this,arguments)}}
+{const _f=VIEWS.floor;VIEWS.floor=function(){return(U.editFloor?'':`<div class="pvtsh">${pvTSwitch('floor')}</div>`)+_f.apply(this,arguments)}}
+
+/* ---------- Activity page ---------- */
+const PV_AK={arrivals:['arrive','seat','left','unseat','course'],tables:['table','tab'],changes:['time','date','size','dur','note','tags'],stops:['cancel','noshow','del','reopen'],new:['new']};
+const PV_AKL={new:'Booked',arrive:'Arrived',seat:'Seated',course:'Service',left:'Left',unseat:'Unseated',noshow:'No-show',cancel:'Cancelled',reopen:'Reopened',del:'Deleted',table:'Table',tab:'Table',time:'Time',date:'Date',size:'Party',dur:'Stay',note:'Note',tags:'Tags'};
+function pvActList(){const fd=U.actD||'today',fk=U.actK||'all',q=(U.actQ||'').toLowerCase().trim(),td=new Date();td.setHours(0,0,0,0);const t0=td.getTime(),lim={today:t0,yday:t0-864e5,'7':t0-6*864e5,all:0}[fd],ceil=fd==='yday'?t0:Infinity;
+ return(S.audit||[]).filter(e=>e.t>=lim&&e.t<ceil&&(fk==='all'||PV_AK[fk].includes(e.k))&&(!q||(e.n+' '+e.x).toLowerCase().includes(q))).slice().sort((a,b)=>b.t-a.t)}
+const pvAgDef=()=>{try{return localStorage.getItem(KEY+'-actdef')||'open'}catch(e){return'open'}};
+const pvAgOpen=k=>U.actO&&k in U.actO?U.actO[k]:pvAgDef()==='open';
+VIEWS.activity=()=>{
+ const fd=U.actD||'today',fk=U.actK||'all',E=pvActList(),seg=(a,v,l)=>`<button data-act="${a}" data-v="${v}" class="${(a==='pvActd'?fd:fk)===v?'on':''}">${l}</button>`,td=new Date().toDateString();
+ const G=new Map();E.slice().reverse().forEach(e=>{const k=e.g||'~tables';if(!G.has(k))G.set(k,[]);G.get(k).push(e)});
+ const gs=[...G.entries()].sort((a,b)=>b[1][b[1].length-1].t-a[1][a[1].length-1].t),multiDay=new Set(E.map(e=>new Date(e.t).toDateString())).size>1,shown=gs.slice(0,150);
+ const row=e=>{const d=new Date(e.t);return`<div class="ar"><span class="at">${multiDay&&d.toDateString()!==td?d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' ':''}${pvClk(e.t)}</span><span class="ak">${PV_AKL[e.k]||''}</span><span class="ax">${esc(e.x)}</span><span class="chip" title="${esc(e.by||'')}">${esc(e.w)}</span></div>`};
+ const cards=shown.map(([k,L])=>{
+  const last=L[L.length-1],tb=k==='~tables',ids=[...new Set(L.map(e=>e.p).filter(Boolean))],Pp=id=>S.parties.find(p=>p.id===id),lp=Pp(last.p);
+  const sc=lp?(ACTIVE.includes(lp.status)?'blue':lp.status==='finished'?'green':DEAD.includes(lp.status)?'red':'amber'):'';
+  const head=tb?`<b>Table changes</b><span class="mut small">${L.length} change${L.length===1?'':'s'}</span>`:`<b>${esc(last.n)}</b><span class="mut small">${last.z?'party of '+last.z+' · ':''}${L.length} change${L.length===1?'':'s'}</span>${lp?`<span class="chip ${sc}">${STATUS_LABEL[lp.status]||lp.status}</span>`:`<span class="chip">Deleted</span>`}`;
+  let body='';if(tb||ids.length<=1)body=L.map(row).join('');
+  else ids.forEach(id=>{const p=Pp(id),LL=L.filter(e=>e.p===id);body+=`<div class="asub">${p?'Booking '+esc(fmtDate(p.date))+' '+p.time+', '+p.size+' guest'+(p.size===1?'':'s'):'Deleted booking'}</div>`+LL.map(row).join('')});
+  const op=pvAgOpen(k);return`<div class="card ag"><button class="agh" data-act="pvAgtog" data-k="${esc(k)}" aria-expanded="${op}" title="${op?'Collapse':'Expand'}"><span class="agc" aria-hidden="true">${op?'▾':'▸'}</span>${head}${op?'':`<span class="mut small agl">Last: ${PV_AKL[last.k]||'Change'} ${pvClk(last.t)}</span>`}</button>${op?body:''}</div>`}).join('');
+ return`<div class="pvact"><div class="pvbar"><div class="seg">${seg('pvActd','today','Today')+seg('pvActd','yday','Yesterday')+seg('pvActd','7','7 days')+seg('pvActd','all','All')}</div><input class="inp" id="pv-act-q" placeholder="Search name or event" value="${esc(U.actQ||'')}" aria-label="Search activity"><button class="btn" data-act="pvActExp">${ic('download',15)} Export</button><button class="btn" data-act="pvAgall" data-v="closed">Collapse all</button><button class="btn" data-act="pvAgall" data-v="open">Expand all</button><span class="mut small">${gs.length} customer${gs.length===1?'':'s'}, ${E.length} change${E.length===1?'':'s'}</span></div>
+ <div class="fch"><span class="fl">Show</span><div class="seg sm">${seg('pvActk','all','All')+seg('pvActk','arrivals','Arrivals and seating')+seg('pvActk','tables','Tables')+seg('pvActk','changes','Changes')+seg('pvActk','stops','Cancelled and no-shows')+seg('pvActk','new','New bookings')}</div></div>
+ ${cards||`<div class="card pad"><div class="empty" style="padding:30px 10px">Nothing logged for this choice yet. Arrivals, seating, table moves, time changes, cancellations and table status changes are recorded as they happen.</div></div>`}${gs.length>150?`<p class="mut small">Showing the 150 most recent customers. Narrow the search or export to see more.</p>`:''}<p class="mut small">Each customer's changes are listed in order, oldest first. The customer with the latest change is at the top. Kept with this venue, newest 1500 changes. "Auto" means the app did it by itself (for example an online booking coming in). "Manager" means a manager was signed in with the PIN.</p></div>`};
+AFTER.activity=()=>{const i=$('#pv-act-q');if(i)i.oninput=()=>{U.actQ=i.value;const pos=i.selectionStart;render();const n=$('#pv-act-q');if(n){n.focus();n.setSelectionRange(pos,pos)}}};
+Object.assign(A,{
+ pvActd:el=>{U.actD=el.dataset.v;render()},pvActk:el=>{U.actK=el.dataset.v;render()},
+ pvAgtog:el=>{const k=el.dataset.k;U.actO=U.actO||{};U.actO[k]=!pvAgOpen(k);render()},
+ pvAgall:el=>{const v=el.dataset.v;U.actO={};try{localStorage.setItem(KEY+'-actdef',v)}catch(e){}render()},
+ pvActExp:()=>{const E=pvActList().slice().reverse();if(!E.length)return toast('Nothing to export');const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const rows=[['Date','Time','Customer','Party','Event','Details','Who','By']].concat(E.map(e=>{const d=new Date(e.t);return[ymd(d),pvClk(e.t),e.n,e.z||'',PV_AKL[e.k]||e.k,e.x,e.w,e.by||'']}));
+  const b=new Blob([rows.map(r=>r.map(q).join(',')).join('\r\n')],{type:'text/csv'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='activity-'+today()+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);toast('Activity exported')}
+});
+
+/* ---------- render: fall back when a page is hidden, keep the diff snapshot, alerts ---------- */
+{const _r=render;render=function(){if(S&&!pvNavOk(U.view))U.view='parties';if(S&&(!U.pvSnap||U.pvRef!==S))pvSnapInit();const r=_r.apply(this,arguments);try{pvAlerts()}catch(e){console.error(e)}return r}}
+
+setTimeout(()=>{try{window.pvWrapGuards&&pvWrapGuards()}catch(e){}},0);pvApplyColors();render();
 </script>
 </body>
 </html>
