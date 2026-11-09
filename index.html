@@ -3501,6 +3501,74 @@ Object.assign(A,{
 /* ---------- render: fall back when a page is hidden, keep the diff snapshot, alerts ---------- */
 {const _r=render;render=function(){if(S&&!pvNavOk(U.view))U.view='parties';if(S&&(!U.pvSnap||U.pvRef!==S))pvSnapInit();const r=_r.apply(this,arguments);try{pvAlerts()}catch(e){console.error(e)}return r}}
 
+/* ---------- Walk-in dialog with the floor map ---------- */
+const pvTmax=t=>t.max+Math.max(0,+pvC().over||0);
+function pvWiState(t,size){const dur=durFor(size),now=fromMin(nowMin());
+ if(!tableUsable(t))return['no','Closed'];if(activeParty(t.id))return['no','Seated'];
+ if(size<t.min||size>pvTmax(t))return['no','Fits '+t.min+'-'+t.max];
+ if(!isFree(t.id,today(),now,dur)){const nx=S.parties.filter(p=>p.date===today()&&p.tables.includes(t.id)&&['booked','arrived'].includes(p.status)&&toMin(p.time)>=nowMin()-15).sort((a,b)=>a.time.localeCompare(b.time))[0];return['ov',nx?'Booked '+nx.time:'Booked soon']}
+ return['ok',S.dirty[t.id]?'Needs clearing':size>t.max?'Squeeze':'Free']}
+function pvWiMap(){const W=U.wi;const ts=S.tables.filter(t=>t.area===W.room),ds=(S.decor||[]).filter(d=>d.area===W.room);
+ const dim=t=>{const s=SIZE[t.shape]||[74,74];return[t.w||s[0],t.h||s[1]]};
+ const items=[...ts.map(t=>{const[w,h]=dim(t);return{x:t.x,y:t.y,w,h}}),...ds.map(d=>({x:d.x,y:d.y,w:d.w,h:d.h}))];
+ if(!items.length)return`<div class="empty" style="padding:30px">No tables in this room.</div>`;
+ const x0=Math.min(...items.map(i=>i.x))-16,y0=Math.min(...items.map(i=>i.y))-16,x1=Math.max(...items.map(i=>i.x+i.w))+16,y1=Math.max(...items.map(i=>i.y+i.h))+16,bw=x1-x0,bh=y1-y0;
+ const pc=(v,b)=>(v/b*100).toFixed(3)+'%';
+ return`<div class="pvwmap" style="padding-bottom:${Math.min(70,bh/bw*100).toFixed(2)}%"><div class="pvwin" style="${bh/bw*100>70?`width:${(70/(bh/bw*100)*100).toFixed(2)}%;left:50%;transform:translateX(-50%)`:''}">${ds.map(d=>`<div class="pvwd" style="left:${pc(d.x-x0,bw)};top:${pc(d.y-y0,bh)};width:${pc(d.w,bw)};height:${pc(d.h,bh)}"><span>${esc(d.label||'')}</span></div>`).join('')}${ts.map(t=>{const[w,h]=dim(t),[k,l]=pvWiState(t,W.size),cur=W.t===t.id;return`<button class="pvwt ${k} ${cur?'cur':''} sh-${t.shape}" style="left:${pc(t.x-x0,bw)};top:${pc(t.y-y0,bh)};width:${pc(w,bw)};height:${pc(h,bh)}" data-act="pvWiPick" data-id="${t.id}" ${k==='no'?'disabled':''} aria-pressed="${cur}" title="${esc(t.name)}: ${esc(l)}"><b>${esc(t.name)}</b><small>${esc(l)}</small></button>`}).join('')}</div></div>`}
+function pvWiRender(){const W=U.wi,m=$('#modal');const t=W.t&&S.tables.find(x=>x.id===W.t);
+ m.innerHTML=`<div class="modal card pvdlg pvwi" role="dialog" aria-modal="true" aria-label="Walk-in"><div class="pad"><h2>${t?'Walk-in at '+esc(t.name):'Walk-in'}</h2><p class="mut" style="margin-top:0">Guests who arrive without a booking. Seat them now, or add them to the waitlist if nothing is free.</p>
+ <div class="pvwi-r"><div style="flex:1;min-width:0"><label class="f" for="wi-n">Guest name <small>optional</small></label><input class="inp" id="wi-n" placeholder="Walk-in" value="${esc(W.name||'')}" autocomplete="off"></div><div><label class="f">Guests</label><div class="stepper"><button data-act="pvWiSz" data-n="-1" aria-label="One fewer">${ic('minus',16)}</button><input class="val inp" id="wi-sz" type="number" min="1" max="99" inputmode="numeric" value="${W.size}" aria-label="Guests"><button data-act="pvWiSz" data-n="1" aria-label="One more">${ic('plus',16)}</button></div></div></div>
+ ${S.areas.length>1?`<div class="seg" style="margin:14px 0 10px">${S.areas.map(a=>`<button class="${W.room===a.id?'on':''}" data-act="pvWiRoom" data-v="${a.id}">${esc(a.name)}</button>`).join('')}</div>`:'<div style="height:12px"></div>'}
+ ${pvWiMap()}
+ <p class="mut small" style="margin:10px 0 0">Tap a free table, or leave it and the best free table is used. Dashed tables have a booking coming up and ask you to confirm.</p>
+ <div class="row pvdlg-f"><button class="btn" data-act="closeModal">Cancel</button><button class="btn" data-act="pvWalkWait">Add to waitlist</button><button class="btn pri" data-act="pvWalkSeat">Seat now</button></div></div></div>`;
+ m.classList.add('show');const n=$('#wi-n');n.oninput=()=>W.name=n.value;const z=$('#wi-sz');z.onchange=()=>{W.size=Math.max(1,Math.min(99,Math.round(+z.value)||1));pvWiFix();pvWiRender()}}
+function pvWiFix(){const W=U.wi;if(W.t){const t=S.tables.find(x=>x.id===W.t);if(!t||pvWiState(t,W.size)[0]==='no')W.t=''}}
+function pvWiOpen(tid){const t=tid&&S.tables.find(x=>x.id===tid);U.wi={t:t?t.id:'',size:2,name:'',room:t?t.area:(U.pvArea&&U.pvArea!=='all'?U.pvArea:(S.areas[0]||{}).id)};pvWiRender()}
+function pvMkWalk(name,size,tables,status){const p={id:uid(),kind:status==='waiting'?'queue':'walkin',type:'std',guest:null,name:name||'Walk-in',size,date:today(),time:fromMin(nowMin()),dur:durFor(size),tables,status,seatedAt:status==='seated'?nowMin():null,notes:'',tags:[],channel:'walkin',created:today(),preorder:false,preItems:{},spend:null,deposit:0,confirm:'none',history:[]};
+ if(status==='waiting'){p.quote=+S.settings.queue.defaultWait||20;p.joinedAt=Date.now();logH(p,'Added to the queue')}else{tables.forEach(t=>delete S.dirty[t]);logH(p,`Walk-in seated at ${tables.map(tRaw).join(' + ')}`)}
+ S.parties.push(p);return p}
+Object.assign(A,{
+ walkIn:()=>pvWiOpen(),
+ pvWiPick:el=>{U.wi.t=U.wi.t===el.dataset.id?'':el.dataset.id;pvWiRender()},
+ pvWiRoom:el=>{U.wi.room=el.dataset.v;pvWiRender()},
+ pvWiSz:el=>{U.wi.size=Math.max(1,Math.min(99,U.wi.size+ +el.dataset.n));pvWiFix();pvWiRender()},
+ pvWalkSeat:()=>{const W=U.wi;if(!W)return;const sz=W.size;
+  const go=tabs=>{const p=pvMkWalk((W.name||'').trim(),sz,tabs,'seated');save();A.closeModal();U.date=today();render();toast(`${pName(p)} seated at ${tabs.map(tRaw).join(' + ')}`)};
+  if(W.t){const t=S.tables.find(x=>x.id===W.t);const[k]=pvWiState(t,sz);if(k==='ov'){ask('There is a booking coming up on '+esc(t.name)+'. Seat the walk-in there anyway?',()=>go([t.id]),'Seat anyway');return}if(k==='no'){toast(t.name+' is not free');return}go([t.id]);return}
+  let tabs=autoTable(today(),fromMin(nowMin()),durFor(sz),sz);tabs=tabs.filter(id=>!activeParty(id));if(!tabs.length){toast(`No free table fits ${sz} right now. Add them to the waitlist.`);return}go(tabs)},
+ pvWalkWait:()=>{const W=U.wi;if(!W)return;const p=pvMkWalk((W.name||'').trim(),W.size,[],'waiting');save();A.closeModal();render();toast(`${pName(p)} added to the waitlist`)}
+});
+/* squeeze: an extra guest or two at a table when nothing else fits */
+{const _at=autoTable;autoTable=function(date,time,dur,size,exId,area){const r=_at.apply(this,arguments);if(r.length)return r;const over=Math.max(0,+((S.settings.pv||{}).over)||0);if(!over)return r;
+ const ts=S.tables.filter(t=>tableUsable(t)&&(!area||t.area===area)&&size>=t.min&&size>t.max&&size<=t.max+over).sort((a,b)=>areaRank(a)-areaRank(b)||a.max-b.max);for(const t of ts)if(isFree(t.id,date,time,dur,exId))return[t.id];return r}}
+/* clash minutes: a small overlap with another booking is allowed when saving */
+{const _tf=tablesFree;tablesFree=function(p,tables,date,time,dur){const r=_tf.apply(this,arguments);if(!r)return r;const cl=Math.max(0,+((S.settings.pv||{}).clash)||0);if(!cl)return r;
+ const s=toMin(time),e=s+dur;let worst=0,who=null;for(const t of tables)S.parties.forEach(q=>{if(q.id===p.id||q.date!==date||!q.tables.includes(t)||DEAD.includes(q.status)||q.status==='waiting')return;const ov=Math.min(e,partyEnd(q))-Math.max(s,partyStart(q));if(ov>worst){worst=ov;who=q}});
+ if(worst>0&&worst<=cl){U.pvClash=`Shares ${tables.map(tRaw).join(' + ')} with ${shortName(pName(who))} for ${worst} min (allowed up to ${cl} min)`;setTimeout(()=>{if(U.pvClash){toast(U.pvClash);U.pvClash=null}},2300);return null}return r}}
+
+/* ---------- New booking drawer: Booked by, Email + offers, quick tags, booking note vs guest note ---------- */
+const PV_QT=[['vip','VIP','g'],['regular','Regular','g'],['allergy','Allergy','g'],['celebrating','Celebrating','p']];
+function pvPDinit(){if(!D)return;const key=D.guest||'';if(D._pvG===key&&D.gnote!==undefined)return;const g=guestById(D.guest);D._pvG=key;
+ D.gnote=g?(g.notes||''):(D.gnote||'');D.gmkt=g?!!g.marketing:(D.gmkt!==undefined?D.gmkt:true);D.gq=g?(g.tags||[]).filter(t=>['vip','regular','allergy'].includes(t)):(D.gq||[])}
+{const _r=renderPD;renderPD=function(){if(D&&['booking','enquiry'].includes(D.kind))pvPDinit();const r=_r.apply(this,arguments);try{pvPDextra()}catch(e){console.error(e)}return r}}
+function pvPDextra(){if(!D||!['booking','enquiry'].includes(D.kind))return;const body=$('.dr-body');if(!body)return;const nt=body.querySelector('[data-pd=notes]');if(!nt)return;
+ const ch=body.querySelector('select[data-pd=channel]');if(ch){const l=ch.parentElement.querySelector('label.f');if(l)l.textContent='Booked by'}
+ const lb=nt.previousElementSibling;if(lb&&lb.tagName==='LABEL')lb.innerHTML='Booking note <small class="mut">this visit only</small>';nt.placeholder='Requests for this visit, e.g. high chair, window table';
+ const g=guestById(D.guest),em=body.querySelector('[data-pd=gemail]');if(em)em.placeholder='Email (optional)';
+ const L=g&&pvLoy(g.id),lt=g?pvLoyText(g.id):'';
+ const qt=PV_QT.map(([id,l,k])=>{const on=k==='g'?(D.gq||[]).includes(id):(D.tags||[]).includes(id);return`<button class="${on?'on':''} ${id==='allergy'?'pvq-al':''}" data-act="pvQtag" data-v="${id}" data-k="${k}" aria-pressed="${on}">${l}</button>`}).join('');
+ nt.insertAdjacentHTML('afterend',`<label class="f">Guest note <small class="mut">kept on the guest</small></label><textarea class="inp ${(D.gq||[]).includes('allergy')?'pv-alnote':''}" data-pd="gnote" placeholder="e.g. Manager's friend, likes a booth${g?'':'. Saved on the guest when you save'}">${esc(D.gnote||'')}</textarea>
+  <div class="pvqt"><label class="f">Guest</label><div class="tagpick">${qt}</div><div class="small mut" style="margin-top:4px">VIP, Regular and Allergy stay on the guest. Celebrating is for this visit. Allergy also puts a warning on the booking.</div></div>
+  <label class="row pvmk"><input type="checkbox" data-pd="gmkt" ${D.gmkt?'checked':''}> <span><b>Offers by email</b><small class="mut" style="display:block">Only if the guest has said yes</small></span></label>${lt?`<div class="chip ${L&&L.due?'green':''}" style="margin-top:8px">${esc(lt)}</div>`:''}`);
+ const gi=body.querySelector('[data-pd=gnote]');if(gi)gi.oninput=()=>{D.gnote=gi.value}}
+A.pvQtag=el=>{const id=el.dataset.v;if(el.dataset.k==='g'){D.gq=D.gq||[];D.gq=D.gq.includes(id)?D.gq.filter(x=>x!==id):[...D.gq,id]}else{D.tags=D.tags.includes(id)?D.tags.filter(x=>x!==id):[...D.tags,id]}const on=el.classList.toggle('on');el.setAttribute('aria-pressed',on);if(id==='allergy'){const n=$('[data-pd=gnote]');if(n)n.classList.toggle('pv-alnote',on)}};
+{const _ps=A.pdSave;A.pdSave=function(){const d=D&&['booking','enquiry'].includes(D.kind)?{id:D.id,gnote:D.gnote,gmkt:D.gmkt,gq:D.gq,n:S.parties.length,init:D._pvG!==undefined}:null;const r=_ps.apply(this,arguments);
+ if(d&&d.init&&!D){const p=d.id?S.parties.find(x=>x.id===d.id):S.parties[S.parties.length-1];const g=p&&guestById(p.guest);
+  if(g&&!isCard(g)){let ch=false;if(d.gnote!==undefined&&(g.notes||'')!==d.gnote){g.notes=d.gnote;ch=true}if(d.gmkt!==undefined&&!!g.marketing!==!!d.gmkt){g.marketing=!!d.gmkt;ch=true}
+   const want=d.gq||[];['vip','regular','allergy'].forEach(t=>{const has=(g.tags||[]).includes(t);if(want.includes(t)&&!has){g.tags=[...(g.tags||[]),t];ch=true}if(!want.includes(t)&&has){g.tags=g.tags.filter(x=>x!==t);ch=true}});if(ch){save();render()}}}
+ return r}}
+
 setTimeout(()=>{try{window.pvWrapGuards&&pvWrapGuards()}catch(e){}},0);pvApplyColors();render();
 </script>
 </body>
