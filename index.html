@@ -5,11 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Proview Bookings</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#161c2a">
-<script>/* Proview Navy: theme + menu position before first paint (shared keys pv.theme / pv.menu) */
-try{var d=document.documentElement,t=localStorage.getItem('pv.theme')==='light'?'light':'dark';d.setAttribute('data-theme',t);if(localStorage.getItem('pv.menu')==='bottom')d.classList.add('menu-bottom');document.querySelector('meta[name=theme-color]').setAttribute('content',t==='light'?'#f3f4f8':'#161c2a')}catch(e){document.documentElement.setAttribute('data-theme','dark')}</script>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#141418">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -775,340 +771,15 @@ html .app.collapsed .side :is(.nav,#pv-x)>a,html .app.collapsed .side :is(.nav,#
 html .app.collapsed .side :is(.side-foot,#pv-x){flex-direction:column!important;align-items:center!important;justify-content:normal!important;gap:4px!important;padding:0 10px 14px!important}
 html .app.collapsed .side :is(.side-foot,#pv-x)>*{width:30px!important;height:26px!important;padding:6px 8px!important;margin:0!important;justify-content:center!important;box-sizing:border-box!important}
 }
-/* =====================================================================
-   PROVIEW NAVY THEME (replaces the "Shell = Proview Signage" look)
-   One look for every Proview app: dark navy by default, Light mode switch
-   (html[data-theme]), "Menu at bottom" switch (html.menu-bottom).
-   Loaded last on purpose: it re-points the app's own variables to the
-   --pv-* tokens and restyles the components. Keep this block last.
-   ===================================================================== */
-html[data-theme]{--main:#3f5fd0;--bgc:#f2f4f9}  /* colour-preset seam: a later step can set --main / --bgc */
-html[data-theme=dark],html[data-theme=dark] body,html[data-theme=dark] body.dark{
- --bg:#171c29;--card:#212839;--ink:#f2f4fa;--mut:#aab2c8;--line:#3a4560;
- --pri:color-mix(in srgb,var(--main) 60%,#fff);--pril:color-mix(in srgb,var(--main) 24%,#212839);
- --ok:#5ad69f;--okl:#1b3a30;--warn:#f2c066;--warnl:color-mix(in srgb,#f2c066 12%,#212839);
- --bad:#f68c82;--badl:#41262d;--nav:color-mix(in srgb,var(--main) 26%,#0d121f);
- --pv-surface-2:color-mix(in srgb,var(--ink) 4%,var(--card));--pv-grp:color-mix(in srgb,var(--ink) 7%,var(--card));--pv-line-2:#46516e;--pv-on-accent:#0d0f15;--pv-accent-text:#9fb0f0;
- --pv-warn-line:#6f6a64;--pv-bad-line:#6a3036;--pv-amber:#f2b84b;--pv-ring:rgba(140,160,230,.28);
- --pur:#7c5ac7;--purl:color-mix(in srgb,#7c5ac7 18%,var(--card));color-scheme:dark}
-html[data-theme=light],html[data-theme=light] body,html[data-theme=light] body.dark{
- --bg:var(--bgc);--card:#fff;--ink:#14161f;--mut:#5b6072;--line:#dde1ea;
- --pri:var(--main);--pril:color-mix(in srgb,var(--main) 14%,#fff);
- --ok:#12874a;--okl:#e2f4ea;--warn:#9a5b00;--warnl:#fbefd6;--bad:#c62a1f;--badl:#fce8e6;
- --nav:color-mix(in srgb,var(--main) 35%,#111);
- --pv-surface-2:color-mix(in srgb,var(--ink) 4%,var(--card));--pv-grp:color-mix(in srgb,var(--ink) 7%,var(--card));--pv-line-2:#d0d5e0;--pv-on-accent:#fff;--pv-accent-text:var(--main);
- --pv-warn-line:#f0d49c;--pv-bad-line:#f2b8be;--pv-amber:#b7791f;--pv-ring:rgba(63,95,208,.22);
- --pur:#7c5ac7;--purl:color-mix(in srgb,#7c5ac7 18%,var(--card));color-scheme:light}
-html[data-theme],html[data-theme] body{
- --pv-bg:var(--bg);--pv-surface:var(--card);--pv-text:var(--ink);--pv-text-2:var(--mut);--pv-muted:var(--mut);
- --pv-line:var(--line);--pv-accent:var(--pri);--pv-accent-soft:var(--pril);--pv-ok:var(--ok);--pv-ok-soft:var(--okl);
- --pv-bad:var(--bad);--pv-bad-soft:var(--badl);--pv-warn-bg:var(--warnl);--pv-side:var(--nav);
- --pri-d:color-mix(in srgb,var(--pri) 85%,#000);--pri-l:var(--pril);
- --grad:var(--pri);--grad-light:var(--pri);--navy:var(--nav);--navy2:color-mix(in srgb,var(--nav) 80%,#fff);
- --grey:var(--mut);--greyl:var(--pv-surface-2);--muted:var(--mut);--r:12px;--sh:none}
-html[data-theme] body{font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--ink)}
-html[data-theme] button,html[data-theme] input,html[data-theme] select,html[data-theme] textarea{font-family:inherit}
-html[data-theme] a{color:var(--pv-accent-text)}
-html[data-theme] :focus-visible{outline:2px solid var(--pri);outline-offset:2px}
-html[data-theme] h1,html[data-theme] h2,html[data-theme] h3,html[data-theme] h4{font-weight:700}
-html[data-theme] .content h2,html[data-theme] #drawer h2{font-size:17px;font-weight:700}
-html[data-theme] .content h3,html[data-theme] #drawer h3{font-weight:700}
-
-/* ---------- sidebar ---------- */
-html[data-theme] .side{background:var(--nav)!important;color:#c5c9d8;border:0!important}
-html[data-theme] .side .nav-sec{color:#727ca0!important;font-weight:700!important;font-size:11px!important;letter-spacing:.08em!important}
-html[data-theme] .side .nav>button,html[data-theme] .side .nav>a{color:#e0e6f4!important;background:none}
-html[data-theme] .side .nav>button svg{color:#bbc3d6!important}
-html[data-theme] .side .nav>button:hover{background:rgba(255,255,255,.07)!important;color:#fff!important}
-html[data-theme] .side .nav>button.on{background:rgba(255,255,255,.2)!important;color:#fff!important}
-html[data-theme] .side .nav>button.on svg{color:#fff!important}
-html[data-theme] .side .nav>button.on::before{display:none!important}
-html[data-theme] .side .nav .cnt{background:rgba(255,255,255,.14);color:#fff;font-size:12px;font-weight:700;padding:1px 7px;border-radius:999px}
-html[data-theme] .side .nav button.nav-dis:hover{background:transparent!important;color:#e0e6f4!important}
-html[data-theme] .pv-wm{font-weight:700;letter-spacing:-.01em;color:#fff;background:none;-webkit-text-fill-color:currentColor}
-html[data-theme] .pv-wm i,html[data-theme] .wordmark.pv-wm i{font-style:normal;color:color-mix(in srgb,var(--main) 40%,#fff);background:none!important;-webkit-text-fill-color:currentColor}
-/* the sidebar footer buttons: Menu at bottom, Light mode */
-html[data-theme] .side #sideFoot .pv-fb{display:flex;align-items:center;justify-content:flex-start;gap:10px;width:100%;flex:none;border:0;border-radius:9px;background:rgba(255,255,255,.08);color:#fff;padding:10px 12px;font:inherit;font-weight:600;font-size:14px;line-height:20px;letter-spacing:0;text-align:left;cursor:pointer}
-html[data-theme] .side #sideFoot .pv-fb:hover{background:rgba(255,255,255,.16)}
-html[data-theme] .side #sideFoot .pv-fb svg{flex:none;color:#fff;width:18px;height:18px}
-.pv-od{display:inline-block;width:8px;height:8px;border-radius:50%;background:#3ecf7e;margin-right:6px;vertical-align:0}
-.pv-od.off{background:#8b90a3}
-
-/* desktop, menu open (188px) */
-@media (min-width:901px){
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed){grid-template-columns:188px minmax(0,1fr)}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side{padding:16px 10px 10px!important}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .brand{padding:6px 10px 16px!important;margin:0!important;gap:0!important;display:flex;align-items:center}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .brand .logo{display:none!important}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .brand .wordmark{font-size:16px!important;font-weight:700!important;letter-spacing:-.01em!important;line-height:22px!important;white-space:nowrap}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .nav{padding:0!important;gap:2px!important}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .nav-sec{padding:12px 12px 4px!important;line-height:14px!important;font-size:10px!important;letter-spacing:.1em!important;color:#8087a2!important}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .nav>button:not(.nav-more),html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .nav>a{height:38px!important;padding:0 12px!important;border-radius:9px!important;gap:10px!important;font-size:14px!important;font-weight:500!important;margin:0!important}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .nav>button .lbl{display:none!important}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .nav>button .slbl{display:block!important;font-size:14px!important;font-weight:500!important;line-height:20px!important;white-space:nowrap;letter-spacing:0!important;text-align:left!important}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .nav>button svg{width:20px!important;height:20px!important}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .venue.side-me.side-me.side-me{display:flex!important;flex-direction:column!important;gap:2px!important;margin:8px 0 0!important;padding:10px 12px!important;border:0!important;border-radius:10px!important;background:rgba(255,255,255,.07)!important;font-size:12px}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .venue.side-me.side-me.side-me:hover{background:rgba(255,255,255,.14)!important}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .venue .side-av,html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .venue>svg{display:none!important}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .venue .side-me-t{display:block}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .venue .side-me-t b{display:block;font-size:13px;font-weight:700;line-height:18px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side .venue .side-me-t span{display:block;font-size:12px;line-height:17px;color:#aab0c6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side #sideFoot{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:6px!important;padding:6px 0 0!important;margin:0!important}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side #sideFoot .sf-link[data-act=collapse]{display:flex!important;justify-content:center;height:22px;padding:0!important;margin:0!important;font-size:11px!important;letter-spacing:.06em;color:#8f98b6!important;background:none!important;border:0!important}
- html[data-theme]:not(.menu-bottom) .app:not(.collapsed) .side #sideFoot .sf-link[data-act=collapse]:hover{color:#fff!important}
- html[data-theme] .app .side .client-pick select,html[data-theme] .side #sitePick select{background-color:rgba(255,255,255,.08)!important;border-color:rgba(255,255,255,.12)!important;color:#fff!important}
- html[data-theme] .side .pv-viewing{color:#8f98b6}
-}
-/* desktop, menu collapsed (72px rail): app icon at the top, two square buttons at the bottom */
-@media (min-width:901px){
- html[data-theme] .app.collapsed .side .brand .wordmark{display:none!important}
- html[data-theme] .app.collapsed .side #sideFoot>.pv-fb{width:40px!important;height:40px!important;padding:0!important;justify-content:center!important;border-radius:10px!important;background:rgba(255,255,255,.08)!important}
- html[data-theme] .app.collapsed .side #sideFoot>.pv-fb:hover{background:rgba(255,255,255,.16)!important}
- html[data-theme] .app.collapsed .side #sideFoot>.pv-fb svg{width:18px!important;height:18px!important}
- html[data-theme] .app.collapsed .side #sideFoot>.sf-link{color:#bbc3d6!important}
- html[data-theme] .app.collapsed .side #sideFoot{gap:6px!important}
-}
-/* iPad rail and phone rail: two square buttons at the bottom */
-@media (max-width:900px){
- html[data-theme]:not(.menu-bottom) .app .side #sideFoot{display:flex!important;flex-direction:column!important;align-items:center!important;gap:6px!important;padding:6px 0 12px!important;margin:auto 0 0!important;width:auto!important;height:auto!important}
- html[data-theme]:not(.menu-bottom) .app .side #sideFoot>*:not(.pv-fb){display:none!important}
- html[data-theme]:not(.menu-bottom) .app .side #sideFoot>.pv-fb{display:flex!important;width:40px!important;height:40px!important;padding:0!important;justify-content:center!important;align-items:center!important;border-radius:10px!important;margin:0!important}
- html[data-theme] .app .side #sideFoot .pv-fbl{display:none!important}
- html[data-theme] .app .side{overflow-y:auto}
-}
-@media (min-width:901px){html[data-theme] .app.collapsed .side #sideFoot .pv-fbl{display:none!important}}
-
-/* ---------- header bar ---------- */
-html[data-theme] .top{background:var(--card)!important;border-bottom:1px solid var(--line)!important;min-height:64px;padding:12px 20px;gap:10px}
-html[data-theme] .pv-tt{display:flex;flex-direction:column;justify-content:center;min-width:0;flex:none}
-html[data-theme] .pv-tt h2{font-size:20px!important;font-weight:700!important;letter-spacing:-.02em!important;line-height:26px;color:var(--ink);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html[data-theme] .pv-eb{display:none;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--pri);line-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
-html[data-theme] .pv-eb i{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
-html[data-theme] .top .datenav{background:transparent!important;border:1px solid var(--line)!important;border-radius:10px!important;padding:0!important}
-html[data-theme] .top .datenav button{color:var(--ink);border-radius:9px;font-size:16px}
-@media (min-width:901px){html[data-theme] .top .datenav button{padding:6px 11px}}
-html[data-theme] .top .datenav button:hover{background:var(--pv-surface-2)}
-html[data-theme] .top .datenav .dlabel{font-weight:600}
-@media (min-width:901px){html[data-theme] .top .datenav .dlabel{min-width:104px}}
-html[data-theme] .today-btn{color:var(--pv-accent-text)!important}
-html[data-theme] .icon-btn{color:var(--ink)}
-html[data-theme] .icon-btn:hover{background:var(--pv-surface-2);border-color:var(--line)}
-html[data-theme] .hdr-cap{background:var(--pv-surface-2)!important;border-radius:10px}
-html[data-theme] .hdr-cap>button,html[data-theme] .hdr-cap>a{color:var(--mut)!important}
-html[data-theme] .hdr-cap>button:hover,html[data-theme] .hdr-cap>a:hover{background:var(--card)!important;color:var(--ink)!important}
-html[data-theme] .badge{background:var(--bad);color:#fff}
-html[data-theme] #top .hdr-cap>[data-act=notifs] .badge{background:var(--pri)!important;color:var(--pv-on-accent)!important}
-html[data-theme] #top .hdr-cap .sync-dot.synced{background:var(--ok)}
-html[data-theme] .top-av,html[data-theme] .hub-av,html[data-theme] .side .side-av{background:var(--pri)!important;color:var(--pv-on-accent)!important}
-html[data-theme] .top-me .top-out{color:var(--mut)}
-html[data-theme] .pv-dash{background:var(--card);border-color:var(--pv-line-2);color:var(--ink)}
-html[data-theme] .pv-dash:hover{background:var(--pv-surface-2)}
-html[data-theme] .top .hdr-pick select{background-color:var(--card)!important;border-color:var(--pv-line-2)!important;color:var(--ink)!important}
-html[data-theme] .pv-acts{display:flex;align-items:center;gap:8px;flex:none;margin-left:8px}
-html[data-theme] #top .pv-acts [data-act=newParty]{display:inline-flex!important}
-html[data-theme] .pv-acts .btn{height:40px;padding:0 14px;font-size:14px;font-weight:600}
-@media (min-width:701px){html[data-theme] .fab{display:none!important}}
-@media (max-width:700px){
- html[data-theme] .pv-acts{display:none!important}
- html[data-theme] .fab{background:var(--pri)!important;color:var(--pv-on-accent)!important;box-shadow:0 8px 24px rgba(0,0,0,.35)!important;border:0!important}
-}
-/* iPad: the date bar replaces the title on dated pages (as before) and Walk-in shrinks to fit */
-@media (max-width:900px){html[data-theme]:not(.menu-bottom) .pv-tt-d{display:none}}
-@media (max-width:700px){html[data-theme] .pv-tt-d{display:none!important}html[data-theme] .pv-tt h2{font-size:17px!important}}
-html[data-theme] .fab:not(.x){background:var(--pri);color:var(--pv-on-accent);border:0}
-
-/* ---------- page ---------- */
-html[data-theme] .content{background:var(--bg)}
-@media (min-width:701px){html[data-theme] .content{padding:18px 20px 36px}}
-html[data-theme] .main{background:var(--bg)}
-html[data-theme] .card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:none}
-html[data-theme] .stat .k{font-size:13px;font-weight:600;color:var(--mut)}
-html[data-theme] .stat{padding:12px 14px}
-html[data-theme] .stat .v{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-html[data-theme] .stat .v small{color:var(--mut)}
-html[data-theme] .mut,html[data-theme] .muted{color:var(--mut)}
-/* notices (inline-styled in the views) */
-html[data-theme] [style*="border-color:#f0d08a"]{border-color:var(--pv-warn-line)!important;background:var(--warnl)!important}
-html[data-theme] [style*="border-color:#f2b8be"]{border-color:var(--pv-bad-line)!important;background:var(--badl)!important}
-
-/* ---------- buttons ---------- */
-html[data-theme] .btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 14px;font-weight:600;font-size:14px;box-shadow:none}
-html[data-theme] .btn:hover{background:var(--card);border-color:var(--pri);filter:none}
-html[data-theme] .btn.pri{background:var(--pri)!important;border-color:var(--pri)!important;color:var(--pv-on-accent)!important;box-shadow:none;background-image:none!important}
-html[data-theme] .btn.pri:hover{background:color-mix(in srgb,var(--pri) 90%,var(--ink))!important}
-html[data-theme] .btn.pri svg{color:var(--pv-on-accent)}
-html[data-theme] .btn.ghost{background:none;border-color:transparent;color:var(--pv-accent-text)}
-html[data-theme] .btn.ghost:hover{background:var(--pril)}
-html[data-theme] .btn.danger{color:var(--bad)}
-html[data-theme] .btn.sm{padding:4px 10px;border-radius:8px;font-size:12.5px;font-weight:600}
-html[data-theme] .tchip{border-radius:10px;font-weight:800}
-html[data-theme] .tchip.set{background:var(--pril);border:2px solid var(--pri);color:var(--pri)}
-html[data-theme] .tchip.none{color:var(--bad);border:1.5px dashed var(--bad);background:none}
-html[data-theme] .size{display:inline-flex;align-items:center;gap:3px;font-weight:700;color:var(--ink);background:color-mix(in srgb,var(--ink) 8%,transparent);border-radius:999px;padding:2px 8px 2px 6px;font-size:13.5px;font-variant-numeric:tabular-nums}
-html[data-theme] .stepper button,html[data-theme] .stepper .val{background:var(--card);border-color:var(--pv-line-2);color:var(--ink)}
-html[data-theme] .tpick button,html[data-theme] .tagpick button,html[data-theme] .slots button,html[data-theme] .dchips button{background:var(--card);border-color:var(--pv-line-2);color:var(--ink)}
-html[data-theme] .tpick button.on,html[data-theme] .slots button.on,html[data-theme] .dchips button.on{background:var(--pri);border-color:var(--pri);color:var(--pv-on-accent)}
-html[data-theme] .tpick button.on small{color:var(--pv-on-accent);opacity:.8}
-html[data-theme] .tagpick button.on{background:var(--pril);border-color:var(--pri);color:var(--pv-accent-text)}
-
-/* ---------- segmented tabs ---------- */
-html[data-theme] .seg{background:var(--card)!important;border:1px solid var(--line)!important;border-radius:10px;padding:2px;gap:0}
-html[data-theme] .seg button{font-size:14px!important;font-weight:600!important;color:var(--mut);padding:5px 11px;border-radius:8px;background:none}
-html[data-theme] .seg button:hover{color:var(--ink)}
-html[data-theme] .seg button.on{background:var(--pril)!important;color:var(--pri)!important;box-shadow:none!important}
-html[data-theme] .seg button .n{background:none!important;color:inherit!important;opacity:.7;padding:0;margin-left:-3px;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums}
-html[data-theme] .tabs{border-color:var(--line)}
-html[data-theme] .tabs button{color:var(--mut)}
-html[data-theme] .tabs button.on{color:var(--pri);border-color:var(--pri)}
-
-/* ---------- inputs ---------- */
-html[data-theme] .inp,html[data-theme] .content input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),html[data-theme] .content select,html[data-theme] .content textarea,html[data-theme] #drawer input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),html[data-theme] #drawer select,html[data-theme] #drawer textarea,html[data-theme] .modal input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),html[data-theme] .modal select,html[data-theme] .modal textarea{background-color:var(--card);border:1px solid var(--line);border-radius:9px;color:var(--ink);font-size:14px}
-html[data-theme] select.inp,html[data-theme] input.inp{min-height:40px}
-html[data-theme] .datenav input[type=date]{min-height:0}
-html[data-theme] .inp::placeholder,html[data-theme] input::placeholder,html[data-theme] textarea::placeholder{color:var(--mut);opacity:.85}
-html[data-theme] .inp:focus,html[data-theme] .content input:focus,html[data-theme] .content select:focus,html[data-theme] .content textarea:focus,html[data-theme] #drawer input:focus,html[data-theme] #drawer select:focus,html[data-theme] #drawer textarea:focus,html[data-theme] .modal input:focus,html[data-theme] .modal select:focus,html[data-theme] .modal textarea:focus{border-color:var(--pri)!important;box-shadow:0 0 0 3px var(--pv-ring)!important;outline:none}
-html[data-theme] label.f{font-size:12.5px;font-weight:600;color:var(--mut)}
-html[data-theme] input[type=checkbox],html[data-theme] input[type=radio]{accent-color:var(--pri)}
-html[data-theme] .toggle span{background:var(--pv-line-2)}
-html[data-theme] .toggle input:checked+span{background:var(--pri)}
-html[data-theme] .code{background:var(--pv-surface-2);border-color:var(--line);color:var(--ink)}
-html[data-theme] .sug{border-color:var(--pv-line-2);background:var(--card)}
-html[data-theme] .selguest{background:var(--pril);border-color:var(--pri)}
-
-/* ---------- tables ---------- */
-html[data-theme] table.t th{background:var(--card);font-size:11.5px;font-weight:700;letter-spacing:.04em;color:var(--mut);border-bottom:1px solid var(--line);padding-top:6px;padding-bottom:6px}
-html[data-theme] table.t td{border-bottom:1px solid var(--line)}
-html[data-theme] table.t tr.click:hover td{background:var(--pv-surface-2)}
-html[data-theme] table.t tr.pv-grp td{background:var(--pv-grp);padding:5px 14px;font-size:12px;color:var(--mut);border-bottom:1px solid var(--line)}
-html[data-theme] tr.pv-grp td>div{display:flex;justify-content:space-between;align-items:center;gap:10px}
-html[data-theme] tr.pv-grp b{font-weight:700;color:var(--ink)}
-html[data-theme] tr.pv-grp span{font-size:12px;color:var(--mut);font-weight:500}
-html[data-theme] table.t tr.click.sel td{background:var(--pril)!important}
-html[data-theme] table.t tr.click.sel td:first-child{box-shadow:inset 3px 0 0 var(--pri)}
-html[data-theme] .pname{font-weight:700}
-@media (max-width:1100px){html[data-theme] table.ptable td.col-act,html[data-theme] table.ptable th:last-child{background:var(--card)}
- html[data-theme] .card:has(>table.t){background:var(--card)!important}}
-@media (max-width:700px){
- html[data-theme] .ptable tr.pv-grp{display:block!important;padding:0!important;border-bottom:1px solid var(--line)}
- html[data-theme] .ptable tr.pv-grp td{display:block!important;padding:6px 14px!important;background:var(--pv-grp)!important}
- html[data-theme] .ptable tr.click.sel{background:var(--pril);box-shadow:inset 3px 0 0 var(--pri)}
-}
-
-/* ---------- chips ---------- */
-html[data-theme] .chip{border-radius:20px;font-size:12px;font-weight:600;padding:2px 9px;background:var(--line);color:var(--mut)}
-html[data-theme] .chip.blue{background:var(--pril);color:var(--pri)}
-html[data-theme] .chip.green{background:var(--okl);color:var(--ok)}
-html[data-theme] .chip.amber{background:var(--warnl);color:var(--warn)}
-html[data-theme] .chip.red{background:var(--badl);color:var(--bad)}
-html[data-theme] .chip.purple{background:var(--purl);color:var(--pur)}
-html[data-theme] .st{border-radius:8px}
-html[data-theme] .st-available{border-color:color-mix(in srgb,var(--ok) 45%,transparent)}
-html[data-theme] .st-inuse{border-color:color-mix(in srgb,var(--pri) 45%,transparent)}
-html[data-theme] .st-dessert{border-color:color-mix(in srgb,var(--pur) 45%,transparent)}
-html[data-theme] .st-paying{border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
-html[data-theme] .st-dirty{border-color:color-mix(in srgb,var(--bad) 45%,transparent)}
-html[data-theme] .av{background:var(--pri);color:var(--pv-on-accent)}
-
-/* ---------- drawer (booking detail panel), dialogs, menus, toast ---------- */
-html[data-theme] #scrim{background:rgba(10,12,20,.55)}
-html[data-theme] #drawer{background:var(--card);border-left:1px solid var(--line);box-shadow:-16px 0 40px rgba(0,0,0,.25);color:var(--ink)}
-html[data-theme] .dr-head,html[data-theme] .dr-foot{border-color:var(--line)}
-html[data-theme] .dr-head h3{font-size:20px;font-weight:700;letter-spacing:-.01em}
-html[data-theme] .modal-bg{background:rgba(10,12,20,.55)}
-html[data-theme] .modal.card,html[data-theme] .modal{border-radius:14px;border:1px solid var(--line);background:var(--card)}
-html[data-theme] .menu.card,html[data-theme] .menu{background:var(--card);border:1px solid var(--line);box-shadow:0 12px 32px rgba(0,0,0,.3)}
-html[data-theme] .menu button{color:var(--ink)}
-html[data-theme] .menu button:hover,html[data-theme] .sres:hover,html[data-theme] .sug div:hover{background:var(--pv-surface-2)}
-html[data-theme] #toast{background:var(--ink)!important;color:var(--bg)!important;border:0!important;border-radius:10px}
-html[data-theme] .pv-acct{background:var(--card)!important;border:1px solid var(--line)!important;color:var(--ink)!important;box-shadow:0 12px 32px rgba(0,0,0,.35)!important}
-html[data-theme] .pv-acct-h{border-color:var(--line)!important}
-html[data-theme] .pv-acct-h b,html[data-theme] .pv-acct-i{color:var(--ink)!important}
-html[data-theme] .pv-acct-h small{color:var(--mut)!important}
-html[data-theme] .pv-acct-i:hover,html[data-theme] .pv-acct-i:focus-visible{background:var(--pv-surface-2)!important}
-html[data-theme] .pv-acct-i svg{color:var(--mut)!important}
-html[data-theme] .pv-acct-sep{background:var(--line)!important}
-html[data-theme] .reply,html[data-theme] .notif .ic,html[data-theme] .navcard .ic{background:var(--pril);color:var(--pv-accent-text)}
-html[data-theme] .msg.v{background:var(--pri);color:var(--pv-on-accent)}
-html[data-theme] .hero{background:var(--card)}
-html[data-theme] .illus,html[data-theme] .bk-head,html[data-theme] .drag-ghost{background:var(--nav)}
-html[data-theme] .hbar .tr div{background:var(--pri)}
-html[data-theme] .g-now,html[data-theme] .g-now span{background:var(--bad)}
-html[data-theme] .g-head,html[data-theme] .g-corner,html[data-theme] .g-lab,html[data-theme] .g-foot,html[data-theme] .canvas-wrap{background:var(--card)}
-html[data-theme] .g-area{background:var(--pv-surface-2)}
-html[data-theme] .g-area>div{color:var(--pv-accent-text)}
-html[data-theme] .ftable .flag{background:var(--nav)}
-html[data-theme] .tk-check{border-color:var(--pv-line-2);background:var(--card)}
-html[data-theme] .shift{background:var(--card)}
-html[data-theme] body.dark .stars span{color:#4a5470!important}
-html[data-theme] #offline{background:var(--warn);color:#1b1b1b}
-
-/* ---------- sign-in / lock pages and loading splash ---------- */
-html[data-theme] .auth{background:var(--bg)}
-html[data-theme] .auth-art{background:var(--nav)}
-html[data-theme] .auth-art .sub{color:#a9b3cf}
-html[data-theme] .auth-art .brand .wordmark,html[data-theme] .auth-brand .wordmark{font-size:20px;font-weight:700;letter-spacing:-.01em}
-html[data-theme] .auth-brand .wordmark.pv-wm{color:var(--ink)}
-html[data-theme] .auth-brand .wordmark.pv-wm i{color:var(--pri)}
-html[data-theme] .auth-form form,html[data-theme] .lockcard{background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:0 18px 50px -18px rgba(0,0,0,.35)!important;color:var(--ink)}
-html[data-theme] .auth label.af{color:var(--ink)!important;font-size:13px;font-weight:600}
-html[data-theme] .auth label.af input{background:var(--card)!important;border:1px solid var(--pv-line-2)!important;color:var(--ink)!important;border-radius:10px!important;min-height:40px}
-html[data-theme] .auth label.af input:focus{outline:0!important;border-color:var(--pri)!important;box-shadow:0 0 0 3px var(--pv-ring)!important}
-html[data-theme] .auth .go{background:var(--pri)!important;color:var(--pv-on-accent)!important;font-weight:700;border-radius:10px}
-html[data-theme] .pv-sso{background:var(--card);border-color:var(--pv-line-2);color:var(--ink)}
-html[data-theme] .pv-sso:hover,html[data-theme] .auth .alinks button:hover,html[data-theme] .auth .pw-eye:hover{background:var(--pv-surface-2)}
-html[data-theme] .auth .alinks button{color:var(--ink)}
-html[data-theme] .auth .pw-eye{color:var(--mut)}
-html[data-theme] .auth .notice{background:var(--pril);border-color:color-mix(in srgb,var(--pri) 40%,transparent);color:var(--ink)}
-html[data-theme] .auth .notice.ok{background:var(--okl);border-color:color-mix(in srgb,var(--ok) 40%,transparent);color:var(--ok)}
-html[data-theme] .auth .notice.bad{background:var(--badl);border-color:var(--pv-bad-line);color:var(--bad)}
-html[data-theme] .auth .pw-match.ok{color:var(--ok)}html[data-theme] .auth .pw-match.bad{color:var(--bad)}
-html[data-theme] .licprev{background:var(--pv-surface-2);border-color:var(--line)}
-html[data-theme] .boot-wait,html[data-theme].pv-dark .boot-wait{background:var(--bg)}
-html[data-theme] .pva-plan,html[data-theme] .pva-chip{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)}
-html[data-theme] .pva-plan .room{background:rgba(0,0,0,.18);border-color:rgba(255,255,255,.1)}
-html[data-theme] .pva-plan i.s{background:#8ca0e6;color:#10162a}
-html[data-theme] .pva-plan i.r{background:rgba(140,160,230,.14);color:#c9d3f6;border-color:#8ca0e6}
-
-/* ---------- Menu at bottom (html.menu-bottom) ---------- */
-html.menu-bottom .app,html.menu-bottom .app.collapsed{grid-template-columns:minmax(0,1fr)!important;height:100vh;height:100dvh}
-html.menu-bottom .app .side,html.menu-bottom .app.navopen .side{color:#c5c9d8;position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;width:auto!important;min-width:0!important;max-width:none!important;height:calc(60px + env(safe-area-inset-bottom))!important;padding:0 10px env(safe-area-inset-bottom)!important;flex-direction:row!important;align-items:center!important;gap:8px!important;z-index:35!important;transform:none!important;overflow:hidden!important;box-shadow:none!important}
-html.menu-bottom .app .side .brand,html.menu-bottom .app .side .nav-sec,html.menu-bottom .app .side .venue,html.menu-bottom .app .side .client-pick,html.menu-bottom .app .side #sitePick,html.menu-bottom .app .side .pv-viewing,html.menu-bottom .app .side #sideFoot>:not(.pv-fb),html.menu-bottom .app .side .nav-more{display:none!important}
-html.menu-bottom .app .side #nav#nav{display:flex!important;flex-direction:row!important;flex:1 1 auto!important;min-width:0!important;height:60px!important;align-items:center!important;justify-content:space-between!important;gap:2px!important;padding:0!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none}
-html.menu-bottom .app .side #nav#nav::-webkit-scrollbar{display:none}
-html.menu-bottom .app .side #nav#nav>button:not(.nav-more){flex:1 0 auto!important;width:auto!important;min-width:58px!important;max-width:none!important;height:50px!important;margin:0!important;padding:7px 8px!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;gap:2px!important;border-radius:9px!important;font-size:11px!important}
-html.menu-bottom .app .side #nav#nav>button svg{width:20px!important;height:20px!important;margin:0!important}
-html.menu-bottom .app .side #nav#nav>button .slbl{display:block!important;font-size:11.5px!important;font-weight:500!important;line-height:14px!important;white-space:nowrap!important;color:#e0e6f4;letter-spacing:0!important;max-width:none!important}
-html.menu-bottom .app .side #nav#nav>button .lbl,html.menu-bottom .app .side #nav#nav>button .cnt{display:none!important}
-html.menu-bottom .app .side #nav#nav>button.on .slbl{color:#fff}
-html.menu-bottom .app .side #sideFoot#sideFoot{display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;padding:0 0 0 8px!important;margin:0!important;flex:none!important;width:auto!important;height:auto!important;border-left:1px solid rgba(255,255,255,.1)}
-html.menu-bottom .app .side #sideFoot#sideFoot>.pv-fb{display:flex!important;width:40px!important;height:40px!important;padding:0!important;margin:0!important;justify-content:center!important;align-items:center!important;border-radius:10px!important}
-html.menu-bottom .app .side #sideFoot .pv-fbl{display:none!important}
-html.menu-bottom .main{padding-bottom:0!important;height:100%}
-html.menu-bottom #content,html.menu-bottom .content{padding-bottom:calc(84px + env(safe-area-inset-bottom))!important}
-html.menu-bottom .menu-btn{display:none!important}
-html.menu-bottom #navScrim{display:none!important}
-html.menu-bottom .pv-eb{display:flex!important}
-html.menu-bottom .pv-tt h2{line-height:24px}
-html.menu-bottom .fab{bottom:calc(76px + env(safe-area-inset-bottom))!important}
-html.menu-bottom #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
-@media (max-width:700px){
- html.menu-bottom .app .side{padding:0 4px env(safe-area-inset-bottom)!important;gap:4px!important}
- html.menu-bottom .app .side #nav#nav>button:not(.nav-more){min-width:58px!important;padding:0 6px!important}
- html.menu-bottom .app .side #nav#nav>button .slbl{font-size:11px!important;line-height:13px!important}
- html.menu-bottom .app .side #sideFoot#sideFoot{padding-left:4px!important;gap:4px!important}
- html.menu-bottom .app .side #sideFoot#sideFoot>.pv-fb{width:36px!important;height:36px!important}
- html.menu-bottom .pv-eb{max-width:140px}
-}
-@media print{html.menu-bottom .side{display:none!important}}
 </style>
 <style id="pvx-css">
-/* ===== Proview Bookings: prototype features (Flow, Activity, alerts, walk-in map, Punch in, settings cards, Reports tabs, Online booking) ===== */
+/* ===== Proview Bookings: prototype features (old app look: uses --pri, --pri-l, --line, --card, --ink, --mut, --ok, --warn, --bad) (Flow, Activity, alerts, walk-in map, Punch in, settings cards, Reports tabs, Online booking) ===== */
 /* sidebar: folded pages as small sub-items, Manager button */
-@media (min-width:901px){.app:not(.collapsed) .side #nav#nav>button.nav-sub{min-height:30px!important;height:30px!important;padding-top:0!important;padding-bottom:0!important;padding-left:52px!important;font-size:13px!important;opacity:.82}
-.app:not(.collapsed) .side #nav#nav>button.nav-sub svg{display:none!important}}
-.side #nav#nav>button.nav-sub.on{opacity:1}
-html.menu-bottom .app .side #nav#nav>button.nav-sub{display:none!important}
-.side .nav button.pv-mgrb.on{color:var(--ok)}
+@media (min-width:901px){.app:not(.collapsed) .side .nav button.nav-sub{padding-top:4px!important;padding-bottom:4px!important;padding-left:42px!important;font-size:13px;opacity:.8}
+.app:not(.collapsed) .side .nav button.nav-sub svg{display:none}}
+.side .nav button.nav-sub.on{opacity:1}
+
+.side .nav button.pv-mgrb.on{color:#5ad69f}
 /* shared */
 .pvbar,.bar.pvbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 12px}
 .pvbar .sp{flex:1}
@@ -1131,7 +802,7 @@ html.menu-bottom .app .side #nav#nav>button.nav-sub{display:none!important}
 .fps{display:flex;gap:3px;overflow-x:auto;padding:4px 2px 6px}
 .fp{flex:1 0 38px;display:grid;grid-template-rows:var(--fph,44px) auto auto;justify-items:center;align-items:end;gap:1px;padding:3px 0;border-radius:8px;font-size:12px;border:1px solid transparent}
 .fp b{font-size:12px}.fp small{color:var(--mut);font-size:10.5px}
-.fp.cur{border-color:var(--pri);background:var(--pril,var(--pri-l))}
+.fp.cur{border-color:var(--pri);background:var(--pri-l)}
 .fpb{width:60%;max-width:26px;border-radius:5px 5px 2px 2px;background:var(--pri);opacity:.55;min-height:2px}
 .fp.fpt .fpb{opacity:1}
 .flc{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px;align-items:start;margin-top:10px}
@@ -1147,13 +818,13 @@ html.menu-bottom .app .side #nav#nav>button.nav-sub{display:none!important}
 .fr2 .bad{color:var(--bad);font-weight:700}.fr2 .bwp{justify-self:center}.fr2 .bwx{justify-self:end}.fr2 .bws{display:flex;justify-content:center}
 .stb{width:34px;height:30px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--mut);display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer;flex:none}
 .stb.s-arrived{border-color:var(--warn);color:var(--warn)}
-.stb.s-seated,.stb.s-dessert,.stb.s-paying{background:var(--pri);border-color:var(--pri);color:var(--pv-on-accent,#fff)}
+.stb.s-seated,.stb.s-dessert,.stb.s-paying{background:var(--pri);border-color:var(--pri);color:#fff}
 .stb.s-late{border-color:var(--bad);color:var(--bad);background:var(--badl)}
-.pvtile{position:relative;width:52px;height:46px;box-sizing:border-box;border-radius:11px;border:2px solid var(--pri);background:var(--pril,var(--pri-l));color:var(--pri);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;cursor:pointer;padding:0 2px;font:inherit;line-height:1.05}
+.pvtile{position:relative;width:52px;height:46px;box-sizing:border-box;border-radius:11px;border:2px solid var(--pri);background:var(--pri-l);color:var(--pri);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;cursor:pointer;padding:0 2px;font:inherit;line-height:1.05}
 .pvtile b{font-size:15px;font-weight:800;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pvtile.none{border-style:dashed;border-color:var(--line);background:none;color:var(--mut)}
-.pvtile.t-seat{background:var(--pri);color:var(--pv-on-accent,#fff)}
-.pvtile.t-late{border-color:var(--pv-amber,var(--warn));color:var(--pv-amber,var(--warn));background:var(--warnl)}
+.pvtile.t-seat{background:var(--pri);color:#fff}
+.pvtile.t-late{border-color:var(--warn);color:var(--warn);background:var(--warnl)}
 .fempty{padding:12px;color:var(--mut);border-top:1px solid var(--line)}
 .ftb{display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--line);flex-wrap:wrap}
 .ftb b{min-width:64px}.ftb .fl2{flex:1;color:var(--mut);font-size:13px}
@@ -1196,7 +867,7 @@ body:has(#modal.show) #pv-alerts{display:none}
 .pvwt b{font-size:clamp(10px,1.6vw,15px)}.pvwt small{font-size:clamp(8px,1.1vw,11.5px);color:var(--ok);font-weight:600}
 .pvwt.ov{border-style:dashed;border-color:var(--warn)}.pvwt.ov small{color:var(--warn)}
 .pvwt.no{border-style:dashed;border-color:var(--line);background:none;color:var(--mut);cursor:not-allowed;opacity:.7}.pvwt.no small{color:var(--mut)}
-.pvwt.cur{background:var(--pri);border:2px solid var(--pri);color:var(--pv-on-accent,#fff);box-shadow:0 0 0 3px var(--pv-ring,rgba(63,95,208,.25))}.pvwt.cur small{color:inherit}
+.pvwt.cur{background:var(--pri);border:2px solid var(--pri);color:#fff;box-shadow:0 0 0 3px rgba(74,108,208,.25)}.pvwt.cur small{color:inherit}
 .pvwd{position:absolute;border:1px dashed var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:11px;overflow:hidden}
 /* booking drawer extras */
 .pvqt .tagpick button.on.pvq-al{background:var(--badl);color:var(--bad);border-color:var(--bad)}
@@ -1234,7 +905,7 @@ textarea.pv-alnote{border-color:var(--bad)}
 .pvchk{display:flex;align-items:flex-start;gap:9px;padding:6px 0;cursor:pointer}.pvchk input{margin-top:3px;width:auto;flex:none}
 .pvchk span b{display:block;font-size:14px}.pvchk span small{display:block;color:var(--mut);font-size:12px}
 .pvchk.sm{padding:0;align-items:center;font-size:13px;white-space:nowrap}.pvchk.sm input{margin:0}
-.pvpre{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}.pvpre .btn{gap:6px}.pvpre .btn.on{border-color:var(--pri);box-shadow:0 0 0 2px var(--pv-ring,rgba(63,95,208,.25))}
+.pvpre{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}.pvpre .btn{gap:6px}.pvpre .btn.on{border-color:var(--pri);box-shadow:0 0 0 2px rgba(74,108,208,.25)}
 .pvsw{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid var(--line)}
 .pvcolin{width:100%;height:40px;border:1px solid var(--line);border-radius:9px;background:var(--card);padding:3px;cursor:pointer}
 .pvhrs{display:grid;gap:6px;margin-bottom:10px}
@@ -1252,23 +923,22 @@ textarea.pv-alnote{border-color:var(--bad)}
 .pvhb{display:grid;grid-template-columns:52px minmax(0,1fr) 80px;gap:8px;align-items:center;padding:4px 0;font-size:13px}.pvhb i{height:10px;border-radius:5px;background:color-mix(in srgb,var(--ink) 8%,transparent);overflow:hidden}.pvhb i b{display:block;height:100%;background:var(--pri);border-radius:5px}
 .pvcopy{font-family:inherit;font-size:13px;min-height:150px}
 .pvol{display:grid;grid-template-columns:90px minmax(0,1fr) auto auto;gap:10px;align-items:center;width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:inherit;font:inherit;cursor:pointer;margin-bottom:8px;text-align:left}
-.pvol.on{border-color:var(--pri);box-shadow:0 0 0 2px var(--pv-ring,rgba(63,95,208,.25)) inset}
+.pvol.on{border-color:var(--pri);box-shadow:0 0 0 2px rgba(74,108,208,.25) inset}
 .pvolb{display:flex;height:14px;border-radius:7px;background:color-mix(in srgb,var(--ink) 6%,transparent);overflow:hidden}.pvolb .bk{background:var(--pri)}.pvolb .ex{background:color-mix(in srgb,var(--pri) 35%,transparent)}
 @media(max-width:600px){.pvol{grid-template-columns:1fr auto}.pvolb{grid-column:1/-1}}
 .pvhp{display:flex;gap:4px;align-items:flex-end;overflow-x:auto;padding:6px 0}
-.pvhc{flex:1 0 34px;display:grid;justify-items:center;gap:2px;font-size:12px}.pvhc i{width:60%;max-width:26px;background:var(--pri);border-radius:5px 5px 2px 2px;min-height:2px;opacity:.75}.pvhc small{color:var(--mut)}.pvhc b{font-size:11.5px;background:var(--pril,var(--pri-l));color:var(--pri);border-radius:6px;padding:0 5px}
+.pvhc{flex:1 0 34px;display:grid;justify-items:center;gap:2px;font-size:12px}.pvhc i{width:60%;max-width:26px;background:var(--pri);border-radius:5px 5px 2px 2px;min-height:2px;opacity:.75}.pvhc small{color:var(--mut)}.pvhc b{font-size:11.5px;background:var(--pri-l);color:var(--pri);border-radius:6px;padding:0 5px}
 .pvgd{margin:10px 0 0;padding-left:18px;line-height:1.6}
 .pvslots{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
 .pvon .stepper .val{min-width:26px;text-align:center;font-weight:700}
 </style>
-<script id="pvx-pre">/* Proview colours before first paint (set in Settings > Colours) */try{var pc=JSON.parse(localStorage.getItem("pv.colors")||"null");if(pc&&pc.main){var r=document.documentElement;r.style.setProperty("--main",pc.main);r.style.setProperty("--bgc",pc.bg||"#f2f4f9")}}catch(e){}</script>
 </head>
 <body class="gate">
 <div class="boot-wait pv-splash" id="bootWait" role="status" aria-label="Loading Proview Bookings"><div class="logo"></div></div>
 <div class="auth" id="auth" hidden></div>
 <div class="app" id="app">
   <aside class="side">
-    <div class="brand"><div class="logo" role="img" aria-label="Proview logo"></div><span class="wordmark pv-wm">Proview <i>Bookings</i></span><button class="collapse-btn" data-act="collapse" title="Collapse menu"></button></div>
+    <div class="brand"><div class="logo" role="img" aria-label="Proview logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span><button class="collapse-btn" data-act="collapse" title="Collapse menu"></button></div>
     <nav class="nav" id="nav"></nav>
     <div class="venue" id="venueCard" data-act="locations" title="Switch location" style="cursor:pointer"></div>
     <div class="side-foot" id="sideFoot"></div>
@@ -1553,23 +1223,23 @@ function renderNav(){
  const open=isOpenNow();
  const em=(CLOUD.user?.email||S.venue.me?.email||'').toLowerCase(),stf=(S.staff||[]).find(x=>(x.email||'').toLowerCase()===em&&em),myName=(em&&(e=>String(e||'').split('@')[0].split(/[._-]+/).filter(Boolean).map(w=>w[0].toUpperCase()+w.slice(1)).join(' '))(em))||stf?.name||S.venue.me?.name||'Me';
  const myRole=isMaster()?'Proview admin':(CLOUD.site?.role||S.venue.user||'Manager');
- $('#venueCard').className='venue side-me';$('#venueCard').dataset.nm=myName;$('#venueCard').dataset.sub=myRole+' · '+S.venue.name;$('#venueCard').innerHTML=`<span class="side-av">${esc(initials(myName))}</span><span class="side-me-t"><b>${esc(S.venue.name)}</b><span><i class="pv-od${open?'':' off'}"></i>${open?'Open now':'Closed now'} · ${esc(myRole)}</span></span>${ic('right',16)}`;$('#venueCard').dataset.act=LOC.cloud?'myAccount':'locations';$('#venueCard').title=LOC.cloud?'Your account and venue settings':'Switch location';
+ $('#venueCard').className='venue side-me';$('#venueCard').innerHTML=`<span class="side-av">${esc(initials(myName))}</span><span class="side-me-t"><b>${esc(myName)}</b><span>${esc(myRole)} · ${esc(S.venue.name)}</span></span>${ic('right',16)}`;$('#venueCard').dataset.act=LOC.cloud?'myAccount':'locations';$('#venueCard').title=LOC.cloud?'Your account and venue settings':'Switch location';
  document.querySelector('.collapse-btn').innerHTML=ic('left',18);
- $('#sideFoot').innerHTML=pvFootBtns()+`<button class="sf-link" data-act="collapse" title="${$('#app').classList.contains('collapsed')?'Expand menu':'Collapse menu'}">${ic('left',14)}<span class="lbl">COLLAPSE</span></button><button class="sf-link" data-act="logout" title="Sign out" style="margin-left:auto">${ic('out',14)}<span class="lbl">SIGN OUT</span></button>`;
+ $('#sideFoot').innerHTML=`<button class="sf-link" data-act="collapse" title="${$('#app').classList.contains('collapsed')?'Expand menu':'Collapse menu'}">${ic('left',14)}<span class="lbl">COLLAPSE</span></button><button class="sf-link" data-act="logout" title="Sign out" style="margin-left:auto">${ic('out',14)}<span class="lbl">SIGN OUT</span></button>`;
 }
 function renderTop(){
  const dated=['parties','planner','floor','staff','kitchen'].includes(U.view)&&!(U.view==='staff'&&(U.stTab==='team'||(U.stTab==='checklists'&&S.settings.prefs.showTasks)));
  const unreadChats=S.chats.filter(c=>c.unread).length,unreadN=S.notes.filter(n=>!n.read).length,enq=S.parties.filter(p=>p.kind==='enquiry'&&p.status==='pending').length;
- $('#top').innerHTML=`<button class="icon-btn menu-btn" data-act="navToggle" title="Menu" aria-label="Open menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><div class="pv-tt${dated?' pv-tt-d':''}"><span class="pv-eb"><i></i>${esc(S.venue.name||'Proview')}</span><h2>${TITLES[U.view]||''}</h2></div>${dated?`<div class="datenav"><button data-act="day" data-n="-1" title="Previous day">${ic('left')}</button><div class="dlabel">${U.date===today()?'<span class="tdy">Today · </span>':''}${fmtDate(U.date).replace(/^(\S+) /,'<span class="dwd">$1 </span>')}<input type="date" value="${U.date}" data-act-change="pickDate" aria-label="Pick a date"></div><button data-act="day" data-n="1" title="Next day">${ic('right')}</button>${U.date!==today()?`<button class="today-btn" data-act="day" data-n="0">Today</button>`:''}</div>`:''}${sitePickHtml()}
+ $('#top').innerHTML=`<button class="icon-btn menu-btn" data-act="navToggle" title="Menu" aria-label="Open menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>${dated?`<div class="datenav"><button data-act="day" data-n="-1" title="Previous day">${ic('left')}</button><div class="dlabel">${U.date===today()?'<span class="tdy">Today · </span>':''}${fmtDate(U.date).replace(/^(\S+) /,'<span class="dwd">$1 </span>')}<input type="date" value="${U.date}" data-act-change="pickDate" aria-label="Pick a date"></div><button data-act="day" data-n="1" title="Next day">${ic('right')}</button>${U.date!==today()?`<button class="today-btn" data-act="day" data-n="0">Today</button>`:''}</div>`:`<h2>${TITLES[U.view]}</h2>`}${sitePickHtml()}
  <div class="sp"></div>
  ${CLOUD.cfg?`<button class="icon-btn" data-act="goPage" data-v="integrations" title="${esc(syncLabel())}" aria-label="${esc(syncLabel())}"><span id="syncDot" class="sync-dot ${CLOUD.status}"></span></button>`:''}
  <button class="icon-btn" data-act="search" title="Search (Ctrl+K)" aria-label="Search (Ctrl+K)">${ic('search')}</button>
  <button class="icon-btn" data-act="chats" title="Guest messages" aria-label="Guest messages">${ic('chat')}${unreadChats?`<span class="badge">${unreadChats>9?'9+':unreadChats}</span>`:''}</button>
  <button class="icon-btn" data-act="enquiries" title="Inbox: enquiries" aria-label="Inbox: enquiries">${ic('mail')}${enq?`<span class="badge">${enq>9?'9+':enq}</span>`:''}</button>
  <button class="icon-btn" data-act="notifs" title="Notifications" aria-label="Notifications">${ic('bell')}${unreadN?`<span class="badge">${unreadN>9?'9+':unreadN}</span>`:''}</button>
- <div class="pv-acts"><button class="btn pv-walkin" data-act="walkIn" title="Add a walk-in">Walk-in</button><button class="btn pri pv-newbk" data-act="newParty" title="Add a booking">New booking</button></div>`;
+ <button class="btn pri" data-act="newParty" title="Add a party">${ic('plus',16)} <span class="lbl-np">New party</span></button>`;
 }
-function render(){const pvDk=pvTheme()==='dark';document.body.classList.toggle('dark',pvDk);try{localStorage.setItem('pv-splash-dark',pvDk?'1':'0')}catch(e){}document.body.classList.toggle('v-allsites',U.view==='allsites');renderNav();renderTop();const c=$('#content');if(U.view==='admin')U.view='parties';c.innerHTML=licBannerHtml()+(VIEWS[U.view]||VIEWS.parties)();if(AFTER[U.view])AFTER[U.view]()}
+function render(){document.body.classList.toggle('dark',!!S.settings.prefs.dark);try{localStorage.setItem('pv-splash-dark',S.settings.prefs.dark?'1':'0')}catch(e){}document.body.classList.toggle('v-allsites',U.view==='allsites');renderNav();renderTop();const c=$('#content');if(U.view==='admin')U.view='parties';c.innerHTML=licBannerHtml()+(VIEWS[U.view]||VIEWS.parties)();if(AFTER[U.view])AFTER[U.view]()}
 
 /* ================= views ================= */
 const VIEWS={},AFTER={};
@@ -1605,7 +1275,7 @@ VIEWS.parties=()=>{
    <div class="seg">${catL.map(([k,l])=>`<button class="${U.cat===k?'on':''}" data-act="set" data-k="cat" data-v="${k}">${l}<span class="n">${cats[k].length}</span></button>`).join('')}</div>
    <div class="row"><span class="mut"><b>${covers}</b> covers shown</span><button class="btn ghost sm" data-act="daySummary">${ic('chart',16)} Day summary</button><button class="btn ghost sm" data-act="print">${ic('print',16)} Print</button></div>
   </div>
-  ${rows.length?`<table class="t ptable"><thead><tr><th style="width:80px">Party</th><th>Guest</th><th>Arrival</th><th class="col-notes">Notes</th><th>Table</th><th style="text-align:right">Actions</th></tr></thead><tbody>${pvGroupRows(rows)}</tbody></table>`:`<div class="empty">${ic('cal',40)}<div><b>No parties here</b></div><div class="small">Try a different filter or add a new party.</div></div>`}
+  ${rows.length?`<table class="t ptable"><thead><tr><th style="width:80px">Party</th><th>Guest</th><th>Arrival</th><th class="col-notes">Notes</th><th>Table</th><th style="text-align:right">Actions</th></tr></thead><tbody>${rows.map(partyRow).join('')}</tbody></table>`:`<div class="empty">${ic('cal',40)}<div><b>No parties here</b></div><div class="small">Try a different filter or add a new party.</div></div>`}
  </div>`;
 };
 function arrival(p){
@@ -1623,15 +1293,12 @@ function nextAction(p){
  if(isUnresolved(p))return['Complete','check'];
  return {booked:['Arrived','check'],arrived:['Seat','seat'],waiting:['Seat','seat'],seated:['Dessert','sparkle'],dessert:['Bill','clock'],paying:['Finish','check']}[p.status];
 }
-/* Proview Navy: time-slot group rows ("12:00 · 1 party · 4 guests") above each hour of the bookings table */
-function pvGroupRows(rows){const key=p=>p.kind==='queue'?'Queue':String(p.time||'').slice(0,2)+':00';const n={};rows.forEach(p=>{const k=key(p);(n[k]=n[k]||{p:0,g:0});n[k].p++;n[k].g+=+p.size||0});let last=null,h='';
- rows.forEach(p=>{const k=key(p);if(k!==last){last=k;const c=n[k];h+=`<tr class="pv-grp"><td colspan="6"><div><b>${esc(k)}</b><span>${c.p} part${c.p>1?'ies':'y'} · ${c.g} guest${c.g===1?'':'s'}</span></div></td></tr>`}h+=partyRow(p)});return h}
 function partyRow(p){
  const g=guestById(p.guest),t=typeById(p.type),na=nextAction(p);
  const gtags=(g?.tags||[]).map(id=>S.guestTags.find(x=>x.id===id)).filter(Boolean);
  const ptags=p.tags.map(id=>S.partyTags.find(x=>x.id===id)).filter(Boolean);
  const dead=DEAD.includes(p.status)||p.status==='finished';
- return `<tr class="click${D&&D.id===p.id&&$('#drawer')?.classList.contains('open')?' sel':''}" data-act="editParty" data-id="${p.id}">
+ return `<tr class="click" data-act="editParty" data-id="${p.id}">
   <td><span class="size">${ic('people',14)}${p.size}</span></td>
   <td><div class="pname">${p.confirm==='unconfirmed'?`<span class="chip amber" title="Guest hasn't confirmed yet">?</span> `:''}${esc(pName(p))} ${gtags.map(x=>`<span class="chip" style="background:${x.color}1f;color:${x.color}">${esc(x.name)}</span>`).join(' ')}</div>
    <div class="row" style="gap:5px;margin-top:4px">${p.kind==='walkin'?'<span class="chip">Walk-in</span>':''}${p.kind==='queue'?'<span class="chip amber">Queue</span>':''}${t.exp?`<span class="chip" style="background:${t.color};color:#fff">${esc(t.name)}</span>`:''}${p.preorder?'<span class="chip green">Pre-ordered</span>':''}${p.deposit?`<span class="chip blue">Deposit ${money(p.deposit)}</span>`:p._dep?'<span class="chip blue">Deposit paid</span>':''}${p.channel&&p.kind==='booking'?`<span class="chip">${esc(chanById(p.channel)?.name||p.channel)}</span>`:''}</div>${p.notes||ptags.length||g?.notes?`<div class="notes-inline small">${p.notes?esc(p.notes):''}${ptags.map(x=>` <span class="chip ${x.cat==='Allergens'?'red':'purple'}">${esc(x.name)}</span>`).join('')}${g?.notes?` <span style="color:var(--bad)">${esc(g.notes)}</span>`:''}</div>`:''}</td>
@@ -1943,7 +1610,7 @@ VIEWS.settings=()=>{
     <label class="f">Location photo</label><div class="row">${S.venue.photo?`<img src="${S.venue.photo}" alt="Location photo" style="width:180px;height:100px;object-fit:cover;border-radius:10px">`:''}<label class="btn sm">${ic('download',14)} ${S.venue.photo?'Replace':'Upload'} photo<input type="file" accept="image/*" data-act-change="photo" style="display:none"></label>${S.venue.photo?`<button class="btn sm ghost" data-act="rmPhoto">Remove</button>`:''}</div><div class="small mut" style="margin-top:6px">Shown on your booking page. A landscape photo works best.</div></div>`},
   prefs:()=>{const [t,tb]=stabs([['theme','Theme'],['queue','Queues & walk-ins'],['app','App & tables']]);
    if(t==='queue')return tb+learnedHtml()+`<div class="card pad" style="max-width:760px;margin-top:14px">${setRow('Seating duration · 1–2 guests','Minutes a party is seated for',num('settings.durations.small'))}${setRow('Seating duration · 3–4 guests','Minutes',num('settings.durations.med'))}${setRow('Seating duration · 5+ guests','Minutes',num('settings.durations.large'))}${setRow('Default quoted wait','Minutes',num('settings.queue.defaultWait'))}${setRow('Group notified parties at the top of the queue','Keep parties you\'ve texted at the top of the list',tog('settings.prefs.groupNotified'))}${setRow('Confirm before notifying a party','Ask "are you sure?" before texting the guest',tog('settings.prefs.confirmNotify'))}${setRow('Additional wait time','Minutes added to every quote when it\'s busy',num('settings.prefs.extraWait'))}${setRow('Hide queue position from guests','Guests won\'t see their place in line',tog('settings.prefs.hideQueuePos'))}<label class="f">Terms & conditions link</label>${txt('settings.prefs.tcsLink','100%','https://')}<div class="small mut" style="margin-top:6px">Shown on the self sign-up form and to guests in the queue.</div></div>`;
-   if(t==='app')return tb+`<div class="card pad" style="max-width:760px">${setRow('Dark mode','Easier on the eyes during evening service. Shared with the other Proview apps on this device',`<label class="toggle"><input type="checkbox" data-act-change="pvThemeSet" ${pvTheme()==='dark'?'checked':''}><span></span></label>`)}${setRow('Show staff tasks and checklists','Adds Tasks and Checklists to Staff & rota',tog('settings.prefs.showTasks',1))}${setRow('Mark tables as needing clearing','Flag a table when its party finishes, until staff clear it',tog('settings.prefs.autoDirty'))}</div>`;
+   if(t==='app')return tb+`<div class="card pad" style="max-width:760px">${setRow('Dark mode','Easier on the eyes during evening service',tog('settings.prefs.dark',1))}${setRow('Show staff tasks and checklists','Adds Tasks and Checklists to Staff & rota',tog('settings.prefs.showTasks',1))}${setRow('Mark tables as needing clearing','Flag a table when its party finishes, until staff clear it',tog('settings.prefs.autoDirty'))}</div>`;
    return tb+`<div class="card pad" style="max-width:760px"><b>Guest theme</b><div class="small mut">The look guests see when booking a table or joining the queue.</div><div class="cards" style="margin-top:14px">${[['Light','#ffffff','#17171c'],['Dark','#141418','#ffffff'],['Proview Blue','linear-gradient(135deg,#2f84d4,#5a5fbb)','#ffffff']].map(([n,bg,fg])=>`<div class="card navcard" data-act="guestTheme" data-v="${n}" style="${S.settings.prefs.guestTheme===n?'border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-l)':''}"><div style="height:70px;border-radius:10px;background:${bg};color:${fg};border:1px solid var(--line);display:grid;place-items:center;font-weight:700">Aa</div><b>${n}</b>${S.settings.prefs.guestTheme===n?'<span class="chip blue">Current theme</span>':''}</div>`).join('')}</div></div>`},
   hours:()=>`<div class="grid2" style="align-items:start"><div class="card pad"><b>Weekly hours</b><div class="small mut">These times show on the timeline. Bookings follow your schedules in Bookings.</div><div class="hours-row hours-head small mut" style="font-weight:600"><span>Day</span><span>Opens</span><span>Closes</span><span>Closed</span></div>${S.settings.hours.map((h,i)=>({h,i})).sort((a,b)=>((a.i+6)%7)-((b.i+6)%7)).map(({h,i})=>`<div class="hours-row"><b>${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][i]}</b><input class="inp" type="time" data-bind="settings.hours.${i}.open" value="${h.open}" ${h.closed?'disabled':''}><input class="inp" type="time" data-bind="settings.hours.${i}.close" value="${h.close}" ${h.closed?'disabled':''}><label class="toggle"><input type="checkbox" data-bind="settings.hours.${i}.closed" data-rerender="1" ${h.closed?'checked':''}><span></span></label></div>`).join('')}</div>
    <div class="card pad"><b>Closed dates</b><div class="small mut">Bank holidays, refurbishments and private hire. These don't cancel existing bookings — check the bookings list for those dates.</div>
@@ -2000,10 +1667,9 @@ function newParty(kind='booking',pre={}){
  if(kind!=='booking'){D.date=today();D.time=fromMin(nowMin())}
  renderPD();
 }
-function editParty(id){const p=S.parties.find(x=>x.id===id);if(!p)return;D=JSON.parse(JSON.stringify(p));const g=guestById(p.guest);D.gname=g?g.name:(p.name==='Walk-in'?'':p.name||'');D.gphone=g?.phone||'';D.gemail=g?.email||'';D.durTouched=true;renderPD();pvMarkSel()}
+function editParty(id){const p=S.parties.find(x=>x.id===id);if(!p)return;D=JSON.parse(JSON.stringify(p));const g=guestById(p.guest);D.gname=g?g.name:(p.name==='Walk-in'?'':p.name||'');D.gphone=g?.phone||'';D.gemail=g?.email||'';D.durTouched=true;renderPD()}
 function openDrawer(title,body,foot){$('#drawer').innerHTML=`<div class="dr-head"><h3>${title}</h3><button class="icon-btn" data-act="closeDrawer">${ic('x')}</button></div><div class="dr-body">${body}</div>${foot?`<div class="dr-foot">${foot}</div>`:''}`;$('#drawer').classList.add('open');$('#scrim').classList.add('show')}
-function closeDrawer(){$('#drawer').classList.remove('open');$('#scrim').classList.remove('show');D=null;pvMarkSel()}
-function pvMarkSel(){document.querySelectorAll('#content tr.click.sel').forEach(r=>r.classList.remove('sel'));if(D&&D.id&&$('#drawer').classList.contains('open'))document.querySelectorAll('#content tr.click[data-id="'+D.id+'"]').forEach(r=>r.classList.add('sel'))}
+function closeDrawer(){$('#drawer').classList.remove('open');$('#scrim').classList.remove('show');D=null}
 function renderPD(){
  const isNew=!D.id,k=D.kind;const scroll=$('.dr-body')?.scrollTop||0;
  const g=guestById(D.guest);const tab=isNew?'details':(U.pdTab||'details');
@@ -2055,19 +1721,6 @@ A.set=el=>{const k=el.dataset.k;let v=el.dataset.v;if(k==='revFilter')v=+v;U[k]=
 A.toggle=el=>{U[el.dataset.k]=!U[el.dataset.k];render()};
 A.print=()=>window.print();
 A.newParty=()=>newParty('booking');
-A.walkIn=()=>newParty('walkin');
-/* ===== Proview Navy: Light mode and Menu at bottom switches (shared keys pv.theme / pv.menu) ===== */
-Object.assign(ICON,{pvsun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',pvmoon:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',pvbottom:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15h18"/>',pvside:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>'});
-function pvTheme(){try{return localStorage.getItem('pv.theme')==='light'?'light':'dark'}catch(e){return document.documentElement.getAttribute('data-theme')==='light'?'light':'dark'}}
-function pvMenuBottom(){return document.documentElement.classList.contains('menu-bottom')}
-function pvFootBtns(){const lt=pvTheme()==='light',mb=pvMenuBottom();
- return `<button class="pv-fb pv-fb-menu" data-act="pvMenu" title="${mb?'Menu at side':'Menu at bottom'}" aria-label="${mb?'Menu at side':'Menu at bottom'}">${ic(mb?'pvside':'pvbottom',18)}<span class="pv-fbl">${mb?'Menu at side':'Menu at bottom'}</span></button><button class="pv-fb pv-fb-theme" data-act="pvTheme" title="${lt?'Dark mode':'Light mode'}" aria-label="${lt?'Dark mode':'Light mode'}">${ic(lt?'pvmoon':'pvsun',18)}<span class="pv-fbl">${lt?'Dark mode':'Light mode'}</span></button>`}
-function pvSetTheme(t){t=t==='light'?'light':'dark';try{localStorage.setItem('pv.theme',t);localStorage.setItem('pv-splash-dark',t==='dark'?'1':'0')}catch(e){}const d=document.documentElement;d.setAttribute('data-theme',t);document.body.classList.toggle('dark',t==='dark');document.querySelector('meta[name=theme-color]')?.setAttribute('content',t==='light'?'#f3f4f8':'#161c2a');
- document.querySelectorAll('#sideFoot .pv-fb-theme').forEach(b=>{b.outerHTML=pvFootBtns().replace(/^.*?(<button class="pv-fb pv-fb-theme")/,'$1')})}
-A.pvTheme=()=>pvSetTheme(pvTheme()==='light'?'dark':'light');
-A.pvThemeSet=el=>pvSetTheme(el.checked?'dark':'light');
-A.pvMenu=()=>{const on=!pvMenuBottom();document.documentElement.classList.toggle('menu-bottom',on);try{localStorage.setItem('pv.menu',on?'bottom':'side')}catch(e){}$('#app').classList.remove('navopen');renderNav()};
-addEventListener('storage',e=>{if(e.key==='pv.theme')pvSetTheme(e.newValue);if(e.key==='pv.menu'){document.documentElement.classList.toggle('menu-bottom',e.newValue==='bottom');renderNav()}});
 A.editParty=(el,e)=>{e.stopPropagation();editParty(el.dataset.id)};
 A.closeDrawer=()=>closeDrawer();
 A.pickDate=el=>{if(el.value){U.date=el.value;render()}};
@@ -2782,9 +2435,9 @@ A.cloudSetPw=async(el,ev)=>{ev&&ev.preventDefault();const a=$('#npw1').value,b=$
 let AUTHMODE='signin';
 function hideAuth(){document.body.classList.remove('gate');const a=$('#auth');if(a){a.hidden=true;a.innerHTML=''}}
 function showLogin(msg,kind){cloudStatus('login');A.closeModal();document.body.classList.add('gate');const a=$('#auth');const up=AUTHMODE==='signup';const keep=$('#lgEmail')?.value||'';
- a.innerHTML=`<div class="auth-art"><div class="brand"><div class="logo"></div><span class="wordmark pv-wm">Proview <i>Bookings</i></span></div><h2>Every booking, every walk-in — one live floor.</h2><div class="pva pva-plan" aria-hidden="true"><div class="hd"><b>Main room · Tonight</b><span>19:12</span></div><div class="room"><span class="bar">BAR</span><i class="s rd" style="left:6%;top:6%;width:14%;height:19%">T1</i><i class="r rd" style="left:26%;top:6%;width:14%;height:19%">19:30</i><i class="f rd" style="left:46%;top:6%;width:14%;height:19%">T3</i><i class="s" style="left:67%;top:4%;width:30%;height:17%">T4 · 6</i><i class="r" style="left:6%;top:37%;width:23%;height:16%">20:00</i><i class="s" style="left:34%;top:37%;width:23%;height:16%">T6</i><i class="f rd" style="left:63%;top:34%;width:16%;height:21%">T7</i><i class="s rd" style="left:83%;top:34%;width:16%;height:21%">T8</i><i class="f" style="left:6%;top:68%;width:36%;height:17%">T9 · 8</i><i class="r" style="left:47%;top:68%;width:23%;height:17%">19:45</i><i class="s" style="left:75%;top:68%;width:24%;height:17%">T11</i></div><div class="lg"><span><i class="s"></i>Seated</span><span><i class="r"></i>Booked</span><span><i class="f"></i>Free</span></div></div><div class="sub">Take bookings, seat walk-ins and run the floor from your phone, iPad or till.</div></div>
+ a.innerHTML=`<div class="auth-art"><div class="brand"><div class="logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span></div><h2>Every booking, every walk-in — one live floor.</h2><div class="pva pva-plan" aria-hidden="true"><div class="hd"><b>Main room · Tonight</b><span>19:12</span></div><div class="room"><span class="bar">BAR</span><i class="s rd" style="left:6%;top:6%;width:14%;height:19%">T1</i><i class="r rd" style="left:26%;top:6%;width:14%;height:19%">19:30</i><i class="f rd" style="left:46%;top:6%;width:14%;height:19%">T3</i><i class="s" style="left:67%;top:4%;width:30%;height:17%">T4 · 6</i><i class="r" style="left:6%;top:37%;width:23%;height:16%">20:00</i><i class="s" style="left:34%;top:37%;width:23%;height:16%">T6</i><i class="f rd" style="left:63%;top:34%;width:16%;height:21%">T7</i><i class="s rd" style="left:83%;top:34%;width:16%;height:21%">T8</i><i class="f" style="left:6%;top:68%;width:36%;height:17%">T9 · 8</i><i class="r" style="left:47%;top:68%;width:23%;height:17%">19:45</i><i class="s" style="left:75%;top:68%;width:24%;height:17%">T11</i></div><div class="lg"><span><i class="s"></i>Seated</span><span><i class="r"></i>Booked</span><span><i class="f"></i>Free</span></div></div><div class="sub">Take bookings, seat walk-ins and run the floor from your phone, iPad or till.</div></div>
  <div class="auth-form"><form id="authForm" novalidate onsubmit="return authSubmit(event)">
-  <div class="auth-brand"><div class="logo" role="img" aria-label="Proview logo"></div><span class="wordmark pv-wm">Proview <i>Bookings</i></span></div>
+  <div class="auth-brand"><div class="logo" role="img" aria-label="Proview logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span></div>
   <h1>${up?'Create your account':'Sign in'}</h1>
   <p class="muted">${up?'Use the email address your manager invited. Choose a password of at least 8 characters.':'Manage your bookings, tables and guests.'}</p>
   <div id="authMsg">${msg?`<div class="notice ${kind||'bad'}">${esc(msg)}</div>`:''}</div>
@@ -2939,7 +2592,7 @@ function showMasterHome(){CLOUD.nosite=true;CLOUD.on=false;CLOUD.vid=null;CLOUD.
 /* --- online sign-up: set up the business (3-day trial) --- */
 function showBusinessSetup(msg){document.body.classList.add('gate');const a=$('#auth');
  a.innerHTML=`<div class="auth-form" style="grid-column:1/-1"><form novalidate onsubmit="return bizSetupSubmit(event)">
-  <div class="auth-brand"><div class="logo"></div><span class="wordmark pv-wm">Proview <i>Bookings</i></span></div>
+  <div class="auth-brand"><div class="logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span></div>
   <h1>Set up your business</h1><p class="muted">Start your free 3-day trial. No card needed.</p>
   <div id="authMsg">${msg?`<div class="notice bad">${esc(msg)}</div>`:''}</div>
   <label class="af">Business name<input id="bzName" placeholder="e.g. Bella Pizza" autocomplete="organization" oninput="bzSiteFollow(this.value)"></label>
@@ -2965,7 +2618,7 @@ A.authSignOut=async(el,ev)=>{ev&&ev.preventDefault();await signOutWith()};
 /* --- licence ended: lock the app (staff) --- */
 function showLicenceLock(){document.body.classList.add('gate');const s=CLOUD.site,L=licState(s),a=$('#auth');const others=(LOC.list||[]).filter(x=>x.id!==s.id);
  a.innerHTML=`<div class="auth-form" style="grid-column:1/-1"><div class="lockcard">
-  <div class="auth-brand"><div class="logo"></div><span class="wordmark pv-wm">Proview <i>Bookings</i></span></div>
+  <div class="auth-brand"><div class="logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span></div>
   <h1>${L.type==='trial'?'Your free trial has ended':L.state==='none'?'No licence for this venue':'Your licence has expired'}</h1>
   <p class="muted"><b>${esc(s.name)}</b>${L.expires?` · ended ${licDate(L.expires)}`:''}. Bookings are kept safe, but this venue can't be used and online booking is paused until it's renewed.</p>
   ${canBuy()?`<button class="go" type="button" data-act="buyOnline">${L.type==='trial'||L.state==='none'?'Buy a licence online':'Renew online'}</button><div class="notice">Or call Proview on <b>${PROVIEW_PHONE}</b>.</div>`:`<div class="notice">${CLOUD.me?'Ask your manager to renew it, or call':'Call'} Proview on <b>${PROVIEW_PHONE}</b> to ${L.type==='trial'?'buy a licence':'renew'}.</div>`}
@@ -3068,13 +2721,13 @@ document.addEventListener('click',e=>{const a=$('#app');if(!a||!a.classList.cont
 document.addEventListener('change',e=>{if(e.target.closest('.side .client-pick'))$('#app')?.classList.remove('navopen')},true);
 
 
-function topMe(act){const t=document.getElementById('top'),vc=document.getElementById('venueCard');if(!t)return;const a=vc&&vc.querySelector('.side-av');if(!a)return;t.querySelector('.top-me')?.remove();const nm=vc.dataset.nm||vc.querySelector('.side-me-t b')?.textContent||'',sub=vc.dataset.sub||vc.querySelector('.side-me-t span')?.textContent||'';const w=document.createElement('div');w.className='top-me';w.innerHTML=`<button class="top-av" title="${esc(nm+(sub?' · '+sub:''))}" aria-label="My account" aria-haspopup="menu" aria-expanded="false">${esc(a.textContent)}</button><button class="icon-btn top-out" data-act="${act}" title="Sign out" aria-label="Sign out">${ic('out',18)}</button>`;w.querySelector('.top-av').onclick=e=>{e.stopPropagation();
+function topMe(act){const t=document.getElementById('top'),vc=document.getElementById('venueCard');if(!t)return;const a=vc&&vc.querySelector('.side-av');if(!a)return;t.querySelector('.top-me')?.remove();const nm=vc.querySelector('.side-me-t b')?.textContent||'',sub=vc.querySelector('.side-me-t span')?.textContent||'';const w=document.createElement('div');w.className='top-me';w.innerHTML=`<button class="top-av" title="${esc(nm+(sub?' · '+sub:''))}" aria-label="My account" aria-haspopup="menu" aria-expanded="false">${esc(a.textContent)}</button><button class="icon-btn top-out" data-act="${act}" title="Sign out" aria-label="Sign out">${ic('out',18)}</button>`;w.querySelector('.top-av').onclick=e=>{e.stopPropagation();
   const items=[],va=vc.dataset.act;
   if(va&&!CLOUD.nosite)items.push({label:va==='myAccount'?'Account & venue settings':'Switch location',icon:'user',run:()=>vc.click()});
   if(!CLOUD.nosite&&canView('users'))items.push({label:'Users & access',icon:'users',run:()=>A.go({dataset:{v:'users'}})});
   items.push({label:'Help',icon:'help',run:()=>A.help()});
   items.push({label:'Sign out',icon:'logout',run:()=>A[act](),sep:true});
-  pvAccountMenu(e.currentTarget,{initials:a.textContent,name:nm,email:CLOUD.user?.email||'',sub,focusFirst:e.detail===0,items})};t.querySelector('.pv-dash')?.remove();if(canDash())t.appendChild(dashLinkEl());t.appendChild(w);const pa=t.querySelector(':scope>.pv-acts');if(pa)t.appendChild(pa)}
+  pvAccountMenu(e.currentTarget,{initials:a.textContent,name:nm,email:CLOUD.user?.email||'',sub,focusFirst:e.detail===0,items})};t.querySelector('.pv-dash')?.remove();if(canDash())t.appendChild(dashLinkEl());t.appendChild(w)}
 /* the avatar's account menu: copied from Proview Signage web/hub.js (3475785, PVHub.accountMenu), same markup, CSS, SVGs and keys.
    Opens under the avatar, right-aligned to it; closes on a second click, outside click, Esc, choosing an item. Up/Down move. */
 const PVACCT_SVG={user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',help:'<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'};
@@ -3120,10 +2773,10 @@ VIEWS.noaccess=()=>`<div class="card pad" style="max-width:560px"><b style="font
  render=function(){if(!canView(U.view))U.view=firstView();if(U.view==='settings'&&U.setPage==='account'&&U.setTab==='team'&&!usersOn()&&!hasFeature('users'))U.setTab=null;return _render.apply(this,arguments)};
  renderNav=function(){const r=_nav.apply(this,arguments);const greyed=isMaster()&&U.view==='allsites'&&!U.allBiz;document.querySelectorAll('#nav [data-act=go]').forEach(b=>{if(!greyed&&!canView(b.dataset.v))b.remove()});
   document.querySelectorAll('#nav .nav-sec').forEach(sec=>{let n=sec.nextElementSibling;if(!n||n.classList.contains('nav-sec')||n.dataset.act==='help')sec.remove()});return r};
- renderTop=function(){const r=_top.apply(this,arguments);const t=$('#top');if(t){const hide={chats:'messages',enquiries:'enquiries',newParty:'bookings',walkIn:'bookings'};
-  for(const[k,f]of Object.entries(hide))if(!hasFeature(f))t.querySelectorAll('[data-act='+k+']').forEach(e=>e.remove());if(!hasFeature('settings'))t.querySelectorAll('[data-act=goPage]').forEach(e=>e.remove());if(CLOUD.nosite)t.querySelectorAll('[data-act=goPage],[data-act=search],[data-act=chats],[data-act=enquiries],[data-act=notifs],[data-act=newParty],[data-act=walkIn]').forEach(e=>e.remove())}if(CLOUD.nosite){const vc=$('#venueCard');if(vc){vc.removeAttribute('data-act');vc.style.cursor='default'}}return r};
+ renderTop=function(){const r=_top.apply(this,arguments);const t=$('#top');if(t){const hide={chats:'messages',enquiries:'enquiries',newParty:'bookings'};
+  for(const[k,f]of Object.entries(hide))if(!hasFeature(f))t.querySelectorAll('[data-act='+k+']').forEach(e=>e.remove());if(!hasFeature('settings'))t.querySelectorAll('[data-act=goPage]').forEach(e=>e.remove());if(CLOUD.nosite)t.querySelectorAll('[data-act=goPage],[data-act=search],[data-act=chats],[data-act=enquiries],[data-act=notifs],[data-act=newParty]').forEach(e=>e.remove())}if(CLOUD.nosite){const vc=$('#venueCard');if(vc){vc.removeAttribute('data-act');vc.style.cursor='default'}}return r};
  const guard=(name,f)=>{const o=A[name];if(o)A[name]=function(){if(!f())return toast('You don\'t have access to that');return o.apply(this,arguments)}};
- guard('chats',()=>hasFeature('messages'));guard('enquiries',()=>hasFeature('enquiries'));guard('newParty',()=>hasFeature('bookings'));guard('walkIn',()=>hasFeature('bookings'));
+ guard('chats',()=>hasFeature('messages'));guard('enquiries',()=>hasFeature('enquiries'));guard('newParty',()=>hasFeature('bookings'));
  guard('goPage',()=>hasFeature('settings'));guard('guideGo',()=>hasFeature('settings'));guard('goTags',()=>hasFeature('guests'));guard('goChannels',()=>hasFeature('guests'));guard('myAccount',()=>hasFeature('settings'));
  const _go=A.go;A.go=el=>{if(!canView(el.dataset.v))return toast('You don\'t have access to that');return _go(el)};
  const _more=A.moreMenu;A.moreMenu=function(){const r=_more.apply(this,arguments);document.querySelectorAll('#modal [data-act=go]').forEach(b=>{if(!canView(b.dataset.v))b.remove()});return r};
@@ -3218,7 +2871,7 @@ Object.assign(ICON,{
 });
 /* ---------- settings in the venue document ---------- */
 const PV_DEF={feat:{},perm:{},clash:30,over:1,replyYes:'Y, Yes, Yeah, Yep, Yup, Yes please, Confirm, Confirmed, OK, Okay',replyNo:'N, No, Nope, No thanks, Cancel, Cancel please',
- loy:{on:true,n:3,pct:10},lab:{spend:22,rate:13.5,perStaff:8,minStaff:2,target:30,typical:0},ob:{lastBefore:60,hold:0,rooms:null},col:null,pin:''};
+ loy:{on:true,n:3,pct:10},lab:{spend:22,rate:13.5,perStaff:8,minStaff:2,target:30,typical:0},ob:{lastBefore:60,hold:0,rooms:null},pin:''};
 function pvUpgrade(s){
  const st=s.settings;st.pv=st.pv||{};const c=st.pv;
  for(const k in PV_DEF){if(c[k]===undefined)c[k]=JSON.parse(JSON.stringify(PV_DEF[k]))}
@@ -3295,19 +2948,6 @@ A.pvMoreMgr=()=>{A.closeModal();A.pvMgrBtn()};
  const wrap=()=>{for(const[k,list]of Object.entries(G))list.forEach(n=>{const o=A[n];if(!o||o._pv)return;const f=function(){if(!pvCan(k))return toast(STAFF_NO);return o.apply(this,arguments)};f._pv=1;A[n]=f})};
  wrap();setTimeout(wrap,0);window.pvWrapGuards=wrap}
 const PV_MGR_ONLY=['pvStfSave','pvStfDel','pvPEdit','pvPSave','pvPDel','pvPwk'];
-
-/* ---------- colours ---------- */
-const PV_PRESETS=[['Proview blue','#3f5fd0','#f2f4f9'],['Coffee','#6b4226','#fbf7f2'],['Forest','#2f6b4f','#f3f7f4'],['Berry','#9b2c5a','#fbf3f6'],['Slate','#374151','#f3f4f6'],['Sunset','#c2561a','#fdf6f0']];
-const pvLum=h=>{const m=/^#?([0-9a-f]{6})$/i.exec(h||'');if(!m)return 0;const n=parseInt(m[1],16);return .299*(n>>16)+.587*(n>>8&255)+.114*(n&255)};
-function pvApplyColors(){const c=(S&&pvC().col)||null,r=document.documentElement;
- if(c&&c.main){r.style.setProperty('--main',c.main);r.style.setProperty('--bgc',c.bg||'#f2f4f9');const light=r.getAttribute('data-theme')==='light';
-  if(light&&pvLum(c.main)>165){r.style.setProperty('--pv-on-accent','#14161f');r.style.setProperty('--onpri','#14161f')}else{r.style.removeProperty('--pv-on-accent');r.style.setProperty('--onpri',light?'#fff':'#0d0f15')}
-  try{localStorage.setItem('pv.colors',JSON.stringify(c))}catch(e){}}
- else{['--main','--bgc','--pv-on-accent','--onpri'].forEach(k=>r.style.removeProperty(k));try{localStorage.removeItem('pv.colors')}catch(e){}}}
-A.pvCol=el=>{pvC().col={main:el.dataset.m,bg:el.dataset.b};save();pvApplyColors();render();toast('Colours saved')};
-A.pvColIn=el=>{const c=pvC().col||{main:'#3f5fd0',bg:'#f2f4f9'};c[el.dataset.k]=el.value;pvC().col={main:c.main,bg:c.bg};save();pvApplyColors();render()};
-A.pvColReset=()=>{pvC().col=null;save();pvApplyColors();render();toast('Back to Proview blue')};
-new MutationObserver(()=>pvApplyColors()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
 /* ---------- reply words (SMS Y/N) ---------- */
 const pvNorm=t=>String(t||'').toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,'').replace(/\s+/g,' ').trim();
@@ -3630,7 +3270,7 @@ Object.assign(A,{
  pvPDel:pvNeedMgr(el=>{S.punches=S.punches.filter(p=>p.id!==el.dataset.id);save();A.closeModal();render();toast('Punch deleted')})
 });
 
-/* ---------- Settings: collapsible service cards (Plan, Colours, Venue, Hours, Special days, Messages, Loyalty, Combinations, Manager, Staff permissions, Labour) ---------- */
+/* ---------- Settings: collapsible service cards (Plan, Venue, Hours, Special days, Messages, Loyalty, Combinations, Manager, Staff permissions, Labour) ---------- */
 const pvSetc=()=>{try{return JSON.parse(localStorage.getItem(KEY+'-setc')||'{}')}catch(e){return{}}};
 const pvSetcW=o=>{try{localStorage.setItem(KEY+'-setc',JSON.stringify(o))}catch(e){}};
 function pvCard(k,t,body){const sh=pvSetc()[k]===false;return`<div class="card pad pvsc ${sh?'shut':''}" data-sc="${k}"><h2 class="sh" data-act="pvSetTog" data-k="${k}" role="button" tabindex="0" aria-expanded="${!sh}">${t}</h2><div class="pvsb">${body}</div></div>`}
@@ -3642,8 +3282,6 @@ function pvPlanCard(){const pn=pvPlanName();return pvCard('plan','Plan',`<p clas
  ${pvFld('Plan','',`<select class="inp" data-act-change="pvPlan"><option value="basic" ${pn==='basic'?'selected':''}>Basic: bookings, tables, flow, activity</option><option value="full" ${pn==='full'?'selected':''}>Full: everything</option>${pn==='custom'?'<option value="custom" selected>Custom: your own choice</option>':''}</select>`)}
  <div class="plg">${PV_FEATS.map(x=>`<label class="pvchk"><input type="checkbox" data-bind="settings.pv.feat.${x[0]}" data-rerender="1" ${pvFT(x[0])?'checked':''}><span><b>${x[1]}</b><small>${x[2]}</small></span></label>`).join('')}</div>`)}
 A.pvPlan=el=>{const v=el.value;if(v==='custom')return;pvC().feat=v==='basic'?Object.assign({},PV_BASIC):{};save();render();toast(v==='basic'?'Basic plan: bookings, tables, flow and activity':'Full plan: everything is on')};
-function pvColCard(){const c=pvC().col||{main:'#3f5fd0',bg:'#f2f4f9'};return pvCard('colours','Colours',`<div class="pvpre">${PV_PRESETS.map(([n,m,b])=>`<button class="btn sm ${c.main===m&&c.bg===b?'on':''}" data-act="pvCol" data-m="${m}" data-b="${b}" aria-pressed="${c.main===m&&c.bg===b}"><i class="pvsw" style="background:linear-gradient(90deg,${m} 50%,${b} 50%)"></i>${n}</button>`).join('')}</div>
- <div class="grid2">${pvFld('Main colour','',`<input class="pvcolin" type="color" value="${c.main}" data-act-change="pvColIn" data-k="main" aria-label="Main colour">`)}${pvFld('Background colour','Light mode only',`<input class="pvcolin" type="color" value="${c.bg}" data-act-change="pvColIn" data-k="bg" aria-label="Background colour">`)}</div>${pvC().col?`<button class="btn sm" data-act="pvColReset">Use Proview blue</button>`:''}`)}
 function pvVenueCard(){return pvCard('venue','Venue',`${pvFld('Name','Shown top left, on printouts and in emails.',`<input class="inp" data-bind="venue.name" value="${esc(S.venue.name)}">`)}
  <div class="pvg3">${pvFld('Stay, 1-2 guests (min)','',pvNum('settings.durations.small',15,600,15))}${pvFld('Stay, 3-4 guests (min)','',pvNum('settings.durations.med',15,600,15))}${pvFld('Large stay, 5+ guests (min)','',pvNum('settings.durations.large',15,600,15))}</div>
  ${pvFld('Allow table clashes up to (minutes)','When you pick a table that is still booked for up to this many minutes of your booking, you can assign it anyway. 0 turns it off.',pvNum('settings.pv.clash',0,120,5))}
@@ -3683,8 +3321,8 @@ function pvPermCard(){const M=pvMgr(true),P=pvC().perm||{};return pvCard('perm',
 A.pvPerm=el=>{if(!pvMgr()){el.checked=!el.checked;return toast('Manager sign in needed')}pvC().perm[el.dataset.k]=el.checked;save();render();toast('Saved')};
 function pvLabCard(){if(!pvFT('reports')&&!pvFT('staff'))return'';if(!pvMgr(true))return pvCard('labour','Manager only',`<p class="mut">The labour rate, spend per guest and sales target are for managers only.</p><button class="btn pri" data-act="mgrin">${pvC().pin?'Manager sign in':'Set a manager PIN'}</button>`);
  return pvCard('labour','Labour and forecasting',`<div class="grid2">${pvFld('Average spend per guest (£)','',pvNum('settings.pv.lab.spend',0,null,.5))}${pvFld('Staff cost per hour (£)','Default rate when a person has none',pvNum('settings.pv.lab.rate',0,null,.1))}${pvFld('Guests per staff member','',pvNum('settings.pv.lab.perStaff',1,50,1))}${pvFld('Minimum staff on shift','',pvNum('settings.pv.lab.minStaff',0,50,1))}${pvFld('Target labour (% of sales)','',pvNum('settings.pv.lab.target',1,100,1))}${pvFld('Typical guests per day','0 = work it out from your bookings',pvNum('settings.pv.lab.typical',0,5000,1))}</div>`)}
-function pvSettingsBlock(){const L=[pvPlanCard(),pvVenueCard(),pvHoursCard(),pvSpecialCard(),pvLoyCard(),pvComboCard(),pvPermCard()],R=[pvColCard(),pvMsgCard(),pvMgrCard(),pvLabCard()];
- return`<div class="pvset" id="pvset"><div class="row between pvseth"><div><h2 style="margin:0">Service settings</h2><div class="small mut">Plan, colours, venue rules, hours, replies, loyalty and manager access.</div></div><div class="row"><button class="btn sm" data-act="pvSetAll" data-v="closed">Minimise all</button><button class="btn sm" data-act="pvSetAll" data-v="open">Expand all</button></div></div><div class="setcols"><div class="scol">${L.join('')}</div><div class="scol">${R.join('')}</div></div></div>`}
+function pvSettingsBlock(){const L=[pvPlanCard(),pvVenueCard(),pvHoursCard(),pvSpecialCard(),pvLoyCard(),pvComboCard(),pvPermCard()],R=[pvMsgCard(),pvMgrCard(),pvLabCard()];
+ return`<div class="pvset" id="pvset"><div class="row between pvseth"><div><h2 style="margin:0">Service settings</h2><div class="small mut">Plan, venue rules, hours, replies, loyalty and manager access.</div></div><div class="row"><button class="btn sm" data-act="pvSetAll" data-v="closed">Minimise all</button><button class="btn sm" data-act="pvSetAll" data-v="open">Expand all</button></div></div><div class="setcols"><div class="scol">${L.join('')}</div><div class="scol">${R.join('')}</div></div></div>`}
 {const _s=VIEWS.settings;VIEWS.settings=function(){const o=_s.apply(this,arguments);return U.setPage?o:o+pvSettingsBlock()}}
 {const _a=AFTER.settings;AFTER.settings=function(){const r=_a?_a.apply(this,arguments):undefined;pvTryReply();return r}}
 /* text replies: Y/N words confirm or cancel the next booking */
@@ -3792,7 +3430,7 @@ function pvLoyView(){const L=pvC().loy;const G=S.guests.map(g=>({g,I:pvLoy(g.id)
  <div class="card" style="margin-top:14px"><div class="pad"><b>Progress</b><div class="small mut">Finished visits towards the next discount.</div></div><table class="t"><thead><tr><th>Guest</th><th>Visits</th><th>Progress</th></tr></thead><tbody>${G.sort((a,b)=>b.I.V-a.I.V).slice(0,40).map(({g,I})=>`<tr><td><a href="#" data-act="guest" data-id="${g.id}">${esc(g.name)}</a></td><td>${I.V}</td><td>${I.due?`<span class="chip green">${pvOrd(I.V+1)} visit: ${I.pct}% off</span>`:`Loyalty ${I.prog}/${I.n}`}</td></tr>`).join('')}</tbody></table></div>`}
 A.pvLoyGive=el=>{const g=guestById(el.dataset.id);if(g)toast('Opening an email to '+shortName(g.name));if(el.href)location.href=el.href};
 
-setTimeout(()=>{try{window.pvWrapGuards&&pvWrapGuards()}catch(e){}},0);pvApplyColors();render();
+setTimeout(()=>{try{window.pvWrapGuards&&pvWrapGuards()}catch(e){}},0);render();
 </script>
 </body>
 </html>
