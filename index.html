@@ -3041,7 +3041,8 @@ function pvNavOk(v){
  nav.querySelectorAll('button[data-v]').forEach(b=>{const v=b.dataset.v;b.classList.toggle('nav-core',PV_CORE.includes(v));b.classList.toggle('nav-extra',!PV_CORE.includes(v));if(PV_SUB[v]){b.classList.add('nav-sub');if(U.view===PV_SUB[v])b.classList.add('sub-show')}});
  const M=pvMgr(true),mb=document.createElement('button');mb.className='nav-extra pv-mgrb'+(M?' on':'');mb.dataset.act='pvMgrBtn';mb.title=M?'Manager signed in: tap to lock':'Manager sign in';
  mb.innerHTML=ic(M?'unlock':'lock',19)+`<span class="lbl">${M?'Lock':'Manager'}</span><span class="slbl">${M?'Lock':'Manager'}</span>`;
- const help=nav.querySelector('[data-act=help]');if(help)help.before(mb);else nav.appendChild(mb);
+ if(nav.querySelector('.nav-dis')){mb.classList.add('nav-dis');mb.classList.remove('on');mb.setAttribute('aria-disabled','true');mb.dataset.act='needSite';mb.title='Manager – choose a location first'}
+ const help=nav.querySelector('[data-act=help]')||[...nav.querySelectorAll('button')].find(b=>/^\s*Help/.test(b.textContent));if(help)help.before(mb);else nav.appendChild(mb);
  const vc=$('#venueCard');if(vc&&!LOC.cloud){const s=vc.querySelector('.side-me-t span');if(s&&!/Manager|Staff/.test(s.textContent))s.insertAdjacentText('beforeend',' · '+(M?'Manager':'Staff'))}
  return r}}
 {const _t=renderTop;renderTop=function(){if(U.view==='flow'){U.view='planner';try{_t.apply(this,arguments)}finally{U.view='flow'}const h=document.querySelector('#top .pv-tt h2');if(h)h.textContent='Flow';return}return _t.apply(this,arguments)}}
