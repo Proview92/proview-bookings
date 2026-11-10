@@ -743,22 +743,75 @@ body{-webkit-font-smoothing:antialiased}
 @media (min-width:701px) and (max-width:900px){#top:not(:has(.datenav)){gap:12px}#top:not(:has(.datenav)) .pv-dash{width:auto;padding:0 13px}#top:not(:has(.datenav)) .pv-dash span{display:inline}}
 @media (pointer:coarse) and (min-width:701px){#top .top-me .top-out{width:38px;height:38px}}
 #top .top-me .top-out{padding:0}
-/* Locations page (master's All locations): page head, stats and table exactly as Proview Signage's Locations page */
-.pv-loc{max-width:1236px}   /* Signage's page area stops at 1280px (less its 22px side padding) */
-.pv-ph{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin:0 0 22px;flex-wrap:wrap}
-.pv-ph h1{margin:0;font-size:21px;font-weight:650;letter-spacing:-.01em;line-height:1.45;color:var(--ink,#17171c)}
-.pv-ph p{margin:4px 0 0;font-size:15px;line-height:1.45;color:var(--mut,#55555f)}
-.pv-ph .btn{height:38px;min-height:0;padding:0 14px;font-size:14px;font-weight:600;line-height:normal;border-radius:10px;gap:7px;box-sizing:border-box}
-.pv-ph .btn svg{width:16px;height:16px}
-.pv-ph a.btn:not(.pri):not(.primary){color:var(--ink,#17171c);text-decoration:none}
-.pv-loc .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:0 0 16px}
-.pv-loc .stats .stat{padding:14px 16px;border-radius:12px;border:1px solid var(--line,#e4e2dc);background:var(--card,#fff);box-shadow:0 1px 2px rgba(20,20,30,.06),0 4px 16px rgba(20,20,30,.05)}
-.pv-loc .stats .stat .k{font-size:12px;font-weight:400;line-height:1.45;color:var(--grey,#8b8b95);letter-spacing:normal}
-.pv-loc .stats .stat .v{font-size:26px;font-weight:700;line-height:1.45;letter-spacing:normal;margin-top:4px}
-.pv-loc>.card{border-radius:12px;border:1px solid var(--line,#e4e2dc);background:var(--card,#fff);box-shadow:0 1px 2px rgba(20,20,30,.06),0 4px 16px rgba(20,20,30,.05);padding:0}
-.pv-loc table th{font-size:12px;font-weight:600;line-height:1.45;text-transform:uppercase;letter-spacing:.04em;color:var(--grey,#8b8b95);padding:12px 16px;background:none;border-bottom:1px solid var(--line,#e4e2dc)}
-.pv-loc table td{font-size:14px;line-height:1.45;padding:12px 16px;vertical-align:middle;border-bottom:1px solid var(--line,#e4e2dc)}
-.pv-loc table tr:last-child td{border-bottom:0}
+/* ===== Locations page = Proview Signage's (web/css/app.css at 76996e4/1906cd5: .page-head, .btn, .card, .badge, .ov-*), same values.
+   Colours come from --ov-* (set per app on body, so dark mode follows); the fallbacks are Signage's light values. ===== */
+.pv-loc{font-family:"Inter","Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.45;color:var(--ov-ink,#17171c);-webkit-font-smoothing:antialiased;max-width:1236px}
+.pv-loc *,.ov-list *{box-sizing:border-box}
+.pv-loc .pv-ph{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:0 0 22px;padding:0;flex-wrap:wrap}
+.pv-loc .pv-ph>p{margin:0;font-size:15px;font-weight:400;line-height:1.45;letter-spacing:normal;color:var(--ov-ink2,#55555f)}
+.pv-loc .pv-acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pv-loc .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:38px;min-height:0;padding:0 14px;border-radius:10px;border:1px solid var(--ov-line,#e4e2dc);background:var(--ov-panel,#fff);color:var(--ov-ink,#17171c);font:600 14px "Inter","Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;line-height:normal;letter-spacing:normal;cursor:pointer;text-decoration:none;white-space:nowrap;box-shadow:none;box-sizing:border-box;width:auto;max-width:none}
+.pv-loc .btn:hover{border-color:#cfccc4;background:#fbfaf8;color:var(--ov-ink,#17171c)}
+.pv-loc .btn:disabled{opacity:.5;cursor:not-allowed}
+.pv-loc .btn svg{width:16px;height:16px;flex:none}
+.pv-loc .btn.primary,.pv-loc .btn.primary:hover{background:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);border-color:transparent;color:#fff}
+.pv-loc .btn.primary:hover{filter:brightness(.95)}
+.pv-loc .btn.sm{height:32px;padding:0 11px;font-size:13px;border-radius:8px}
+.pv-loc .card,.ov-list .card{background:var(--ov-panel,#fff);border:1px solid var(--ov-line,#e4e2dc);border-radius:12px;box-shadow:0 1px 2px rgba(20,20,30,.06),0 4px 16px rgba(20,20,30,.05)}
+.pv-loc .muted,.ov-list .muted{color:var(--ov-ink2,#55555f)}
+.pv-loc .small,.ov-list .small{font-size:13px}
+.pv-loc .tiny,.ov-list .tiny{font-size:12px;color:var(--ov-ink3,#8b8b95)}
+.pv-loc .grow,.ov-list .grow{flex:1;min-width:0}
+.pv-loc h3{margin:0;letter-spacing:-.015em;line-height:1.45;color:inherit}
+/* status pill (Signage .badge) */
+.ov-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:650;line-height:1.45;letter-spacing:normal;padding:3px 9px;border-radius:999px;background:#eeece6;color:var(--ov-ink2,#55555f);white-space:nowrap;flex:none}
+.ov-pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.9}
+.ov-pill.ok{background:#e5f6ec;color:#12a150}
+.ov-pill.bad{background:#fdecea;color:#d92d20}
+.ov-pill.warn{background:#fff4dc;color:#a36a00}
+/* summary boxes */
+.ov-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:0 0 16px}
+.pv-loc .ov-stat{display:block;width:auto;height:auto;min-height:0;margin:0;padding:14px 16px;text-align:left;font:inherit;color:inherit;letter-spacing:normal;cursor:pointer;transition:border-color .15s,transform .15s}
+.pv-loc .ov-stat:hover{border-color:#b9c6ea;transform:translateY(-1px)}
+.pv-loc .ov-stat:focus-visible{outline:2px solid #4a6cd0;outline-offset:2px}
+.ov-stat .tiny{display:block}
+.ov-stat.ok .ov-v{color:#12a150}
+.ov-stat.warn .ov-v{color:#d48a00}
+.ov-stat.bad .ov-v{color:#d92d20}
+.ov-v{font-size:26px;font-weight:700;line-height:1.45;letter-spacing:normal;margin-top:4px}
+/* search */
+.ov-tools{display:flex;justify-content:flex-end;margin-bottom:12px}
+.pv-loc input.ov-search{display:block;height:40px;width:100%;max-width:100%;min-width:0;margin:0;font:15px "Inter","Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;color:var(--ov-ink,#17171c);background:var(--ov-panel,#fff);border:1px solid var(--ov-line,#e4e2dc);border-radius:9px;padding:9px 11px;box-shadow:none;box-sizing:border-box}
+.pv-loc input.ov-search:focus{outline:2px solid #4a6cd0;outline-offset:-1px;border-color:transparent}
+@media (hover:none) and (pointer:coarse){.pv-loc input.ov-search{font-size:16px}}
+/* business cards */
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px;align-items:start}
+.ov-biz{display:flex;flex-direction:column;overflow:hidden}
+.ov-bh{display:flex;align-items:flex-start;gap:10px;padding:16px 18px 12px}
+.pv-loc .ov-bh h3{font-size:17px;font-weight:700;margin:0 0 2px}
+.ov-loc{display:flex;align-items:center;gap:10px;width:100%;padding:11px 18px;margin:0;border:0;border-top:1px solid var(--ov-line,#e4e2dc);border-radius:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+button.ov-loc:hover{background:#f8f7f4}
+.ov-bf{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px;border-top:1px solid var(--ov-line,#e4e2dc);margin-top:auto}
+.ov-bf .pv-acts{gap:6px;flex-wrap:nowrap}
+.ov-dot{width:9px;height:9px;border-radius:50%;flex:none;background:#c9c7c0}
+.ov-dot.ok{background:#12a150}.ov-dot.warn{background:#d48a00}.ov-dot.bad{background:#d92d20}
+.ov-chev{color:var(--ov-ink3,#8b8b95);font-size:20px;line-height:1}
+/* the lists behind the summary boxes */
+.ov-list{display:flex;flex-direction:column;max-height:60vh;overflow-y:auto;font-size:15px;line-height:1.45}
+.ov-li{display:flex;align-items:center;gap:12px;width:100%;padding:11px 6px;margin:0;border:0;border-bottom:1px solid var(--ov-line,#e4e2dc);border-radius:0;background:none;font:inherit;color:inherit;text-align:left}
+button.ov-li{cursor:pointer}
+button.ov-li:hover{background:#f8f7f4}
+.ov-li:last-child{border-bottom:0}
+.ov-li b{font-weight:700}
+.ov-empty-card{grid-column:1/-1}
+@media (max-width:700px){.ov-grid{grid-template-columns:1fr}.ov-stats{grid-template-columns:repeat(3,1fr);gap:8px}.pv-loc .ov-stat{padding:10px 10px}.ov-stat .tiny{font-size:11px}.ov-v{font-size:21px}}
+/* this app's colours for the Locations page (light = Signage's values; dark mode follows) */
+body{--ov-panel:var(--card);--ov-line:var(--line);--ov-ink:var(--ink);--ov-ink2:var(--mut);--ov-ink3:var(--grey)}
+body.dark .ov-pill{background:var(--greyl)}body.dark .ov-pill.ok{background:var(--okl)}body.dark .ov-pill.bad{background:var(--badl)}body.dark .ov-pill.warn{background:var(--warnl)}
+body.dark .pv-loc .btn:hover,body.dark button.ov-loc:hover,body.dark button.ov-li:hover{background:var(--greyl)}
+/* sign out: red button, white icon (as Proview Signage, eaae59c) */
+html #top .top-me .top-out,html .top .top-me .top-out{background:#d92d20;border-color:#d92d20;color:#fff}
+html #top .top-me .top-out:hover,html .top .top-me .top-out:hover{background:#b42318;border-color:#b42318;color:#fff}
 /* header title: one line with an ellipsis, as Proview Signage (keeps its width from 701px up; the picker shrinks) */
 html :is(#top,.top):is(#top,.top)>h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:auto}
 @media (min-width:701px){html :is(#top,.top):is(#top,.top)>h2{flex-shrink:0}}
@@ -977,7 +1030,7 @@ function setPath(o,p,v){const k=p.split('.');let c=o;for(let i=0;i<k.length-1;i+
 function getPath(o,p){return p.split('.').reduce((c,k)=>c==null?c:c[k],o)}
 let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200)}
 
-const ICON={
+const ICON={refresh:'<path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/>',
  pvloc:'<path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"/>',
  list:'<path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
  tables:'<rect x="3" y="7" width="18" height="5" rx="1.5"/><path d="M6 12v7M18 12v7M9 16h6"/>',
@@ -2681,22 +2734,76 @@ A.pickSite=el=>{const v=el.value;
 TITLES.allsites='Locations';Object.defineProperty(TITLES,'allsites',{get:()=>isMaster()?'Locations':'My locations',enumerable:true,configurable:true});
 const ALLS={rows:null,biz:null,busy:false,at:0,err:''};
 VIEWS.allsites=()=>{if(!canView('allsites'))return VIEWS.parties();const M=isMaster();
- const sites=(CLOUD.me?.sites||[]).filter(x=>!U.allBiz||siteBiz(x).id===U.allBiz),R=ALLS.rows,by=id=>R&&R[id];
- const withSites=new Set(sites.map(x=>x.business_id)),bare=M?(ALLS.biz||[]).filter(b=>!withSites.has(b.id)&&(!U.allBiz||String(b.id)===U.allBiz)):[];
- const nBiz=new Set([...sites.map(x=>x.business_id||x.business),...bare.map(b=>b.id)]).size;
- const sum=k=>R?sites.reduce((n,x)=>n+((by(x.id)||{})[k]||0),0):'…';
- const stat=(k,v)=>`<div class="card stat"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+ /* Proview Signage's Locations page (business cards, clickable summary boxes; LOCATIONS_PAGE_STANDARD). The master sees one card
+    per business; a business opened from here (U.allBiz) and an owner's "My locations" show one card per location. */
+ const allSites=(CLOUD.me?.sites||[]).filter(x=>!U.allBiz||siteBiz(x).id===U.allBiz),R=ALLS.rows,by=id=>R&&R[id];
+ const withSites=new Set(allSites.map(x=>siteBiz(x).id)),bare=M?(ALLS.biz||[]).filter(b=>!withSites.has(String(b.id))&&(!U.allBiz||String(b.id)===U.allBiz)):[];
+ const bizList=[];allSites.forEach(x=>{const b=siteBiz(x);let g=bizList.find(y=>y.id===b.id);if(!g)bizList.push(g={id:b.id,name:b.name,sites:[]});g.sites.push(x)});
+ bare.forEach(b=>bizList.push({id:String(b.id),name:b.name,sites:[]}));
+ bizList.forEach(g=>g.sites.sort((a,b)=>String(a.name).localeCompare(String(b.name))));bizList.sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+ const perLoc=!M||!!U.allBiz,loading=!allSites.length&&ALLS.biz===null;
+ const n=(id,k)=>(by(id)||{})[k]||0,sum=(list,k)=>R?list.reduce((t,x)=>t+n(x.id,k),0):'…';
+ const NEEDS=['none','expiring','grace','expired'],needs=x=>NEEDS.includes(licState(x).state);
+ const fmtD=t=>new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+ const bookLine=list=>R?`${plural(sum(list,'b'),'booking')} today`:'Loading today’s bookings…';
+ const toneOf=x=>{const s=licState(x).state;return s==='none'||s==='expired'?'bad':s==='grace'||s==='expiring'||licState(x).type==='trial'?'warn':'ok'};
+ // status pill: grey nothing set up yet · red expired / no licence · amber trial, grace or ending soon · green all good
+ const pill=list=>{if(!list.length)return`<span class="ov-pill">No locations yet</span>`;
+  const bad=list.filter(x=>['none','expired'].includes(licState(x).state));
+  if(bad.length)return list.length===1?`<span class="ov-pill bad">${esc(licSummary(list[0]).text)}</span>`:`<span class="ov-pill bad">${bad.length} licence${bad.length===1?' needs':'s need'} attention</span>`;
+  const tr=list.find(x=>licState(x).type==='trial');if(tr)return`<span class="ov-pill warn">Trial – ends ${esc(fmtD(licState(tr).expires))}</span>`;
+  const gr=list.find(x=>licState(x).state==='grace');if(gr)return`<span class="ov-pill warn">Expired · ${plural(licState(gr).graceLeft,'day')} grace left</span>`;
+  const ex=list.filter(x=>licState(x).state==='expiring').sort((a,b)=>licState(a).daysLeft-licState(b).daysLeft)[0];if(ex)return`<span class="ov-pill warn">Licence ends in ${plural(licState(ex).daysLeft,'day')}</span>`;
+  return`<span class="ov-pill ok">All good</span>`};
+ // footer licence text, as Signage: "Licences: lifetime", "2 licences", "Trial ends 12 Nov", "Expired"
+ const licText=list=>{if(!list.length)return M?'Add a location to get started':'No locations yet';
+  if(list.every(x=>licState(x).state==='lifetime'))return'Licences: lifetime';
+  const tr=list.find(x=>licState(x).type==='trial'&&licState(x).expires);if(tr)return licWorks(tr)?`Trial ends ${fmtD(licState(tr).expires)}`:'Trial expired';
+  if(list.every(x=>licState(x).state==='expired'))return'Expired';if(list.every(x=>licState(x).state==='none'))return'No licence';
+  const ok=list.filter(licWorks).length;return ok===list.length?plural(list.length,'licence'):`${ok} of ${list.length} licensed`};
+ const chev=`<span class="ov-chev" aria-hidden="true">›</span>`,dot=t=>`<span class="ov-dot ${t}"></span>`;
+ const openBtn=(act,id,label)=>`<button class="btn sm primary" data-act="${act}" data-id="${esc(id)}">${label}</button>`;
+ const portalBtn=`<a class="btn sm" href="${LIC_PORTAL}" target="_blank" rel="noopener" title="Locations and licences are added in the licence portal">Add a location ↗</a>`;
  const q=(...a)=>esc(a.filter(Boolean).join(' ').toLowerCase());
- const row=x=>{const r=by(x.id),cur=x.id===LOC.current&&!CLOUD.nosite;return`<tr data-q="${q(x.business,x.name,x.id)}"><td>${M&&!U.allBiz&&x.business_id?`<a href="#" class="biz-open" data-act="allBiz" data-id="${esc(x.business_id)}" title="Open ${esc(x.business||'')}: all its locations"><b>${esc(x.business||'—')}</b></a>`:`<b>${esc(x.business||'—')}</b>`}</td><td>${esc(x.name)}</td><td>${licChip(x)}</td><td>${r?r.b:'…'}</td><td>${r?r.c:'…'}</td><td>${r?r.s:'…'}</td><td class="small mut">${r&&r.at?esc(new Date(r.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})):'—'}</td><td style="text-align:right"><button class="btn sm ${cur?'':'pri'}" data-act="allOpen" data-id="${esc(x.id)}">${cur?'Back to this location':'Open'}</button></td></tr>`};
- const bareRow=b=>`<tr data-q="${q(b.name)}"><td><b>${esc(b.name)}</b></td><td class="mut">No locations yet</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td style="text-align:right"><a style="text-decoration:none;max-width:100%;white-space:normal;height:auto;min-height:36px" class="btn sm" href="${LIC_PORTAL}" target="_blank" rel="noopener">Add a location ↗</a></td></tr>`;
- const total=sites.length+bare.length,loading=!sites.length&&ALLS.biz===null;
- const empty=`<div class="pad" style="text-align:center;padding:44px 20px"><div style="opacity:.55;margin-bottom:8px">${ic('grid',30)}</div><b style="font-size:16px">No businesses yet</b><p class="mut" style="max-width:420px;margin:6px auto 16px">${M?'Businesses, locations and licences are added in the Proview licence portal. They show here as soon as they\'re set up.':`To add a location, call Proview on ${PROVIEW_PHONE}.`}</p><div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap">${M?`<a style="text-decoration:none;max-width:100%;white-space:normal;height:auto;min-height:36px" class="btn pri" href="${LIC_PORTAL}" target="_blank" rel="noopener">${ic('plus',14)} Add a business in the licence portal ↗</a>`:''}<button class="btn" data-act="allRefresh">Refresh</button></div></div>`;
- return`<div class="pv-loc"><div class="pv-ph"><div><h1>${U.allBiz?esc(sites[0]?.business||(ALLS.biz||[]).find(b=>String(b.id)===U.allBiz)?.name||'Business')+' · ':''}${M?'Locations':'My locations'}</h1><p class="mut">${M&&!U.allBiz?'Every business and location on Proview Bookings, with today\'s bookings. Open a location to see it as its team does.':'Each location with today\'s bookings. Open a location to work in it.'}</p></div>
-  <div class="row" style="gap:8px;flex-wrap:wrap">${total>6?`<input class="inp" id="allQ" type="search" placeholder="Search businesses and locations" oninput="allFilter(this.value)" style="width:240px;height:38px">`:''}<button class="btn" data-act="allRefresh" title="Refresh">${ic('download',16)} Refresh</button>${M?`<a class="btn" style="text-decoration:none" href="${LIC_PORTAL}" target="_blank" rel="noopener" title="Businesses, locations and licences are managed in the licence portal">${ic('plus',16)} Add business ↗</a>`:''}</div></div>
- <div class="stats">${stat('Businesses',ALLS.biz===null&&!sites.length?'…':nBiz)}${stat('Locations',sites.length)}${stat('Licensed',sites.filter(licWorks).length)}${stat('Bookings today',sites.length?sum('b'):0)}</div>
+ const bizCard=g=>{const L=g.sites,single=L.length===1;
+  const sub=single?[L[0].name!==g.name&&L[0].name,bookLine(L)].filter(Boolean).join(' · '):L.length?`${plural(L.length,'location')} · ${bookLine(L)}`:'No locations yet';
+  const rows=single?'':L.map(x=>`<button type="button" class="ov-loc" data-act="allOpen" data-id="${esc(x.id)}" title="Open this location">${dot(toneOf(x))}<span class="grow">${esc(x.name)}</span><span class="muted small">${R?`${plural(n(x.id,'b'),'booking')} · ${plural(n(x.id,'c'),'cover')}`:'…'}</span>${chev}</button>`).join('');
+  const act=!L.length?(M?portalBtn:''):single?openBtn('allOpen',L[0].id,'Open business'):openBtn('allBiz',g.id,'Open business');
+  return`<article class="card ov-biz" data-q="${q(g.name,...L.map(x=>x.name))}"><div class="ov-bh"><div class="grow"><h3>${esc(g.name)}</h3><div class="muted small">${esc(sub)}</div></div>${pill(L)}</div>${rows}<div class="ov-bf"><span class="muted small">${esc(licText(L))}</span>${act}</div></article>`};
+ const locCard=x=>{const cur=x.id===LOC.current&&!CLOUD.nosite;
+  return`<article class="card ov-biz" data-q="${q(x.business,x.name)}"><div class="ov-bh"><div class="grow"><h3>${esc(x.name)}</h3><div class="muted small">${esc(R?`${plural(n(x.id,'b'),'booking')} · ${plural(n(x.id,'c'),'cover')} today`:'Loading today’s bookings…')}</div></div>${pill([x])}</div><div class="ov-bf"><span class="muted small">${esc(licText([x]))}</span>${openBtn('allOpen',x.id,cur?'Back to this location':'Open location')}</div></article>`};
+ const cards=perLoc?allSites.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name))).map(locCard):bizList.map(bizCard);
+ const nBiz=bizList.length,nItems=perLoc?allSites.length:nBiz;
+ const stat=(k,v,list,tone)=>`<button type="button" class="card ov-stat${tone?' '+tone:''}" data-act="allList" data-list="${list}" title="Show the list"><div class="tiny">${k}</div><div class="ov-v">${v}</div></button>`;
+ const licensed=allSites.filter(licWorks).length,attn=allSites.filter(needs).length;
+ const stats=`<div class="ov-stats">${stat('Businesses',loading?'…':nBiz,'biz')}${stat('Locations',allSites.length,'loc')}${stat('Licensed',licensed,'lic',licensed?'ok':'')}${stat('Bookings today',allSites.length?sum(allSites,'b'):0,'book')}${stat('Covers today',allSites.length?sum(allSites,'c'):0,'cover')}${stat('Licences need attention',attn,'attn',attn?'bad':'')}</div>`;
+ const empty=`<div class="card ov-empty-card"><div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:28px 12px;gap:10px"><h3 style="margin:0;font-size:15px;font-weight:650">No businesses yet</h3><p class="muted" style="margin:0">${M?'Businesses, locations and licences are added in the Proview licence portal. They show here as soon as they\'re set up.':`To add a location, call Proview on ${PROVIEW_PHONE}.`}</p><div class="pv-acts" style="justify-content:center">${M?`<a class="btn primary" href="${LIC_PORTAL}" target="_blank" rel="noopener">${ic('plus',16)} Add business ↗</a><a class="btn" href="${LIC_PORTAL}" target="_blank" rel="noopener">Open licence portal ↗</a>`:''}<button class="btn" data-act="allRefresh">${ic('refresh',16)} Refresh</button></div></div></div>`;
+ const bizName=U.allBiz&&(allSites[0]?.business||(ALLS.biz||[]).find(b=>String(b.id)===U.allBiz)?.name||'This business');
+ const desc=M&&!U.allBiz?'Every business on the platform with its locations. Open one to see it as its team does.':U.allBiz?`Every location of ${esc(bizName)} with today's bookings. Open one to work in it.`:'Each location with today\'s bookings. Open a location to work in it.';
+ return`<div class="pv-loc"><div class="pv-ph"><p class="muted">${desc}</p>
+  <div class="pv-acts"><button class="btn" data-act="allRefresh" title="Refresh">${ic('refresh',16)} Refresh</button><a class="btn" href="${LIC_PORTAL}" target="_blank" rel="noopener">Licences ↗</a>${M&&!U.allBiz?`<a class="btn primary" href="${LIC_PORTAL}" target="_blank" rel="noopener" title="Businesses, locations and licences are added in the licence portal">${ic('plus',16)} Add business ↗</a>`:''}</div></div>
+ ${stats}
  ${ALLS.err?`<div class="notice bad" style="margin-bottom:12px">${esc(ALLS.err)}</div>`:''}
- <div class="card">${total?`<table class="t" id="allT"><thead><tr><th>Business</th><th>Location</th><th>Licence</th><th>Bookings today</th><th>Covers</th><th>Seated now</th><th>Last change</th><th></th></tr></thead><tbody>${sites.map(row).join('')}${bare.map(bareRow).join('')}</tbody></table><div class="pad mut small" id="allNone" hidden>No business or location matches that search.</div>`:loading?'<div class="pad mut">Loading…</div>':empty}</div></div>`};
-function allFilter(v){const t=String(v||'').trim().toLowerCase();let n=0;document.querySelectorAll('#allT tbody tr').forEach(tr=>{const ok=!t||tr.dataset.q.includes(t);tr.hidden=!ok;if(ok)n++});const e=$('#allNone');if(e)e.hidden=n>0}
+ ${nItems>3?`<div class="ov-tools"><input class="ov-search" id="allQ" type="search" placeholder="Search businesses or locations" aria-label="Search businesses or locations" oninput="allFilter(this.value)"></div>`:''}
+ <div class="ov-grid" id="allT">${cards.length?cards.join(''):loading?'<p class="muted" style="grid-column:1/-1;margin:0">Loading…</p>':empty}</div><p class="muted" id="allNone" hidden style="margin:0">No businesses or locations match that search.</p></div>`};
+function allFilter(v){const t=String(v||'').trim().toLowerCase();let n=0;document.querySelectorAll('#allT > .ov-biz').forEach(c=>{const ok=!t||c.dataset.q.includes(t);c.hidden=!ok;if(ok)n++});const e=$('#allNone');if(e)e.hidden=n>0||!t}
+/* the summary boxes: each opens the list behind its number (as Proview Signage) */
+A.allList=el=>{const k=el.dataset.list,M=isMaster(),R=ALLS.rows,n=(id,f)=>(R&&R[id]||{})[f]||0;
+ const sites=(CLOUD.me?.sites||[]).filter(x=>!U.allBiz||siteBiz(x).id===U.allBiz).slice().sort((a,b)=>(siteBiz(a).name+a.name).localeCompare(siteBiz(b).name+b.name));
+ const tone=x=>{const s=licState(x).state;return s==='none'||s==='expired'?'bad':s==='grace'||s==='expiring'?'warn':'ok'};
+ const chev=`<span class="ov-chev" aria-hidden="true">›</span>`,pillOf=x=>{const s=licSummary(x);return`<span class="ov-pill ${{green:'ok',amber:'warn',red:'bad'}[s.tone]||''}">${esc(s.text)}</span>`};
+ const siteLi=(x,right)=>`<button type="button" class="ov-li" data-act="allOpen" data-id="${esc(x.id)}"><span class="ov-dot ${tone(x)}"></span><span class="grow"><b>${esc(x.name)}</b><span class="tiny" style="display:block">${esc(siteBiz(x).name)}</span></span>${right}${chev}</button>`;
+ const counts=x=>`<span class="muted small">${R?`${plural(n(x.id,'b'),'booking')} · ${plural(n(x.id,'c'),'cover')}`:'…'}</span>`;
+ let title,items,emptyT;
+ if(k==='biz'){title='Businesses';emptyT='No businesses yet.';const g=new Map();sites.forEach(x=>{const b=siteBiz(x);if(!g.has(b.id))g.set(b.id,{id:b.id,name:b.name,sites:[]});g.get(b.id).sites.push(x)});
+  if(M&&!U.allBiz)(ALLS.biz||[]).forEach(b=>{if(!g.has(String(b.id)))g.set(String(b.id),{id:String(b.id),name:b.name,sites:[]})});
+  items=[...g.values()].sort((a,b)=>String(a.name).localeCompare(String(b.name))).map(b=>{const one=b.sites.length===1,act=!b.sites.length?'':one?`data-act="allOpen" data-id="${esc(b.sites[0].id)}"`:`data-act="allBiz" data-id="${esc(b.id)}"`;
+   return`<button type="button" class="ov-li" ${act}${b.sites.length?'':' disabled style="cursor:default"'}><span class="ov-dot ${!b.sites.length?'':b.sites.some(x=>tone(x)==='bad')?'bad':b.sites.some(x=>tone(x)==='warn')?'warn':'ok'}"></span><span class="grow"><b>${esc(b.name)}</b><span class="tiny" style="display:block">${plural(b.sites.length,'location')}${R?' · '+plural(b.sites.reduce((t,x)=>t+n(x.id,'b'),0),'booking')+' today':''}</span></span>${b.sites.length?chev:'<span class="muted small">No locations yet</span>'}</button>`})}
+ else if(k==='loc'){title='Locations';emptyT='No locations yet.';items=sites.map(x=>siteLi(x,counts(x)))}
+ else if(k==='lic'){title='Licensed locations';emptyT='No location has a working licence.';items=sites.filter(licWorks).map(x=>siteLi(x,pillOf(x)))}
+ else if(k==='book'||k==='cover'){const f=k==='book'?'b':'c';title=k==='book'?'Bookings today':'Covers today';emptyT=k==='book'?'No bookings today.':'No covers today.';items=sites.filter(x=>n(x.id,f)).sort((a,b)=>n(b.id,f)-n(a.id,f)).map(x=>siteLi(x,counts(x)))}
+ else{title='Licences needing attention';emptyT='Every licence is fine.';items=sites.filter(x=>['none','expiring','grace','expired'].includes(licState(x).state)).map(x=>siteLi(x,pillOf(x)))}
+ const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:640px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>${esc(title)}</h3><button class="icon-btn" data-act="closeModal" aria-label="Close">${ic('x')}</button></div><div class="pad" style="padding-top:6px;padding-bottom:6px">${items.length?`<div class="ov-list">${items.join('')}</div>`:`<p class="muted" style="margin:10px 0">${emptyT}</p>`}</div></div>`;m.classList.add('show')};
 AFTER.allsites=async()=>{if(!canView('allsites')||ALLS.busy||!CLOUD.ad)return;if(ALLS.at&&Date.now()-ALLS.at<60e3)return;ALLS.busy=true;const errs=[];
  if(!isMaster())ALLS.biz=[];else try{ALLS.biz=(await CLOUD.ad.sel('bk_businesses','id,name')||[]).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)))}catch(e){ALLS.biz=ALLS.biz||[];errs.push('Couldn’t load businesses: '+(e.message||e))}
  const rows={};
@@ -2709,8 +2816,8 @@ AFTER.allsites=async()=>{if(!canView('allsites')||ALLS.busy||!CLOUD.ad)return;if
 A.allRefresh=async()=>{let me=null;try{me=await CLOUD.ad.whoami()}catch(e){toast('Couldn’t refresh: '+(e.message||e));return}if(!me)return;
  const ids=x=>(x?.sites||[]).map(s=>s.id).join('|'),changed=ids(CLOUD.me)!==ids(me);CLOUD.me=me;
  if(changed){markOpen(null);location.reload();return}ALLS.at=0;ALLS.rows=null;render();toast('Up to date')};
-A.allBiz=(el,e)=>{e&&e.preventDefault&&e.preventDefault();markOpen(null);U.allBiz=String(el.dataset.id);try{sessionStorage.setItem('pv-bk-all','__biz:'+U.allBiz)}catch(x){}U.view='allsites';render()};
-A.allOpen=el=>{const id=el.dataset.id;markOpen(id);U.view='parties';if(id===LOC.current){render();return}A.openSite({dataset:{id}})};
+A.allBiz=(el,e)=>{e&&e.preventDefault&&e.preventDefault();if($('#modal').classList.contains('show'))A.closeModal();markOpen(null);U.allBiz=String(el.dataset.id);try{sessionStorage.setItem('pv-bk-all','__biz:'+U.allBiz)}catch(x){}U.view='allsites';render()};
+A.allOpen=el=>{const id=el.dataset.id;if($('#modal').classList.contains('show'))A.closeModal();markOpen(id);U.view='parties';if(id===LOC.current){render();return}A.openSite({dataset:{id}})};
 A.openSite=el=>{const id=el.dataset.id;if(!id)return;if(id===CLOUD.vid)return;markOpen(id);save();LOC.current=id;if(!LOC.list.some(x=>x.id===id)){LOC.list.push({id,name:id})}LOC.cloud=true;localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload()};
 /* licences are managed in the Proview licence portal */
 const LIC_PORTAL='https://license.proviewcrm.co.uk';
