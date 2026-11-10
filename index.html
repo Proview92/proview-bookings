@@ -2784,9 +2784,9 @@ VIEWS.allsites=()=>{if(!canView('allsites'))return VIEWS.parties();const M=isMas
   <div class="pv-acts"><button class="btn" data-act="allRefresh" title="Refresh">${ic('refresh',16)} Refresh</button><a class="btn" href="${LIC_PORTAL}" target="_blank" rel="noopener">Licences ↗</a>${M&&!U.allBiz?`<a class="btn primary" href="${LIC_PORTAL}" target="_blank" rel="noopener" title="Businesses, locations and licences are added in the licence portal">${ic('plus',16)} Add business ↗</a>`:''}</div></div>
  ${stats}
  ${ALLS.err?`<div class="notice bad" style="margin-bottom:12px">${esc(ALLS.err)}</div>`:''}
- ${nItems>3?`<div class="ov-tools"><input class="ov-search" id="allQ" type="search" placeholder="Search businesses or locations" aria-label="Search businesses or locations" oninput="allFilter(this.value)"></div>`:''}
- <div class="ov-grid" id="allT">${cards.length?cards.join(''):loading?'<p class="muted" style="grid-column:1/-1;margin:0">Loading…</p>':empty}</div><p class="muted" id="allNone" hidden style="margin:0">No businesses or locations match that search.</p></div>`};
-function allFilter(v){const t=String(v||'').trim().toLowerCase();let n=0;document.querySelectorAll('#allT > .ov-biz').forEach(c=>{const ok=!t||c.dataset.q.includes(t);c.hidden=!ok;if(ok)n++});const e=$('#allNone');if(e)e.hidden=n>0||!t}
+ <div class="ov-tools"><input class="ov-search" id="allQ" type="search" placeholder="Search businesses or locations" aria-label="Search businesses or locations" oninput="allFilter(this.value)"></div>
+ <div class="ov-grid" id="allT">${cards.length?cards.join(''):loading?'<p class="muted" style="grid-column:1/-1;margin:0">Loading…</p>':empty}</div><p class="muted" id="allNone" hidden style="margin:0">No businesses or locations match.</p></div>`};
+function allFilter(v){const t=String(v||'').trim().toLowerCase();let n=0;document.querySelectorAll('#allT > .ov-biz').forEach(c=>{const ok=!t||c.dataset.q.includes(t);c.style.display=ok?'':'none';if(ok)n++});const e=$('#allNone');if(e){e.hidden=n>0||!t;e.textContent=`No businesses or locations match “${String(v||'').trim()}”.`}}
 /* the summary boxes: each opens the list behind its number (as Proview Signage) */
 A.allList=el=>{const k=el.dataset.list,M=isMaster(),R=ALLS.rows,n=(id,f)=>(R&&R[id]||{})[f]||0;
  const sites=(CLOUD.me?.sites||[]).filter(x=>!U.allBiz||siteBiz(x).id===U.allBiz).slice().sort((a,b)=>(siteBiz(a).name+a.name).localeCompare(siteBiz(b).name+b.name));
