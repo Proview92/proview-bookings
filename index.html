@@ -841,6 +841,12 @@ html .app.collapsed .side :is(.side-foot,#pv-x)>*{width:30px!important;height:26
 .pvdlg h2,.pvsc h2,.pvon h2,.pvday h2,.pvol-w h2,.pvlock h2,.pvact h2,.pvpunch h2{font-size:17px;margin:0 0 10px}
 .pvdlg-f{justify-content:flex-end;gap:8px;margin-top:16px;flex-wrap:wrap}
 .pvdlg label.f small,.pvdlg label.f .mut{font-weight:500}
+.abz-req{color:#d92d20}.abz-cap{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:16px 0 0}
+.abz-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}.abz-pw{display:flex;gap:6px;align-items:center}.abz-pw .pw-wrap{flex:1;min-width:0}
+.abz .pw-wrap{position:relative}.abz .pw-wrap .inp{padding-right:44px}.abz .pw-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:34px;height:32px;border:0;background:none;color:#8a8a94;cursor:pointer;display:grid;place-items:center;border-radius:8px}
+.abz .pw-eye:hover{color:var(--ink);background:var(--bg)}.abz .pw-eye.on{color:var(--pri)}
+.abz-card{display:grid;gap:8px;background:var(--pri-l);border:1px solid #cbd8f6;border-radius:10px;padding:10px 14px}.abz-card>div{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.abz-card b{font-family:ui-monospace,monospace;word-break:break-all}
+@media (max-width:640px){.abz-grid{grid-template-columns:1fr}}
 .psz{display:inline-flex;align-items:center;gap:3px;font-weight:700;color:var(--ink);background:color-mix(in srgb,var(--ink) 8%,transparent);border-radius:999px;padding:2px 8px 2px 6px;font-size:13px;font-variant-numeric:tabular-nums}
 .psz svg{width:11px;height:11px}
 .pvdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:0}
@@ -2301,6 +2307,15 @@ function MockAdapter(){
    if(fn==='bk_create_my_business'){if(d.prof.some(p=>p.email===em))throw new Error('Your account already belongs to a business.');if(d.biz.some(b=>b.self_signup&&b.contact_email===em))throw new Error('This email address has already used its free trial. Buy a licence at license.proviewcrm.co.uk or call Proview on 020 8935 5495.');
     const b={id:'b-'+Math.random().toString(36).slice(2,8),name:a.p_business,contact_email:em,phone:a.p_phone||null,self_signup:true,notes:'Signed up online',created_at:new Date().toISOString()};d.biz.push(b);
     const s={id:newId(a.p_site||a.p_business),business_id:b.id,name:a.p_site||a.p_business};setLic(s,'trial');d.sites.push(s);d.prof.push({email:em,venue:s.id,role:'Owner'});save();return s.id}
+   if(fn==='bk_add_business'){if(!master)throw new Error('Only the Proview administrator can add businesses.');   // mirrors supabase/007_add_business.sql
+    const bn=String(a.p_business||'').trim(),nm=String(a.p_name||'').trim(),e=String(a.p_email||'').trim().toLowerCase();
+    if(bn.length<2)throw new Error('Enter the business name.');if(nm.length<2)throw new Error('Enter the owner\'s name.');if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e))throw new Error('Enter a valid email address.');
+    d.logins=d.logins||[];const existing=d.logins.some(l=>l.email===e)||d.prof.some(p=>p.email===e)||d.inv.some(p=>p.email===e);
+    if(!existing&&String(a.p_password||'').length<6)throw new Error('The password needs at least 6 characters.');
+    const b={id:'b-'+Math.random().toString(36).slice(2,8),name:bn,contact_email:e,phone:a.p_mobile||null,self_signup:false,notes:'Added by Proview',created_at:new Date().toISOString()};
+    const s={id:newId(bn),business_id:b.id,name:bn};setLic(s,'trial');d.biz.push(b);d.sites.push(s);d.prof.push({email:e,venue:s.id,role:'Owner'});
+    if(!existing)d.logins.push({email:e,password:a.p_password,name:nm,mobile:a.p_mobile||null});save();
+    return{business_id:b.id,site_id:s.id,user_id:'u-'+e,email:e,existing}}
    throw new Error('Unknown function '+fn)},
   async sel(t){const{d}=this._me();return JSON.parse(JSON.stringify(t==='bk_businesses'?d.biz:t==='bk_sites'?d.sites:t==='bk_staff_profiles'?d.prof.map(p=>({user_id:p.email,venue:p.venue})):d.inv))},
   async ins(t,row){const{d,master}=this._me();if(!master)throw new Error('Not allowed');const r={id:'b-'+Math.random().toString(36).slice(2,8),created_at:new Date().toISOString(),self_signup:false,...row};d.biz.push(r);wr('db',d);return r},
@@ -2777,11 +2792,11 @@ VIEWS.allsites=()=>{if(!canView('allsites'))return VIEWS.parties();const M=isMas
  const stat=(k,v,list,tone)=>`<button type="button" class="card ov-stat${tone?' '+tone:''}" data-act="allList" data-list="${list}" title="Show the list"><div class="tiny">${k}</div><div class="ov-v">${v}</div></button>`;
  const licensed=allSites.filter(licWorks).length,attn=allSites.filter(needs).length;
  const stats=`<div class="ov-stats">${stat('Businesses',loading?'…':nBiz,'biz')}${stat('Locations',allSites.length,'loc')}${stat('Licensed',licensed,'lic',licensed?'ok':'')}${stat('Bookings today',allSites.length?sum(allSites,'b'):0,'book')}${stat('Covers today',allSites.length?sum(allSites,'c'):0,'cover')}${stat('Licences need attention',attn,'attn',attn?'bad':'')}</div>`;
- const empty=`<div class="card ov-empty-card"><div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:28px 12px;gap:10px"><h3 style="margin:0;font-size:15px;font-weight:650">No businesses yet</h3><p class="muted" style="margin:0">${M?'Businesses, locations and licences are added in the Proview licence portal. They show here as soon as they\'re set up.':`To add a location, call Proview on ${PROVIEW_PHONE}.`}</p><div class="pv-acts" style="justify-content:center">${M?`<a class="btn primary" href="${LIC_PORTAL}" target="_blank" rel="noopener">${ic('plus',16)} Add business ↗</a><a class="btn" href="${LIC_PORTAL}" target="_blank" rel="noopener">Open licence portal ↗</a>`:''}<button class="btn" data-act="allRefresh">${ic('refresh',16)} Refresh</button></div></div></div>`;
+ const empty=`<div class="card ov-empty-card"><div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:28px 12px;gap:10px"><h3 style="margin:0;font-size:15px;font-weight:650">No businesses yet</h3><p class="muted" style="margin:0">${M?'Add a business with its owner\'s login here. Licences are managed in the Proview licence portal.':`To add a location, call Proview on ${PROVIEW_PHONE}.`}</p><div class="pv-acts" style="justify-content:center">${M?`<button class="btn primary" data-act="addBiz">${ic('plus',16)} Add business</button><a class="btn" href="${LIC_PORTAL}" target="_blank" rel="noopener">Open licence portal ↗</a>`:''}<button class="btn" data-act="allRefresh">${ic('refresh',16)} Refresh</button></div></div></div>`;
  const bizName=U.allBiz&&(allSites[0]?.business||(ALLS.biz||[]).find(b=>String(b.id)===U.allBiz)?.name||'This business');
  const desc=M&&!U.allBiz?'Every business on the platform with its locations. Open one to see it as its team does.':U.allBiz?`Every location of ${esc(bizName)} with today's bookings. Open one to work in it.`:'Each location with today\'s bookings. Open a location to work in it.';
  return`<div class="pv-loc"><div class="pv-ph"><p class="muted">${desc}</p>
-  <div class="pv-acts"><button class="btn" data-act="allRefresh" title="Refresh">${ic('refresh',16)} Refresh</button><a class="btn" href="${LIC_PORTAL}" target="_blank" rel="noopener">Licences ↗</a>${M&&!U.allBiz?`<a class="btn primary" href="${LIC_PORTAL}" target="_blank" rel="noopener" title="Businesses, locations and licences are added in the licence portal">${ic('plus',16)} Add business ↗</a>`:''}</div></div>
+  <div class="pv-acts"><button class="btn" data-act="allRefresh" title="Refresh">${ic('refresh',16)} Refresh</button><a class="btn" href="${LIC_PORTAL}" target="_blank" rel="noopener">Licences ↗</a>${M&&!U.allBiz?`<button class="btn primary" data-act="addBiz">${ic('plus',16)} Add business</button>`:''}</div></div>
  ${stats}
  ${ALLS.err?`<div class="notice bad" style="margin-bottom:12px">${esc(ALLS.err)}</div>`:''}
  <div class="ov-tools"><input class="ov-search" id="allQ" type="search" placeholder="Search businesses or locations" aria-label="Search businesses or locations" oninput="allFilter(this.value)"></div>
@@ -2818,6 +2833,41 @@ A.allRefresh=async()=>{let me=null;try{me=await CLOUD.ad.whoami()}catch(e){toast
  if(changed){markOpen(null);location.reload();return}ALLS.at=0;ALLS.rows=null;render();toast('Up to date')};
 A.allBiz=(el,e)=>{e&&e.preventDefault&&e.preventDefault();if($('#modal').classList.contains('show'))A.closeModal();markOpen(null);U.allBiz=String(el.dataset.id);try{sessionStorage.setItem('pv-bk-all','__biz:'+U.allBiz)}catch(x){}U.view='allsites';render()};
 A.allOpen=el=>{const id=el.dataset.id;if($('#modal').classList.contains('show'))A.closeModal();markOpen(id);U.view='parties';if(id===LOC.current){render();return}A.openSite({dataset:{id}})};
+/* "+ Add business" (master only): the business, a location with the same name and its Owner login, in one go, with no
+   email sent (ADD_BUSINESS_SPEC; as Proview Signage). The server function bk_add_business (supabase/007) does it all-or-nothing. */
+A.addBiz=()=>{if(!isMaster())return;const m=$('#modal'),req=t=>`${t}<span class="abz-req"> *</span>`;
+ m.innerHTML=`<div class="modal card abz" style="max-width:640px" role="dialog" aria-modal="true" aria-label="Add business"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Add business</h3><button class="icon-btn" data-act="closeModal" aria-label="Close">${ic('x')}</button></div><div class="pad">
+  <label class="f" style="margin-top:0" for="abBiz">${req('Business name')}</label><input class="inp" id="abBiz" placeholder="e.g. Tolians" autocomplete="off">
+  <div class="abz-cap">Owner login</div>
+  <div class="abz-grid"><div><label class="f" for="abName">${req('Name')}</label><input class="inp" id="abName" placeholder="e.g. Sam Taylor" autocomplete="off"></div>
+   <div><label class="f" for="abMob">Mobile</label><input class="inp" id="abMob" type="tel" placeholder="Optional" autocomplete="off"></div>
+   <div><label class="f" for="abEmail">${req('Email (they sign in with this)')}</label><input class="inp" id="abEmail" type="email" placeholder="name@company.com" autocomplete="off"></div>
+   <div><label class="f" for="abPw">${req('Password')}</label><div class="abz-pw"><div class="pw-wrap"><input class="inp" id="abPw" type="password" placeholder="At least 6 characters" autocomplete="new-password"><button type="button" class="pw-eye" data-act="authEye" data-f="abPw" title="Show password" aria-label="Show password">${ic('eye',18)}</button></div><button class="btn sm" type="button" data-act="addBizSuggest">Suggest</button></div></div></div>
+  <p class="small mut" style="margin:12px 0 0">The business gets a location with the same name. This person becomes its Owner / Admin. No email is sent.</p>
+  <div class="row pvdlg-f"><button class="btn" data-act="closeModal">Cancel</button><button class="btn pri" id="abGo" data-act="addBizGo">Add business</button></div></div></div>`;
+ m.classList.add('show');$('#abBiz').focus()};
+A.addBizSuggest=()=>{const a='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789',r=crypto.getRandomValues(new Uint32Array(10)),i=$('#abPw');if(!i)return;
+ i.value=[...r].map(n=>a[n%a.length]).join('');i.type='text';const e=document.querySelector('#modal [data-f=abPw]');if(e){e.classList.add('on');e.title='Hide password'}};
+async function addBizRefresh(){try{const me=await CLOUD.ad.whoami();if(me){CLOUD.me=me;if(LOC.cloud){LOC.list=(me.sites||[]).map(s=>({id:s.id,name:s.name,business:s.business}));try{localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(x){}}}}catch(x){console.error(x)}
+ ALLS.at=0;ALLS.rows=null;if(U.view==='allsites')render()}
+A.addBizGo=async el=>{const v=id=>($('#'+id)?.value||'').trim(),need=(id,msg)=>{toast(msg);$('#'+id)?.focus()};
+ const biz=v('abBiz'),name=v('abName'),e=v('abEmail').toLowerCase(),mob=v('abMob'),pw=$('#abPw')?.value||'';
+ if(biz.length<2)return need('abBiz','Enter the business name');
+ if(name.length<2)return need('abName','Enter the owner’s name');
+ if(!/^\S+@\S+\.\S+$/.test(e))return need('abEmail','Enter a valid email address');
+ if(pw.length<6)return need('abPw','The password needs at least 6 characters');
+ if(el)el.disabled=true;let r;
+ try{r=await CLOUD.ad.rpc('bk_add_business',{p_business:biz,p_name:name,p_email:e,p_mobile:mob,p_password:pw})}
+ catch(x){if(el)el.disabled=false;toast(x.message||'Couldn’t add the business');return}
+ A.closeModal();await addBizRefresh();
+ const site=location.origin+location.pathname,details=`PROVIEW BOOKINGS login\n${site}\nEmail: ${e}\nPassword: ${pw}`,m=$('#modal');
+ m.innerHTML=`<div class="modal card abz" style="max-width:520px" role="dialog" aria-modal="true" aria-label="${esc(biz)} added"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>${esc(biz)} added</h3><button class="icon-btn" data-act="closeModal" aria-label="Close">${ic('x')}</button></div><div class="pad">
+  ${r&&r.existing?`<p style="margin:0">${esc(e)} already had a PROVIEW BOOKINGS login, so they were made Owner / Admin of this business and keep the password they already use. The password you typed was not applied.</p>`
+   :`<p class="mut" style="margin:0 0 10px">The owner can sign in now. No email was sent, so pass these on yourself:</p>
+   <div class="notice abz-card"><div><span class="mut">Sign in at</span><b>${esc(site.replace(/^https?:\/\//,''))}</b></div><div><span class="mut">Email</span><b>${esc(e)}</b></div><div><span class="mut">Password</span><b>${esc(pw)}</b></div></div>
+   <button class="btn" type="button" style="margin-top:10px" id="abCopy" data-act="copy" data-v="${esc(details)}">${ic('copy',16)} Copy login details</button>`}
+  <div class="row pvdlg-f"><button class="btn" data-act="closeModal">Stay here</button><button class="btn pri" data-act="allOpen" data-id="${esc(r?.site_id||'')}">Open business</button></div></div></div>`;
+ m.classList.add('show')};
 A.openSite=el=>{const id=el.dataset.id;if(!id)return;if(id===CLOUD.vid)return;markOpen(id);save();LOC.current=id;if(!LOC.list.some(x=>x.id===id)){LOC.list.push({id,name:id})}LOC.cloud=true;localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload()};
 /* licences are managed in the Proview licence portal */
 const LIC_PORTAL='https://license.proviewcrm.co.uk';
