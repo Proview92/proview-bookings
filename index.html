@@ -841,20 +841,8 @@ html .app.collapsed .side :is(.side-foot,#pv-x)>*{width:30px!important;height:26
 .pvdlg h2,.pvsc h2,.pvon h2,.pvday h2,.pvol-w h2,.pvlock h2,.pvact h2,.pvpunch h2{font-size:17px;margin:0 0 10px}
 .pvdlg-f{justify-content:flex-end;gap:8px;margin-top:16px;flex-wrap:wrap}
 .pvdlg label.f small,.pvdlg label.f .mut{font-weight:500}
-.abz-req{color:#d92d20}.abz-cap{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:16px 0 0}
-.abz-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}.abz-pw{display:flex;gap:6px;align-items:center}.abz-pw .pw-wrap{flex:1;min-width:0}
-.abz .pw-wrap{position:relative}.abz .pw-wrap .inp{padding-right:44px}.abz .pw-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:34px;height:32px;border:0;background:none;color:#8a8a94;cursor:pointer;display:grid;place-items:center;border-radius:8px}
-.abz .pw-eye:hover{color:var(--ink);background:var(--bg)}.abz .pw-eye.on{color:var(--pri)}
 .abz-card{display:grid;gap:8px;background:var(--pri-l);border:1px solid #cbd8f6;border-radius:10px;padding:10px 14px}.abz-card>div{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.abz-card b{font-family:ui-monospace,monospace;word-break:break-all}
-.abz label.f.abz-f0{margin-top:0}.abz-set{border:0;margin:18px 0 0;padding:0;display:grid;gap:8px;min-width:0}.abz-set legend{padding:0 0 8px;font-size:13px;font-weight:600;color:var(--ink)}
-.abz-opt{display:flex;gap:12px;align-items:flex-start;padding:13px 14px;border:1px solid #d9d6ce;border-radius:12px;cursor:pointer;background:#fff}
-.abz-opt.on{border:2px solid #3b7fd4;padding:12px 13px;background:#f3f7fd}.abz-opt input{margin:2px 0 0;width:18px;height:18px;flex:none;accent-color:#2f6fc4}
-.abz-opt .t{flex:1;min-width:0}.abz-opt .t b{display:block;font-size:14px;font-weight:600}.abz-opt .t span{display:block;font-size:13px;line-height:18px;color:var(--mut)}
-.abz-badge{font-size:11px;font-weight:700;color:#1f4f96;background:#e2ecfa;border-radius:999px;padding:3px 8px;white-space:nowrap}
-.abz-lic{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.abz-lic .abz-opt{flex-wrap:wrap;gap:8px;padding:12px}.abz-lic .abz-opt.on{padding:11px}.abz-lic .abz-opt .t span{font-size:12px;line-height:17px}
-.abz-pwrow{margin-top:2px}.abz-foot{display:flex;align-items:center;gap:8px;margin:20px -18px 0;padding:16px 18px 0;border-top:1px solid var(--line)}.abz-foot>span{flex:1}
 .abz-ok{background:#ecf8f0;border:1px solid #bfe3cb;color:#17592f;border-radius:10px;padding:10px 12px;margin:10px 0 0}.abz-warn{background:#fff8e8;border:1px solid #f0dfb5;color:#4d3a10;border-radius:10px;padding:10px 12px;margin:10px 0 0}
-@media (max-width:640px){.abz-grid{grid-template-columns:1fr}.abz label.f.abz-f0{margin-top:14px}.abz-lic{grid-template-columns:1fr}.abz-foot{flex-wrap:wrap}.abz-foot>span{flex-basis:100%}.abz-foot>.btn:first-of-type{margin-left:auto}}
 .psz{display:inline-flex;align-items:center;gap:3px;font-weight:700;color:var(--ink);background:color-mix(in srgb,var(--ink) 8%,transparent);border-radius:999px;padding:2px 8px 2px 6px;font-size:13px;font-variant-numeric:tabular-nums}
 .psz svg{width:11px;height:11px}
 .pvdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:0}
@@ -1022,6 +1010,149 @@ textarea.pv-alnote{border-color:var(--bad)}
 <button class="fab" data-act="newParty" title="Add a party" aria-label="Add a party"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="fab-l">New party</span></button>
 <div id="toast"></div>
 
+<script id="pv-addbiz-js">
+/* pv-addbiz.js: the master's "+ Add business" pop-up (design D), one copy shared byte-for-byte by all six Proview apps
+   (Signage, Bookings, Employee, Label, QR Menu, WiFi) so it looks the same everywhere: size, position, colours, fonts.
+   Do not edit one app's copy: change it once and copy the same file into every app.
+   window.pvAddBiz({ onSubmit }) opens it. onSubmit(v, ui) gets
+     v  = { biz, name, email, mobile, invite, lic, password }   (trimmed; email lower-cased; invite true/false;
+                                                                 lic 'none' | 'trial' | 'set'; password as typed)
+     ui = { el, close, input(key) }                           (key: 'biz' | 'name' | 'email' | 'mobile' | 'pw')
+   and does the app's own checks and server calls. Return true to close the pop-up; anything else keeps it open.
+   The primary button is disabled while onSubmit runs. */
+(function () {
+  if (window.pvAddBiz) return;
+  var F = '"Inter", "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif';
+  var CSS = [
+    '.pv-addbiz-back{position:fixed;inset:0;z-index:55;display:flex;margin:0;padding:0;background:rgba(20,20,24,.5);overflow:hidden}',
+    '.pv-addbiz,.pv-addbiz *{box-sizing:border-box}',
+    '.pv-addbiz [hidden]{display:none!important}',
+    '.pv-addbiz{position:relative;display:block;margin:auto;width:min(680px,calc(100vw - 28px));max-width:calc(100% - 36px);max-height:calc(100% - 36px);overflow:auto;padding:24px;border:0;border-radius:18px;background:#fff;color:#17171c;box-shadow:0 30px 80px rgba(0,0,0,.3);font:400 15px/1.45 ' + F + ';letter-spacing:normal;text-align:left;text-transform:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}',
+    '.pv-addbiz .pv-ab-form{display:block;margin:0;padding:0}',
+    '.pv-addbiz .pv-ab-head{display:flex;align-items:center;justify-content:space-between;gap:0;margin:0 0 8px;padding:0;border:0}',
+    '.pv-addbiz .pv-ab-title{margin:0;padding:0;font:700 20px/1.45 ' + F + ';letter-spacing:-.015em;color:#17171c;text-transform:none}',
+    '.pv-addbiz .pv-ab-x{display:block;flex:none;width:auto;height:auto;min-width:0;min-height:0;margin:0;padding:0 4px;border:0;border-radius:0;background:none;box-shadow:none;font:400 26px/1 Arial,sans-serif;color:#8b8b95;cursor:pointer}',
+    '.pv-addbiz .pv-ab-x:hover{color:#17171c;background:none}',
+    '.pv-addbiz .pv-ab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px;margin:0;padding:0}',
+    '.pv-addbiz .pv-ab-field{display:block;min-width:0;margin:0;padding:0}',
+    '.pv-addbiz .pv-ab-label{display:block;margin:0 0 5px;padding:0;font:600 13px/1.45 ' + F + ';letter-spacing:normal;color:#55555f;text-transform:none;cursor:default}',
+    '.pv-addbiz .pv-ab-req{color:#d92d20}',
+    '.pv-addbiz .pv-ab-optl{font-weight:400;color:#55555f}',
+    '.pv-addbiz .pv-ab-inp{display:inline-block;-webkit-appearance:none;appearance:none;width:100%;min-width:0;height:auto;min-height:0;margin:0;padding:9px 11px;border:1px solid #e4e2dc;border-radius:9px;background:#fff;box-shadow:none;font:400 15px ' + F + ';letter-spacing:normal;color:#17171c;outline:0}',
+    '.pv-addbiz .pv-ab-inp::placeholder{color:#757575;opacity:1}',
+    '.pv-addbiz .pv-ab-inp:focus{outline:2px solid #4a6cd0;outline-offset:-1px;border-color:transparent;box-shadow:none}',
+    '.pv-addbiz .pv-ab-set{display:grid;gap:8px;min-width:0;margin:18px 0 0;padding:0;border:0}',
+    '.pv-addbiz .pv-ab-legend{display:block;float:none;width:auto;margin:0;padding:0 0 8px;border:0;font:600 13px/1.45 ' + F + ';letter-spacing:normal;color:#55555f;text-transform:none}',
+    '.pv-addbiz .pv-ab-card{display:flex;align-items:flex-start;gap:12px;margin:0;padding:13px 14px;border:1px solid #d9d6ce;border-radius:12px;background:#fff;box-shadow:none;font:400 15px/1.45 ' + F + ';color:#17171c;text-transform:none;cursor:pointer}',
+    '.pv-addbiz .pv-ab-card.on{padding:12px 13px;border:2px solid #3b7fd4;background:#f3f7fd}',
+    '.pv-addbiz .pv-ab-radio{display:block;flex:none;-webkit-appearance:auto;appearance:auto;width:18px;height:18px;min-width:0;min-height:0;margin:2px 0 0;padding:0;border:0;outline:0;font:inherit;color:inherit;accent-color:#2f6fc4;box-shadow:none;cursor:pointer}',
+    '.pv-addbiz .pv-ab-t{display:block;flex:1;min-width:0}',
+    '.pv-addbiz .pv-ab-tt{display:block;font:600 14px/1.45 ' + F + ';color:#17171c}',
+    '.pv-addbiz .pv-ab-ts{display:block;font:400 13px/18px ' + F + ';color:#55555f}',
+    '.pv-addbiz .pv-ab-pill{display:block;flex:none;margin:0;padding:3px 8px;border:0;border-radius:999px;background:#e2ecfa;font:700 11px/1.45 ' + F + ';letter-spacing:normal;color:#1f4f96;white-space:nowrap}',
+    '.pv-addbiz .pv-ab-lic{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}',
+    '.pv-addbiz .pv-ab-lic .pv-ab-card{flex-wrap:wrap;gap:8px;padding:12px}',
+    '.pv-addbiz .pv-ab-lic .pv-ab-card.on{padding:11px}',
+    '.pv-addbiz .pv-ab-lic .pv-ab-ts{font-size:12px;line-height:17px}',
+    '.pv-addbiz .pv-ab-pwrow{display:block;margin:2px 0 0}',
+    '.pv-addbiz .pv-ab-pwline{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}',
+    '.pv-addbiz .pv-ab-pwwrap{position:relative;flex:1;min-width:0}',
+    '.pv-addbiz .pv-ab-pwwrap .pv-ab-inp{padding-right:44px}',
+    '.pv-addbiz .pv-ab-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:36px;height:34px;min-width:0;min-height:0;margin:0;padding:0;border:0;border-radius:8px;background:transparent;box-shadow:none;font:inherit;color:#8b8b95;cursor:pointer}',
+    '.pv-addbiz .pv-ab-eye:hover{color:#17171c;background:rgba(0,0,0,.05)}',
+    '.pv-addbiz .pv-ab-eye svg{display:block;width:18px;height:18px}',
+    '.pv-addbiz .pv-ab-foot{display:flex;align-items:center;gap:8px;margin:20px -24px 0;padding:16px 24px 0;border:0;border-top:1px solid #eceae4}',
+    '.pv-addbiz .pv-ab-hint{flex:1;font:400 12px/1.45 ' + F + ';color:#8b8b95}',
+    '.pv-addbiz .pv-ab-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;flex:none;width:auto;height:38px;min-width:0;min-height:0;margin:0;padding:0 14px;border:1px solid #e4e2dc;border-radius:10px;background:#fff;box-shadow:none;font:600 14px ' + F + ';letter-spacing:normal;color:#17171c;text-transform:none;text-decoration:none;white-space:nowrap;filter:none;opacity:1;cursor:pointer}',
+    '.pv-addbiz .pv-ab-btn:hover{border-color:#cfccc4;background:#fbfaf8}',
+    '.pv-addbiz .pv-ab-btn.pv-ab-pri{border-color:transparent;background:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);color:#fff}',
+    '.pv-addbiz .pv-ab-btn.pv-ab-pri:hover{border-color:transparent;background:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);filter:brightness(.95)}',
+    '.pv-addbiz .pv-ab-btn.pv-ab-sm{height:32px;padding:0 11px;border-radius:8px;font-size:13px}',
+    '.pv-addbiz .pv-ab-btn:disabled{opacity:.5;cursor:not-allowed;filter:none}',
+    '@media (max-width:700px){.pv-addbiz .pv-ab-grid{grid-template-columns:1fr}}',
+    '@media (max-width:640px){.pv-addbiz .pv-ab-lic{grid-template-columns:1fr}.pv-addbiz .pv-ab-foot{flex-wrap:wrap}.pv-addbiz .pv-ab-hint{flex-basis:100%}}',
+    '@media (hover:none) and (pointer:coarse){.pv-addbiz .pv-ab-inp,.pv-addbiz .pv-ab-radio{font-size:16px!important}}'
+  ].join('\n');
+  var EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var EYE_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6A17.4 17.4 0 0 0 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2M2 2l20 20"/></svg>';
+  var req = '<span class="pv-ab-req"> *</span>';
+  var field = function (id, label, type, ph) {
+    return '<div class="pv-ab-field"><label class="pv-ab-label" for="' + id + '">' + label + '</label><input class="pv-ab-inp" id="' + id + '" type="' + type + '" placeholder="' + ph + '" autocomplete="off"></div>';
+  };
+  var card = function (name, val, title, sub, on, pill) {
+    return '<label class="pv-ab-card' + (on ? ' on' : '') + '"><input class="pv-ab-radio" type="radio" name="' + name + '" value="' + val + '"' + (on ? ' checked' : '') + '>' +
+      '<span class="pv-ab-t"><b class="pv-ab-tt">' + title + '</b><span class="pv-ab-ts">' + sub + '</span></span>' + (pill ? '<span class="pv-ab-pill">' + pill + '</span>' : '') + '</label>';
+  };
+  var HTML = '<div class="pv-addbiz" role="dialog" aria-modal="true" aria-labelledby="pvAbTitle"><form class="pv-ab-form" novalidate autocomplete="off">' +
+    '<div class="pv-ab-head"><h2 class="pv-ab-title" id="pvAbTitle">Add business</h2><button type="button" class="pv-ab-x" data-pv-ab-close aria-label="Close" title="Close">×</button></div>' +
+    '<div class="pv-ab-grid">' +
+      field('pvAbBiz', 'Business name' + req, 'text', 'e.g. Tolians') +
+      field('pvAbName', 'Owner’s name' + req, 'text', 'e.g. Sam Taylor') +
+      field('pvAbEmail', 'Owner’s email' + req, 'email', 'name@company.com') +
+      field('pvAbMob', 'Mobile <span class="pv-ab-optl">(optional)</span>', 'tel', '07…') +
+    '</div>' +
+    '<fieldset class="pv-ab-set"><legend class="pv-ab-legend">How will they sign in?</legend>' +
+      card('pvAbSi', 'invite', 'Email them an invite', 'They get an email link and choose their own password.', true, 'Recommended') +
+      card('pvAbSi', 'pw', 'Set a password now', 'No email is sent. You pass the password on yourself.', false) +
+      '<div class="pv-ab-pwrow" id="pvAbPwRow" hidden><label class="pv-ab-label" for="pvAbPw">Password' + req + '</label>' +
+        '<div class="pv-ab-pwline"><div class="pv-ab-pwwrap"><input class="pv-ab-inp" id="pvAbPw" type="password" placeholder="At least 6 characters" autocomplete="new-password">' +
+        '<button type="button" class="pv-ab-eye" id="pvAbEye" tabindex="-1" aria-label="Show password" title="Show password">' + EYE + '</button></div>' +
+        '<button type="button" class="pv-ab-btn pv-ab-sm" id="pvAbSuggest">Suggest</button></div></div>' +
+    '</fieldset>' +
+    '<fieldset class="pv-ab-set"><legend class="pv-ab-legend">Licence</legend><div class="pv-ab-lic">' +
+      card('pvAbLic', 'none', 'None yet', 'They buy one when they sign in.', true) +
+      card('pvAbLic', 'trial', '3-day trial', 'Full access for 3 days, then it locks.', false) +
+      card('pvAbLic', 'set', 'Set it now', 'Then set it in the licence portal.', false) +
+    '</div></fieldset>' +
+    '<div class="pv-ab-foot"><span class="pv-ab-hint">Adds the business and a location with the same name.</span>' +
+      '<button type="button" class="pv-ab-btn" data-pv-ab-close>Cancel</button><button type="submit" class="pv-ab-btn pv-ab-pri" id="pvAbGo">Add and send invite</button></div>' +
+    '</form></div>';
+  var rand = function (n) {
+    var a = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', r = crypto.getRandomValues(new Uint32Array(n)), s = '';
+    for (var i = 0; i < n; i++) s += a[r[i] % a.length];
+    return s;
+  };
+  window.pvAddBiz = function (o) {
+    o = o || {};
+    if (!document.getElementById('pv-addbiz-css')) { var st = document.createElement('style'); st.id = 'pv-addbiz-css'; st.textContent = CSS; document.head.appendChild(st); }
+    var old = document.querySelector('.pv-addbiz-back'); if (old && old._close) old._close();
+    var back = document.createElement('div'); back.className = 'pv-addbiz-back'; back.innerHTML = HTML; document.body.appendChild(back);
+    var q = function (s) { return back.querySelector(s); }, form = q('form'), go = q('#pvAbGo'), pw = q('#pvAbPw'), eye = q('#pvAbEye');
+    var ids = { biz: 'pvAbBiz', name: 'pvAbName', email: 'pvAbEmail', mobile: 'pvAbMob', pw: 'pvAbPw' };
+    var input = function (k) { return q('#' + (ids[k] || k)); };
+    var pick = function (n) { var r = q('input[name="' + n + '"]:checked'); return r ? r.value : ''; };
+    var onKey = function (e) { if (e.key === 'Escape' && document.body.contains(back)) { e.stopPropagation(); close(); } };
+    var close = function () { if (!back.parentNode) return; back.remove(); document.removeEventListener('keydown', onKey, true); if (o.onClose) o.onClose(); };
+    back._close = close;
+    document.addEventListener('keydown', onKey, true);
+    var downOnBack = false;
+    back.addEventListener('mousedown', function (e) { downOnBack = e.target === back; });
+    back.addEventListener('click', function (e) { if (e.target === back && downOnBack) close(); });
+    back.querySelectorAll('[data-pv-ab-close]').forEach(function (b) { b.addEventListener('click', close); });
+    var showPw = function (on) { pw.type = on ? 'text' : 'password'; eye.innerHTML = on ? EYE_OFF : EYE; eye.title = on ? 'Hide password' : 'Show password'; eye.setAttribute('aria-label', eye.title); };
+    eye.addEventListener('click', function () { showPw(pw.type === 'password'); pw.focus(); });
+    q('#pvAbSuggest').addEventListener('click', function () { pw.value = rand(10); showPw(true); });
+    form.addEventListener('change', function (e) {
+      var t = e.target; if (!t || t.type !== 'radio') return;
+      back.querySelectorAll('input[name="' + t.name + '"]').forEach(function (r) { r.closest('.pv-ab-card').classList.toggle('on', r.checked); });
+      if (t.name === 'pvAbSi') { var p = t.value === 'pw'; q('#pvAbPwRow').hidden = !p; go.textContent = p ? 'Add business' : 'Add and send invite'; if (p) pw.focus(); }
+    });
+    var ui = { el: back, close: close, input: input };
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (go.disabled) return;
+      var v = { biz: input('biz').value.trim(), name: input('name').value.trim(), email: input('email').value.trim().toLowerCase(), mobile: input('mobile').value.trim(),
+        invite: pick('pvAbSi') !== 'pw', lic: pick('pvAbLic') || 'none', password: pw.value };
+      go.disabled = true; var done = false;
+      try { done = (await (o.onSubmit ? o.onSubmit(v, ui) : true)) === true; }
+      finally { go.disabled = false; }
+      if (done) close();
+    });
+    setTimeout(function () { var f = input('biz'); if (f && back.parentNode) f.focus(); }, 30);
+    return ui;
+  };
+})();
+</script>
 <script>
 /* ================= helpers ================= */
 const $=s=>document.querySelector(s);
@@ -2849,45 +2980,19 @@ A.allOpen=el=>{const id=el.dataset.id;if($('#modal').classList.contains('show'))
    For an invite the login gets a random password nobody sees and Supabase emails a set-your-password link (the app's
    PASSWORD_RECOVERY flow, showNewPw, asks them to choose one). */
 const abRand=n=>{const a='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789',r=crypto.getRandomValues(new Uint32Array(n));return[...r].map(x=>a[x%a.length]).join('')};
-const abOpt=(name,val,title,sub,on,badge)=>`<label class="abz-opt${on?' on':''}"><input type="radio" name="${name}" value="${val}"${on?' checked':''}><span class="t"><b>${title}</b><span>${sub}</span></span>${badge?`<span class="abz-badge">${badge}</span>`:''}</label>`;
-A.addBiz=()=>{if(!isMaster())return;const m=$('#modal'),req=t=>`${t}<span class="abz-req"> *</span>`;
- m.innerHTML=`<div class="modal card abz" style="max-width:660px" role="dialog" aria-modal="true" aria-label="Add business"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Add business</h3><button class="icon-btn" data-act="closeModal" aria-label="Close">${ic('x')}</button></div><div class="pad">
-  <div class="abz-grid">
-   <div><label class="f" style="margin-top:0" for="abBiz">${req('Business name')}</label><input class="inp" id="abBiz" placeholder="e.g. Tolians" autocomplete="off"></div>
-   <div><label class="f abz-f0" for="abName">${req('Owner’s name')}</label><input class="inp" id="abName" placeholder="e.g. Sam Taylor" autocomplete="off"></div>
-   <div><label class="f" for="abEmail">${req('Owner’s email')}</label><input class="inp" id="abEmail" type="email" placeholder="name@company.com" autocomplete="off"></div>
-   <div><label class="f" for="abMob">Mobile <span class="mut" style="font-weight:400">(optional)</span></label><input class="inp" id="abMob" type="tel" placeholder="07…" autocomplete="off"></div></div>
-  <fieldset class="abz-set"><legend>How will they sign in?</legend>
-   ${abOpt('abSi','invite','Email them an invite','They get an email link and choose their own password.',true,'Recommended')}
-   ${abOpt('abSi','pw','Set a password now','No email is sent. You pass the password on yourself.',false)}
-   <div class="abz-pwrow" id="abPwRow" hidden><label class="f" style="margin-top:0" for="abPw">${req('Password')}</label><div class="abz-pw"><div class="pw-wrap"><input class="inp" id="abPw" type="password" placeholder="At least 6 characters" autocomplete="new-password"><button type="button" class="pw-eye" data-act="authEye" data-f="abPw" title="Show password" aria-label="Show password">${ic('eye',18)}</button></div><button class="btn sm" type="button" data-act="addBizSuggest">Suggest</button></div></div>
-  </fieldset>
-  <fieldset class="abz-set"><legend>Licence</legend><div class="abz-lic">
-   ${abOpt('abLic','none','None yet','They buy one when they sign in.',true)}
-   ${abOpt('abLic','trial','3-day trial','Full access for 3 days, then it locks.',false)}
-   ${abOpt('abLic','set','Set it now','Then set it in the licence portal.',false)}</div>
-  </fieldset>
-  <div class="abz-foot"><span class="small mut">Adds the business and a location with the same name.</span><button class="btn" data-act="closeModal">Cancel</button><button class="btn pri" id="abGo" data-act="addBizGo">Add and send invite</button></div></div></div>`;
- m.classList.add('show');
- const box=m.querySelector('.abz');box.addEventListener('change',ev=>{const t=ev.target;if(!t||t.type!=='radio')return;
-  box.querySelectorAll(`input[name="${t.name}"]`).forEach(r=>r.closest('.abz-opt').classList.toggle('on',r.checked));
-  if(t.name==='abSi'){const pw=t.value==='pw';$('#abPwRow').hidden=!pw;$('#abGo').textContent=pw?'Add business':'Add and send invite';if(pw)$('#abPw').focus()}});
- $('#abBiz').focus()};
-A.addBizSuggest=()=>{const i=$('#abPw');if(!i)return;
- i.value=abRand(10);i.type='text';const e=document.querySelector('#modal [data-f=abPw]');if(e){e.classList.add('on');e.title='Hide password'}};
+A.addBiz=()=>{if(!isMaster())return;window.pvAddBiz({onSubmit:A.addBizGo})};   // the pop-up: pv-addbiz.js (inlined below), shared by all six apps
 async function addBizRefresh(){try{const me=await CLOUD.ad.whoami();if(me){CLOUD.me=me;if(LOC.cloud){LOC.list=(me.sites||[]).map(s=>({id:s.id,name:s.name,business:s.business}));try{localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(x){}}}}catch(x){console.error(x)}
  ALLS.at=0;ALLS.rows=null;if(U.view==='allsites')render()}
-A.addBizGo=async el=>{if(!isMaster())return;const v=id=>($('#'+id)?.value||'').trim(),need=(id,msg)=>{toast(msg);$('#'+id)?.focus()};
- const pick=n=>document.querySelector(`#modal input[name="${n}"]:checked`)?.value;
- const biz=v('abBiz'),name=v('abName'),e=v('abEmail').toLowerCase(),mob=v('abMob'),invite=pick('abSi')!=='pw',lic=pick('abLic')||'none';
- const pw=invite?abRand(24):($('#abPw')?.value||'');
- if(biz.length<2)return need('abBiz','Enter the business name');
- if(name.length<2)return need('abName','Enter the owner’s name');
- if(!/^\S+@\S+\.\S+$/.test(e))return need('abEmail','Enter a valid email address');
- if(!invite&&pw.length<6)return need('abPw','The password needs at least 6 characters');
- if(el)el.disabled=true;let r;
+A.addBizGo=async(v,ui)=>{if(!isMaster())return;const need=(k,msg)=>{toast(msg);ui.input(k)?.focus()};
+ const biz=v.biz,name=v.name,e=v.email,mob=v.mobile,invite=v.invite,lic=v.lic;
+ const pw=invite?abRand(24):v.password;
+ if(biz.length<2)return need('biz','Enter the business name');
+ if(name.length<2)return need('name','Enter the owner’s name');
+ if(!/^\S+@\S+\.\S+$/.test(e))return need('email','Enter a valid email address');
+ if(!invite&&pw.length<6)return need('pw','The password needs at least 6 characters');
+ let r;
  try{r=await CLOUD.ad.rpc('bk_add_business',{p_business:biz,p_name:name,p_email:e,p_mobile:mob,p_password:pw})}
- catch(x){if(el)el.disabled=false;toast(x.message||'Couldn’t add the business');return}
+ catch(x){toast(x.message||'Couldn’t add the business');return}
  // licence: 3-day trial now (bk_master_trial never replaces a licence already set)
  let licLine='';
  if(lic==='trial'){let t=null,te=null;try{t=await CLOUD.ad.rpc('bk_master_trial',{p_business:r.business_id})}catch(x){te=x}
@@ -2902,7 +3007,7 @@ A.addBizGo=async el=>{if(!isMaster())return;const v=id=>($('#'+id)?.value||'').t
  else if(invite){let me=null;try{await CLOUD.ad.reset(e)}catch(x){me=x}
   signIn=me?`<p class="abz-warn" style="margin-top:0">The business was added, but the invite email couldn’t be sent (${esc(me.message||String(me))}). They can use “Forgot password?” on the sign-in page with ${esc(e)}.</p>`
    :`<p class="abz-ok" style="margin-top:0">Invite sent to <b>${esc(e)}</b>. They open the email link and choose their own password.</p>`}
- A.closeModal();await addBizRefresh();
+ ui.close();await addBizRefresh();
  const site=location.origin+location.pathname,details=`PROVIEW BOOKINGS login\n${site}\nEmail: ${e}\nPassword: ${pw}`,m=$('#modal');
  const pwCard=!(r&&r.existing)&&!invite?`<p class="mut" style="margin:0 0 10px">The owner can sign in now. No email was sent, so pass these on yourself:</p>
    <div class="notice abz-card"><div><span class="mut">Sign in at</span><b>${esc(site.replace(/^https?:\/\//,''))}</b></div><div><span class="mut">Email</span><b>${esc(e)}</b></div><div><span class="mut">Password</span><b>${esc(pw)}</b></div></div>
@@ -2910,7 +3015,7 @@ A.addBizGo=async el=>{if(!isMaster())return;const v=id=>($('#'+id)?.value||'').t
  m.innerHTML=`<div class="modal card abz" style="max-width:520px" role="dialog" aria-modal="true" aria-label="${esc(biz)} added"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>${esc(biz)} added</h3><button class="icon-btn" data-act="closeModal" aria-label="Close">${ic('x')}</button></div><div class="pad">
   ${signIn}${pwCard}${licLine}
   <div class="row pvdlg-f">${lic==='set'?`<a class="btn" style="text-decoration:none" href="${LIC_PORTAL}" target="_blank" rel="noopener">Set licence ↗</a>`:''}<button class="btn" data-act="closeModal">Stay here</button><button class="btn pri" data-act="allOpen" data-id="${esc(r?.site_id||'')}">Open business</button></div></div></div>`;
- m.classList.add('show')};
+ m.classList.add('show');return true};
 A.openSite=el=>{const id=el.dataset.id;if(!id)return;if(id===CLOUD.vid)return;markOpen(id);save();LOC.current=id;if(!LOC.list.some(x=>x.id===id)){LOC.list.push({id,name:id})}LOC.cloud=true;localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload()};
 /* licences are managed in the Proview licence portal */
 const LIC_PORTAL='https://license.proviewcrm.co.uk';
