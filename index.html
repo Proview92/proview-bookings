@@ -1086,7 +1086,11 @@ const ic=(n,s=18)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="no
 
 /* ================= state ================= */
 const LOCKEY='proview-locations';
-let LOC=null;try{LOC=JSON.parse(localStorage.getItem(LOCKEY)||'null')}catch(e){}
+/* The Proview master inside a customer opened from the licence portal (pv_master_open, per tab): the remembered location
+   is kept per tab too, so customer A in one tab and customer B in another don't overwrite each other. Everyone else: as before. */
+const locStore=()=>{try{return sessionStorage.getItem('pv_master_open')?sessionStorage:localStorage}catch(e){return localStorage}};
+function locWrite(){try{locStore().setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}}
+let LOC=null;try{LOC=JSON.parse(locStore().getItem(LOCKEY)||'null')}catch(e){}
 if(!LOC||!LOC.list)LOC={current:'main',list:[{id:'main',name:'Proview Kitchen'}]};
 let KEY='proview-bookings-v3:'+LOC.current;
 let S;
@@ -1094,7 +1098,7 @@ const SIZE={sq:[64,64],rect:[100,64],round:[74,74],long:[74,150],big:[130,80]};
 const STATUS_LABEL={booked:'Booked',arrived:'Arrived',waiting:'Waiting',seated:'Seated',dessert:'Dessert',paying:'Paying',finished:'Finished',cancelled:'Cancelled',noshow:'No-show',deleted:'Deleted',pending:'Enquiry',declined:'Declined'};
 const DEAD=['cancelled','noshow','deleted','pending','declined'];
 const ACTIVE=['seated','dessert','paying'];
-function save(){LEARN=null;if(typeof CLOUD!=='undefined'&&CLOUD.nosite)return;if(typeof CLOUD!=='undefined'&&CLOUD.on)setTimeout(()=>schedulePush());try{localStorage.setItem(KEY,JSON.stringify(S));const l=LOC.list.find(x=>x.id===LOC.current);if(l&&S.venue)l.name=S.venue.name;localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}}
+function save(){LEARN=null;if(typeof CLOUD!=='undefined'&&CLOUD.nosite)return;if(typeof CLOUD!=='undefined'&&CLOUD.on)setTimeout(()=>schedulePush());try{localStorage.setItem(KEY,JSON.stringify(S));const l=LOC.list.find(x=>x.id===LOC.current);if(l&&S.venue)l.name=S.venue.name;locWrite()}catch(e){}}
 function load(){try{const r=localStorage.getItem(KEY);if(r){S=upgrade(JSON.parse(r));return}}catch(e){}S=upgrade(seed());save()}
 
 function seed(){
@@ -1976,7 +1980,7 @@ A.showQR=el=>{const url=el.dataset.v,t=el.dataset.t||'Booking link';const m=$('#
  loadQR(err=>{const box=$('#qrBox');if(!box)return;if(err||!window.QRCode){box.innerHTML='<div class="small mut" style="padding:20px">QR code needs an internet connection.</div>';return}new QRCode(box,{text:url,width:220,height:220,colorDark:'#141418',colorLight:'#ffffff'});setTimeout(()=>{const c=box.querySelector('canvas'),i=box.querySelector('img');if(c&&i){i.src=c.toDataURL();i.style.display='block';c.style.display='none'}},50)})};
 A.signupTest=()=>{const n=$('#suName').value.trim(),e=$('#suEmail').value.trim().toLowerCase();if(!n||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){toast('Enter a name and a valid email');return}if(!$('#suOk').checked){toast('Tick the box to agree to marketing');return}let g=S.guests.find(x=>x.email.toLowerCase()===e);if(g){g.marketing=true}else{g={id:uid(),name:n,phone:$('#suPhone')?.value.trim()||'',email:e,tags:[],notes:'',marketing:true,created:today(),birthday:$('#suBday')?.value||''};S.guests.push(g)}S.signup.signups++;notify('user',`${shortName(n)} joined your guest list`);save();render();toast(`${n} added to your guest book`)};
 A.locations=()=>{if(LOC.cloud){const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:460px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Your locations</h3><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div style="max-height:60vh;overflow:auto">${LOC.list.map(l=>`<div class="sres" data-act="switchLoc" data-id="${esc(l.id)}"><div class="av">${initials(l.name)}</div><div style="flex:1"><b>${esc(l.name)}</b><div class="small mut">${l.id===LOC.current?'Current location':esc(l.business||'')}</div></div>${l.id===LOC.current?ic('check',16):''}</div>`).join('')}</div><div class="pad small mut" style="border-top:1px solid var(--line)">${isMaster()?'Add businesses, locations and licences in the <a href="https://license.proviewcrm.co.uk" target="_blank" rel="noopener">licence portal ↗</a>.':`To add another location, call Proview on ${PROVIEW_PHONE}.`}</div></div>`;m.classList.add('show');return}const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:460px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Your locations</h3><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div>${LOC.list.map(l=>`<div class="sres" data-act="switchLoc" data-id="${l.id}"><div class="av">${initials(l.name)}</div><div style="flex:1"><b>${esc(l.name)}</b>${l.id===LOC.current?'<div class="small mut">Current location</div>':''}</div>${l.id===LOC.current?ic('check',16):''}</div>`).join('')}</div><div class="pad row" style="border-top:1px solid var(--line)"><input class="inp" id="newLoc" placeholder="New location name" style="flex:1"><button class="btn sm pri" data-act="addLoc">${ic('plus',14)} Add</button></div></div>`;m.classList.add('show')};
-A.switchLoc=el=>{const id=el.dataset.id;if(id===LOC.current){A.closeModal();return}save();LOC.current=id;if(CLOUD.cfg){localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload();return}KEY='proview-bookings-v3:'+id;load();if(!S.venue.name||S.venue.name==='Proview Kitchen'){const l=LOC.list.find(x=>x.id===id);if(l&&l.fresh){S.venue.name=l.name;delete l.fresh}}save();U.area=S.areas[0].id;U.date=today();U.view='parties';A.closeModal();render();toast('Switched to '+S.venue.name)};
+A.switchLoc=el=>{const id=el.dataset.id;if(id===LOC.current){A.closeModal();return}save();LOC.current=id;if(CLOUD.cfg){locWrite();location.reload();return}KEY='proview-bookings-v3:'+id;load();if(!S.venue.name||S.venue.name==='Proview Kitchen'){const l=LOC.list.find(x=>x.id===id);if(l&&l.fresh){S.venue.name=l.name;delete l.fresh}}save();U.area=S.areas[0].id;U.date=today();U.view='parties';A.closeModal();render();toast('Switched to '+S.venue.name)};
 A.addLoc=()=>{const n=$('#newLoc').value.trim();if(!n){toast('Name the location');return}const id=uid();LOC.list.push({id,name:n});save();const keep=S;const s=upgrade(seed());s.venue.name=n;s.venue.area='';s.parties=[];s.guests=[];s.reviews=[];s.chats=[];s.notes=[];s.dirty={};try{localStorage.setItem('proview-bookings-v3:'+id,JSON.stringify(s))}catch(e){}S=keep;A.switchLoc({dataset:{id}})};
 function seatAt(pid,tid){const p=S.parties.find(x=>x.id===pid);const t=S.tables.find(x=>x.id===tid);
  if(U.date!==today()||p.date!==today()){toast('You can only seat parties on today\'s plan');return}
@@ -2640,7 +2644,7 @@ function purgeCache(keep){const ok=keep?new Set(keep):null,gone=[];
  try{for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(!k)continue;
    const id=k.startsWith(VKEY)?k.slice(VKEY.length):k.startsWith(SKEY)?k.slice(SKEY.length):null;
    if(id!==null&&!(ok&&ok.has(id))){localStorage.removeItem(k);gone.push(id)}}
-  if(!ok){localStorage.removeItem(LOCKEY);localStorage.removeItem(WHOKEY);sessionStorage.removeItem(MASTER_OPEN_KEY);sessionStorage.removeItem('pv-bk-open');sessionStorage.removeItem('pv-bk-all');sessionStorage.removeItem('pv-bk-view');sessionStorage.removeItem('pv-newsite')}}catch(e){}
+  if(!ok){localStorage.removeItem(LOCKEY);sessionStorage.removeItem(LOCKEY);localStorage.removeItem(WHOKEY);sessionStorage.removeItem(MASTER_OPEN_KEY);sessionStorage.removeItem('pv-bk-open');sessionStorage.removeItem('pv-bk-all');sessionStorage.removeItem('pv-bk-view');sessionStorage.removeItem('pv-newsite')}}catch(e){}
  return gone}
 async function signOutWith(msg){try{await CLOUD.ad.signOut()}catch(e){}purgeCache(null);try{if(msg)sessionStorage.setItem('pv-login-msg',msg)}catch(e){}location.reload()}
 
@@ -2652,7 +2656,9 @@ async function afterSignIn(){
  let me=null;try{me=CLOUD.ad.whoami?await CLOUD.ad.whoami():null}catch(e){console.error('whoami',e)}
  if(!me){await cloudStart();return}                      // database without sites yet: old single-venue mode
  CLOUD.me=me;const sites=me.sites||[];
- purgeCache(sites.map(s=>s.id));
+ if(!me.is_master){setMasterOpen(null);try{sessionStorage.removeItem(LOCKEY)}catch(e){}}   // master-open is only ever the master's (MASTER_OPEN_SPEC)
+ // the master's other tabs may be inside other customers: their offline copies stay (sign-out still clears everything)
+ if(!me.is_master)purgeCache(sites.map(s=>s.id));
  if(!sites.length){
   if(me.is_master){showMasterHome();return}   // no customer opened from the licence portal (or it has no locations): nothing loaded
   const b=(me.businesses||[])[0];
@@ -2660,7 +2666,7 @@ async function afterSignIn(){
   showBusinessSetup();return}                              // no business, no invite: set one up (no licence until bought)
  const want=LOC.cloud&&sites.some(s=>s.id===LOC.current)?LOC.current:sites[0].id;
  const wasKey=KEY;LOC={cloud:true,current:want,list:sites.map(s=>({id:s.id,name:s.name,business:s.business}))};
- try{localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}
+ locWrite()
  if(wasKey!=='proview-bookings-v3:'+want){location.reload();return}
  CLOUD.vid=want;CLOUD.site=sites.find(s=>s.id===want);
  try{const kv=sessionStorage.getItem('pv-bk-view');sessionStorage.removeItem('pv-bk-view');if(kv&&U.view!=='allsites')U.view=kv;   // switched site: same page
@@ -2701,7 +2707,7 @@ async function bizSetupSubmit(ev){ev&&ev.preventDefault();const n=$('#bzName').v
  if(n.length<2){authNote('Enter your business name.');$('#bzName').focus();return false}
  go.disabled=true;go.textContent='Setting up…';
  try{const sid=await CLOUD.ad.rpc('bk_create_my_business',{p_business:n,p_site:s,p_phone:$('#bzPhone').value.trim()});
-  LOC={cloud:true,current:sid,list:[{id:sid,name:s,business:n}]};localStorage.setItem(LOCKEY,JSON.stringify(LOC));sessionStorage.setItem('pv-newsite',s);location.reload()}
+  LOC={cloud:true,current:sid,list:[{id:sid,name:s,business:n}]};locWrite();sessionStorage.setItem('pv-newsite',s);location.reload()}
  catch(e){const t=String(e?.message||e||'');go.disabled=false;go.textContent='Set up my business';
   if(/PGRST202|could not find the function|does not exist/i.test(t+' '+(e?.code||''))){go.hidden=true;authNote("Your login isn't linked to a business yet. Ask your owner or Proview.",'info');return false}   // sign-up not on this database
   if(/already belongs to a business/i.test(t)){location.reload();return false}   // invited meanwhile: open their business
@@ -2860,7 +2866,7 @@ A.allRefresh=async()=>{let me=null;try{me=await CLOUD.ad.whoami()}catch(e){toast
  if(changed){markOpen(null);location.reload();return}ALLS.at=0;ALLS.rows=null;render();toast('Up to date')};
 A.allBiz=(el,e)=>{e&&e.preventDefault&&e.preventDefault();if($('#modal').classList.contains('show'))A.closeModal();markOpen(null);U.allBiz=String(el.dataset.id);try{sessionStorage.setItem('pv-bk-all','__biz:'+U.allBiz)}catch(x){}U.view='allsites';render()};
 A.allOpen=el=>{const id=el.dataset.id;if($('#modal').classList.contains('show'))A.closeModal();markOpen(id);U.view='parties';if(id===LOC.current){render();return}A.openSite({dataset:{id}})};
-A.openSite=el=>{const id=el.dataset.id;if(!id)return;if(id===CLOUD.vid)return;markOpen(id);save();LOC.current=id;if(!LOC.list.some(x=>x.id===id)){LOC.list.push({id,name:id})}LOC.cloud=true;localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload()};
+A.openSite=el=>{const id=el.dataset.id;if(!id)return;if(id===CLOUD.vid)return;markOpen(id);save();LOC.current=id;if(!LOC.list.some(x=>x.id===id)){LOC.list.push({id,name:id})}LOC.cloud=true;locWrite();location.reload()};
 /* licences are managed in the Proview licence portal */
 const LIC_PORTAL='https://license.proviewcrm.co.uk';
 A.admLicence=()=>window.open(LIC_PORTAL,'_blank','noopener');
