@@ -2303,17 +2303,19 @@ function MockAdapter(){
    const setLic=(s,t,ext,expires,notes)=>{let e=null;if(t==='custom')e=expires;else if(t!=='lifetime'){const base=ext&&s.license_expires_at&&new Date(s.license_expires_at)>new Date()?new Date(s.license_expires_at):new Date();e=new Date(t==='trial'?base.getTime()+iv.trial:licPreview(t,{extend:ext,current:s.license_expires_at})).toISOString()}
     Object.assign(s,{license_type:t,license_expires_at:e,license_notes:notes||s.license_notes||null,license_updated_at:new Date().toISOString()});return s};
    if(fn==='bk_set_license'){if(!master)throw new Error('Only the Proview administrator can change licences.');const s=d.sites.find(x=>x.id===a.p_site);setLic(s,a.p_type,a.p_extend,a.p_expires,a.p_notes);save();return s}
-   if(fn==='bk_add_site'){if(!master)throw new Error('Only the Proview administrator can add locations.');const b=d.biz.find(x=>x.id===a.p_business);const s={id:newId(a.p_name),business_id:b.id,name:a.p_name};d.sites.push(s);setLic(s,a.p_license||'trial');if(b.contact_email)d.inv.push({email:b.contact_email,venue:s.id,role:'Admin'});save();return s}
-   if(fn==='bk_create_my_business'){if(d.prof.some(p=>p.email===em))throw new Error('Your account already belongs to a business.');if(d.biz.some(b=>b.self_signup&&b.contact_email===em))throw new Error('This email address has already used its free trial. Buy a licence at license.proviewcrm.co.uk or call Proview on 020 8935 5495.');
+   if(fn==='bk_add_site'){if(!master)throw new Error('Only the Proview administrator can add locations.');const b=d.biz.find(x=>x.id===a.p_business);const s={id:newId(a.p_name),business_id:b.id,name:a.p_name};d.sites.push(s);Object.assign(s,{license_type:null,license_expires_at:null});if(b.contact_email)d.inv.push({email:b.contact_email,venue:s.id,role:'Admin'});save();return s}
+   if(fn==='bk_create_my_business'){if(d.prof.some(p=>p.email===em))throw new Error('Your account already belongs to a business.');
     const b={id:'b-'+Math.random().toString(36).slice(2,8),name:a.p_business,contact_email:em,phone:a.p_phone||null,self_signup:true,notes:'Signed up online',created_at:new Date().toISOString()};d.biz.push(b);
-    const s={id:newId(a.p_site||a.p_business),business_id:b.id,name:a.p_site||a.p_business};setLic(s,'trial');d.sites.push(s);d.prof.push({email:em,venue:s.id,role:'Owner'});save();return s.id}
-   if(fn==='bk_add_business'){if(!master)throw new Error('Only the Proview administrator can add businesses.');   // mirrors supabase/007_add_business.sql
+    const s={id:newId(a.p_site||a.p_business),business_id:b.id,name:a.p_site||a.p_business,license_type:null,license_expires_at:null};d.sites.push(s);   // 008: no licence
+   d.prof.push({email:em,venue:s.id,role:'Owner'});save();return s.id}
+   if(fn==='bk_add_business'){if(!master)throw new Error('Only the Proview administrator can add businesses.');   // mirrors supabase/007_add_business.sql + 008_no_trial.sql
     const bn=String(a.p_business||'').trim(),nm=String(a.p_name||'').trim(),e=String(a.p_email||'').trim().toLowerCase();
     if(bn.length<2)throw new Error('Enter the business name.');if(nm.length<2)throw new Error('Enter the owner\'s name.');if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e))throw new Error('Enter a valid email address.');
     d.logins=d.logins||[];const existing=d.logins.some(l=>l.email===e)||d.prof.some(p=>p.email===e)||d.inv.some(p=>p.email===e);
     if(!existing&&String(a.p_password||'').length<6)throw new Error('The password needs at least 6 characters.');
     const b={id:'b-'+Math.random().toString(36).slice(2,8),name:bn,contact_email:e,phone:a.p_mobile||null,self_signup:false,notes:'Added by Proview',created_at:new Date().toISOString()};
-    const s={id:newId(bn),business_id:b.id,name:bn};setLic(s,'trial');d.biz.push(b);d.sites.push(s);d.prof.push({email:e,venue:s.id,role:'Owner'});
+    const s={id:newId(bn),business_id:b.id,name:bn,license_type:null,license_expires_at:null};d.biz.push(b);   // 008: no licence
+   d.sites.push(s);d.prof.push({email:e,venue:s.id,role:'Owner'});
     if(!existing)d.logins.push({email:e,password:a.p_password,name:nm,mobile:a.p_mobile||null});save();
     return{business_id:b.id,site_id:s.id,user_id:'u-'+e,email:e,existing}}
    throw new Error('Unknown function '+fn)},
@@ -2640,7 +2642,7 @@ async function afterSignIn(){
   if(me.is_master){LOC={cloud:true,current:'',list:[]};try{localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}showMasterHome();return}
   const b=(me.businesses||[])[0];
   if(b){await signOutWith(`Your login at ${b.name} doesn't have any locations yet. Ask your owner or Proview.`);return}   // added to a business, given no sites
-  showBusinessSetup();return}                              // no business, no invite: free 3-day trial
+  showBusinessSetup();return}                              // no business, no invite: set one up (no licence until bought)
  const want=LOC.cloud&&sites.some(s=>s.id===LOC.current)?LOC.current:sites[0].id;
  const wasKey=KEY;LOC={cloud:true,current:want,list:sites.map(s=>({id:s.id,name:s.name,business:s.business}))};
  try{localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}
@@ -2657,16 +2659,16 @@ function showMasterHome(){CLOUD.nosite=true;CLOUD.on=false;CLOUD.vid=null;CLOUD.
  S=upgrade(seed());['parties','guests','reviews','chats','notes','tasks','shifts','staff'].forEach(k=>S[k]=[]);S.venue.name='Proview';
  U.view='allsites';hideAuth();render()}
 
-/* --- online sign-up: set up the business (3-day trial) --- */
+/* --- online sign-up: set up the business (no free trial: it starts with no licence, then the buy screen shows) --- */
 function showBusinessSetup(msg){document.body.classList.add('gate');const a=$('#auth');
  a.innerHTML=`<div class="auth-form" style="grid-column:1/-1"><form novalidate onsubmit="return bizSetupSubmit(event)">
   <div class="auth-brand"><div class="logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span></div>
-  <h1>Set up your business</h1><p class="muted">Start your free 3-day trial. No card needed.</p>
+  <h1>Set up your business</h1><p class="muted">Add your business and first location. Then buy a licence to start using Proview Bookings.</p>
   <div id="authMsg">${msg?`<div class="notice bad">${esc(msg)}</div>`:''}</div>
   <label class="af">Business name<input id="bzName" placeholder="e.g. Bella Pizza" autocomplete="organization" oninput="bzSiteFollow(this.value)"></label>
   <label class="af">First location name<input id="bzSite" placeholder="Same as the business name" oninput="this.dataset.edited=this.value?'1':''"></label>
   <label class="af">Phone (optional)<input id="bzPhone" type="tel" autocomplete="tel" placeholder="So we can help you get set up"></label>
-  <button class="go" type="submit" id="authGo">Start free trial</button>
+  <button class="go" type="submit" id="authGo">Set up my business</button>
   <div class="alinks"><span class="small mut" style="align-self:center">Signed in as ${esc(CLOUD.user?.email||'')}</span><button type="button" data-act="authSignOut">Sign out</button></div>
  </form></div>`;a.hidden=false;setTimeout(()=>$('#bzName')?.focus(),50)}
 function bzSiteFollow(v){const s=$('#bzSite');if(s&&!s.dataset.edited)s.value=v}
@@ -2675,10 +2677,9 @@ async function bizSetupSubmit(ev){ev&&ev.preventDefault();const n=$('#bzName').v
  go.disabled=true;go.textContent='Setting up…';
  try{const sid=await CLOUD.ad.rpc('bk_create_my_business',{p_business:n,p_site:s,p_phone:$('#bzPhone').value.trim()});
   LOC={cloud:true,current:sid,list:[{id:sid,name:s,business:n}]};localStorage.setItem(LOCKEY,JSON.stringify(LOC));sessionStorage.setItem('pv-newsite',s);location.reload()}
- catch(e){const t=String(e?.message||e||'');go.disabled=false;go.textContent='Start free trial';
-  if(/PGRST202|could not find the function|does not exist/i.test(t+' '+(e?.code||''))){go.hidden=true;authNote("Your login isn't linked to a business yet. Ask your owner or Proview.",'info');return false}   // trial sign-up not on this database
+ catch(e){const t=String(e?.message||e||'');go.disabled=false;go.textContent='Set up my business';
+  if(/PGRST202|could not find the function|does not exist/i.test(t+' '+(e?.code||''))){go.hidden=true;authNote("Your login isn't linked to a business yet. Ask your owner or Proview.",'info');return false}   // sign-up not on this database
   if(/already belongs to a business/i.test(t)){location.reload();return false}   // invited meanwhile: open their business
-  if(/already used its free trial/i.test(t)){go.hidden=true;const m=$('#authMsg');if(m)m.innerHTML=`<div class="notice bad">This email address has already used its free trial. Buy a licence in the <a href="${LIC_PORTAL}" target="_blank" rel="noopener">Proview licence portal ↗</a> or call Proview on <b>${PROVIEW_PHONE}</b>.</div>`;return false}
   authNote(authErr(e))}
  return false}
 A.authSignOut=async(el,ev)=>{ev&&ev.preventDefault();await signOutWith()};
@@ -2687,12 +2688,12 @@ A.authSignOut=async(el,ev)=>{ev&&ev.preventDefault();await signOutWith()};
 function showLicenceLock(){document.body.classList.add('gate');const s=CLOUD.site,L=licState(s),a=$('#auth');const others=(LOC.list||[]).filter(x=>x.id!==s.id);
  a.innerHTML=`<div class="auth-form" style="grid-column:1/-1"><div class="lockcard">
   <div class="auth-brand"><div class="logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span></div>
-  <h1>${L.type==='trial'?'Your free trial has ended':L.state==='none'?'No licence for this venue':'Your licence has expired'}</h1>
-  <p class="muted"><b>${esc(s.name)}</b>${L.expires?` · ended ${licDate(L.expires)}`:''}. Bookings are kept safe, but this venue can't be used and online booking is paused until it's renewed.</p>
-  ${canBuy()?`<button class="go" type="button" data-act="buyOnline">${L.type==='trial'||L.state==='none'?'Buy a licence online':'Renew online'}</button><div class="notice">Or call Proview on <b>${PROVIEW_PHONE}</b>.</div>`:`<div class="notice">${CLOUD.me?'Ask your manager to renew it, or call':'Call'} Proview on <b>${PROVIEW_PHONE}</b> to ${L.type==='trial'?'buy a licence':'renew'}.</div>`}
+  <h1>${L.state==='none'?'No licence yet':L.type==='trial'?'Your trial has ended':'Your licence has expired'}</h1>
+  <p class="muted">${L.state==='none'?`<b>${esc(s.name)}</b>: buy a licence to start using Proview Bookings. Until then the venue can't be used and online booking is off.`:`<b>${esc(s.name)}</b>${L.expires?` · ended ${licDate(L.expires)}`:''}. Bookings are kept safe, but this venue can't be used and online booking is paused until it's renewed.`}</p>
+  ${canBuy()?`<button class="go" type="button" data-act="buyOnline">${L.type==='trial'||L.state==='none'?'Buy a licence online':'Renew online'}</button><div class="notice">or call ${PROVIEW_PHONE}</div>`:`<div class="notice">${CLOUD.me?(L.state==='none'?'Ask your owner to buy one, or call':'Ask your manager to renew it, or call'):'Call'} Proview on <b>${PROVIEW_PHONE}</b> to ${L.type==='trial'||L.state==='none'?'buy a licence':'renew'}.</div>`}
   ${others.length?`<label class="af">Open another location<select class="inp" style="height:44px" onchange="A.openSite({dataset:{id:this.value}})"><option value="">Choose…</option>${others.map(o=>`<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('')}</select></label>`:''}
   <a class="small" style="text-align:center" href="${LIC_PORTAL}" target="_blank" rel="noopener">Proview licence portal ↗</a>
-  <div class="alinks"><button type="button" data-act="lockRetry">I've renewed — check again</button><button type="button" data-act="authSignOut">Sign out</button></div>
+  <div class="alinks"><button type="button" data-act="lockRetry">${L.state==='none'?"I've bought it — check again":"I've renewed — check again"}</button><button type="button" data-act="authSignOut">Sign out</button></div>
  </div></div>`;a.hidden=false}
 A.lockRetry=()=>location.reload();
 
@@ -2714,7 +2715,7 @@ A.buyOnline=async()=>{let plans={};try{plans=await CLOUD.ad.rpc('licence_buy_pla
 /* --- banner inside the app when the licence needs attention --- */
 function licBannerHtml(){if(!CLOUD.site)return'';const s=CLOUD.site,L=licState(s),who=isMaster()?'Renew it at license.proviewcrm.co.uk.':`Call Proview on ${PROVIEW_PHONE} to renew.`;
  let t='';if(L.state==='grace')t=`This venue's licence expired on ${licDate(L.expires)}. It keeps working for ${plural(L.graceLeft,'more day')}, then it stops. ${who}`;
- else if(L.state==='expiring')t=`${L.type==='trial'?'Your free trial':'This venue\'s licence'} ends on ${licDate(L.expires)} (${plural(L.daysLeft,'day')}). ${L.type==='trial'?`Call Proview on ${PROVIEW_PHONE} to keep using Proview Bookings.`:who}`;
+ else if(L.state==='expiring')t=`${L.type==='trial'?'Your trial':'This venue\'s licence'} ends on ${licDate(L.expires)} (${plural(L.daysLeft,'day')}). ${L.type==='trial'?`Call Proview on ${PROVIEW_PHONE} to keep using Proview Bookings.`:who}`;
  else if(isMaster()&&['expired','none'].includes(L.state))t=`${esc(s.name)} has ${L.state==='none'?'no licence':'an expired licence'}. Staff are locked out and online booking is paused. You can still open it as the Proview admin.`;
  if(!t)return'';const bad=['grace','expired','none'].includes(L.state);
  return`<div class="card pad row noprint licbar" style="margin-bottom:14px;${bad?'background:var(--badl);border-color:#f2b8be':'background:var(--warnl);border-color:#f0d08a'}">${ic('clock',16)}<span style="flex:1">${t}</span>${isMaster()?`<button class="btn sm" data-act="admLicence">Licence portal ↗</button>`:canBuy()?`<button class="btn sm pri" data-act="buyOnline">${L.type==='trial'||L.state==='none'?'Buy licence online':'Renew online'}</button>`:''}</div>`}
