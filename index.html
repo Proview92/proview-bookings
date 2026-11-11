@@ -2889,17 +2889,18 @@ function showLicenceLock(){document.body.classList.add('gate');const s=CLOUD.sit
   <p class="muted">${L.state==='none'?`<b>${esc(s.name)}</b>: buy a licence to start using Proview Bookings. Until then the venue can't be used and online booking is off.`:`<b>${esc(s.name)}</b>${L.expires?` · ended ${licDate(L.expires)}`:''}. Bookings are kept safe, but this venue can't be used and online booking is paused until it's renewed.`}</p>
   ${canBuy()?`<button class="go" type="button" data-act="buyOnline">${L.type==='trial'||L.state==='none'?'Buy a licence online':'Renew online'}</button><div class="notice">or call ${PROVIEW_PHONE}</div>`:`<div class="notice">${CLOUD.me?(L.state==='none'?'Ask your owner to buy one, or call':'Ask your manager to renew it, or call'):'Call'} Proview on <b>${PROVIEW_PHONE}</b> to ${L.type==='trial'||L.state==='none'?'buy a licence':'renew'}.</div>`}
   ${others.length?`<label class="af">Open another location<select class="inp" style="height:44px" onchange="A.openSite({dataset:{id:this.value}})"><option value="">Choose…</option>${others.map(o=>`<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('')}</select></label>`:''}
-  <a class="small" style="text-align:center" href="${LIC_PORTAL}" target="_blank" rel="noopener">Proview licence portal ↗</a>
+  ${isMaster()?`<a class="small" style="text-align:center" href="${LIC_PORTAL}" target="_blank" rel="noopener">Proview licence portal ↗</a>`:''}
   <div class="alinks"><button type="button" data-act="lockRetry">${L.state==='none'?"I've bought it — check again":"I've renewed — check again"}</button><button type="button" data-act="authSignOut">Sign out</button></div>
  </div></div>`;a.hidden=false}
 A.lockRetry=()=>location.reload();
 
 /* --- buy or renew this venue's licence online (prices and Stripe links come from the Proview licence portal) --- */
-const canBuy=()=>!!(CLOUD.site&&CLOUD.me&&!isMaster()&&['Admin','Owner'].includes((CLOUD.me.sites||[]).find(x=>x.id===CLOUD.site.id)?.role));
+const canBuy=(s=CLOUD.site)=>!!(s&&CLOUD.me&&!isMaster()&&['Admin','Owner'].includes((CLOUD.me.sites||[]).find(x=>x.id===s.id)?.role));
 const BUY_ORDER=['m1','m3','m6','m12','m24','m36','lifetime'];
 const buyMoney=p=>new Intl.NumberFormat('en-GB',{style:'currency',currency:(p.currency||'gbp').toUpperCase()}).format(p.amount/100);
-A.buyOnline=async()=>{let plans={};try{plans=await CLOUD.ad.rpc('licence_buy_plans')||{}}catch(e){}
- const s=CLOUD.site,list=Object.entries(plans).sort((a,b)=>BUY_ORDER.indexOf(a[0])-BUY_ORDER.indexOf(b[0]));
+A.buyOnline=async el=>{const sid=el&&el.dataset&&el.dataset.id,s=sid?(CLOUD.me?.sites||[]).find(x=>x.id===sid):CLOUD.site;if(!s||(sid&&!canBuy(s)))return;   // data-id: a location card on "All my sites"
+ let plans={};try{plans=await CLOUD.ad.rpc('licence_buy_plans')||{}}catch(e){}
+ const list=Object.entries(plans).sort((a,b)=>BUY_ORDER.indexOf(a[0])-BUY_ORDER.indexOf(b[0]));
  if(!list.length){toast(`Online payment isn’t available yet. Call Proview on ${PROVIEW_PHONE}.`);return}
  const pick=(list.find(([k])=>k==='m12')||list[0])[0],buying=!s.license_type||s.license_type==='trial';
  const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:440px;margin-top:8vh"><div class="pad"><div class="row between"><b style="font-size:17px">${buying?'Buy a licence':'Renew licence'}: ${esc(s.name)}</b><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div>
@@ -2910,9 +2911,9 @@ A.buyOnline=async()=>{let plans={};try{plans=await CLOUD.ad.rpc('licence_buy_pla
   u.searchParams.set('client_reference_id',`${p.ref||'pvb'}__${s.id}__${k}`);const em=CLOUD.user?.email||CLOUD.me?.email;if(em)u.searchParams.set('prefilled_email',em);
   window.open(u.toString(),'_blank','noopener');A.closeModal();toast('Finish paying in the Stripe tab. Your licence updates within about 5 minutes.')}};
 /* --- banner inside the app when the licence needs attention --- */
-function licBannerHtml(){if(!CLOUD.site)return'';const s=CLOUD.site,L=licState(s),who=isMaster()?'Renew it at license.proviewcrm.co.uk.':`Call Proview on ${PROVIEW_PHONE} to renew.`;
+function licBannerHtml(){if(!CLOUD.site)return'';const s=CLOUD.site,L=licState(s),who=isMaster()?'Renew it at license.proviewcrm.co.uk.':canBuy()?`Renew it online, or call Proview on ${PROVIEW_PHONE}.`:`Call Proview on ${PROVIEW_PHONE} to renew.`;
  let t='';if(L.state==='grace')t=`This venue's licence expired on ${licDate(L.expires)}. It keeps working for ${plural(L.graceLeft,'more day')}, then it stops. ${who}`;
- else if(L.state==='expiring')t=`${L.type==='trial'?'Your trial':'This venue\'s licence'} ends on ${licDate(L.expires)} (${plural(L.daysLeft,'day')}). ${L.type==='trial'?`Call Proview on ${PROVIEW_PHONE} to keep using Proview Bookings.`:who}`;
+ else if(L.state==='expiring')t=`${L.type==='trial'?'Your trial':'This venue\'s licence'} ends on ${licDate(L.expires)} (${plural(L.daysLeft,'day')}). ${L.type==='trial'?(canBuy()?`Buy a licence online to keep using Proview Bookings, or call Proview on ${PROVIEW_PHONE}.`:`Call Proview on ${PROVIEW_PHONE} to keep using Proview Bookings.`):who}`;
  else if(isMaster()&&['expired','none'].includes(L.state))t=`${esc(s.name)} has ${L.state==='none'?'no licence':'an expired licence'}. Staff are locked out and online booking is paused. You can still open it as the Proview admin.`;
  if(!t)return'';const bad=['grace','expired','none'].includes(L.state);
  return`<div class="card pad row noprint licbar" style="margin-bottom:14px;${bad?'background:var(--badl);border-color:#f2b8be':'background:var(--warnl);border-color:#f0d08a'}">${ic('clock',16)}<span style="flex:1">${t}</span>${isMaster()?`<button class="btn sm" data-act="admLicence">Licence portal ↗</button>`:canBuy()?`<button class="btn sm pri" data-act="buyOnline">${L.type==='trial'||L.state==='none'?'Buy licence online':'Renew online'}</button>`:''}</div>`}
@@ -2975,6 +2976,8 @@ VIEWS.allsites=()=>{if(!canView('allsites'))return VIEWS.parties();const M=isMas
   if(list.every(x=>licState(x).state==='expired'))return'Expired';if(list.every(x=>licState(x).state==='none'))return'No licence';
   const ok=list.filter(licWorks).length;return ok===list.length?plural(list.length,'licence'):`${ok} of ${list.length} licensed`};
  const chev=`<span class="ov-chev" aria-hidden="true">›</span>`,dot=t=>`<span class="ov-dot ${t}"></span>`;
+ // owners/admins (never the master, who uses the licence portal): buy or renew a location that needs it, with the Stripe flow
+ const buyBtn=x=>canBuy(x)&&(needs(x)||licState(x).type==='trial')?`<button class="btn sm" data-act="buyOnline" data-id="${esc(x.id)}">${licState(x).type==='trial'||licState(x).state==='none'?'Buy licence':'Renew'}</button>`:'';
  const openBtn=(act,id,label)=>`<button class="btn sm primary" data-act="${act}" data-id="${esc(id)}">${label}</button>`;
  const portalBtn=`<a class="btn sm" href="${LIC_PORTAL}" target="_blank" rel="noopener" title="Locations and licences are added in the licence portal">Add a location ↗</a>`;
  const q=(...a)=>esc(a.filter(Boolean).join(' ').toLowerCase());
@@ -2984,7 +2987,7 @@ VIEWS.allsites=()=>{if(!canView('allsites'))return VIEWS.parties();const M=isMas
   const act=!L.length?(M?portalBtn:''):single?openBtn('allOpen',L[0].id,'Open business'):openBtn('allBiz',g.id,'Open business');
   return`<article class="card ov-biz" data-q="${q(g.name,...L.map(x=>x.name))}"><div class="ov-bh"><div class="grow"><h3>${esc(g.name)}</h3><div class="muted small">${esc(sub)}</div></div>${pill(L)}</div>${rows}<div class="ov-bf"><span class="muted small">${esc(licText(L))}</span>${act}</div></article>`};
  const locCard=x=>{const cur=x.id===LOC.current&&!CLOUD.nosite;
-  return`<article class="card ov-biz" data-q="${q(x.business,x.name)}"><div class="ov-bh"><div class="grow"><h3>${esc(x.name)}</h3><div class="muted small">${esc(R?`${plural(n(x.id,'b'),'booking')} · ${plural(n(x.id,'c'),'cover')} today`:'Loading today’s bookings…')}</div></div>${pill([x])}</div><div class="ov-bf"><span class="muted small">${esc(licText([x]))}</span>${openBtn('allOpen',x.id,cur?'Back to this location':'Open location')}</div></article>`};
+  return`<article class="card ov-biz" data-q="${q(x.business,x.name)}"><div class="ov-bh"><div class="grow"><h3>${esc(x.name)}</h3><div class="muted small">${esc(R?`${plural(n(x.id,'b'),'booking')} · ${plural(n(x.id,'c'),'cover')} today`:'Loading today’s bookings…')}</div></div>${pill([x])}</div><div class="ov-bf"><span class="muted small">${esc(licText([x]))}</span>${(o=>{const bb=buyBtn(x);return bb?`<div class="pv-acts">${bb}${o}</div>`:o})(openBtn('allOpen',x.id,cur?'Back to this location':'Open location'))}</div></article>`};
  const cards=perLoc?allSites.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name))).map(locCard):bizList.map(bizCard);
  const nBiz=bizList.length,nItems=perLoc?allSites.length:nBiz;
  const stat=(k,v,list,tone)=>`<button type="button" class="card ov-stat${tone?' '+tone:''}" data-act="allList" data-list="${list}" title="Show the list"><div class="tiny">${k}</div><div class="ov-v">${v}</div></button>`;
@@ -2994,7 +2997,7 @@ VIEWS.allsites=()=>{if(!canView('allsites'))return VIEWS.parties();const M=isMas
  const bizName=U.allBiz&&(allSites[0]?.business||(ALLS.biz||[]).find(b=>String(b.id)===U.allBiz)?.name||'This business');
  const desc=M&&!U.allBiz?'Every business on the platform with its locations. Open one to see it as its team does.':U.allBiz?`Every location of ${esc(bizName)} with today's bookings. Open one to work in it.`:'Each location with today\'s bookings. Open a location to work in it.';
  return`<div class="pv-loc"><div class="pv-ph"><p class="muted">${desc}</p>
-  <div class="pv-acts"><button class="btn" data-act="allRefresh" title="Refresh">${ic('refresh',16)} Refresh</button><a class="btn" href="${LIC_PORTAL}" target="_blank" rel="noopener">Licences ↗</a>${M&&!U.allBiz?`<button class="btn primary" data-act="addBiz">${ic('plus',16)} Add business</button>`:''}</div></div>
+  <div class="pv-acts"><button class="btn" data-act="allRefresh" title="Refresh">${ic('refresh',16)} Refresh</button>${M?`<a class="btn" href="${LIC_PORTAL}" target="_blank" rel="noopener">Licences ↗</a>`:''}${M&&!U.allBiz?`<button class="btn primary" data-act="addBiz">${ic('plus',16)} Add business</button>`:''}</div></div>
  ${stats}
  ${ALLS.err?`<div class="notice bad" style="margin-bottom:12px">${esc(ALLS.err)}</div>`:''}
  <div class="ov-tools"><input class="ov-search" id="allQ" type="search" placeholder="Search businesses or locations" aria-label="Search businesses or locations" oninput="allFilter(this.value)"></div>
