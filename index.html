@@ -846,7 +846,15 @@ html .app.collapsed .side :is(.side-foot,#pv-x)>*{width:30px!important;height:26
 .abz .pw-wrap{position:relative}.abz .pw-wrap .inp{padding-right:44px}.abz .pw-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:34px;height:32px;border:0;background:none;color:#8a8a94;cursor:pointer;display:grid;place-items:center;border-radius:8px}
 .abz .pw-eye:hover{color:var(--ink);background:var(--bg)}.abz .pw-eye.on{color:var(--pri)}
 .abz-card{display:grid;gap:8px;background:var(--pri-l);border:1px solid #cbd8f6;border-radius:10px;padding:10px 14px}.abz-card>div{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.abz-card b{font-family:ui-monospace,monospace;word-break:break-all}
-@media (max-width:640px){.abz-grid{grid-template-columns:1fr}}
+.abz label.f.abz-f0{margin-top:0}.abz-set{border:0;margin:18px 0 0;padding:0;display:grid;gap:8px;min-width:0}.abz-set legend{padding:0 0 8px;font-size:13px;font-weight:600;color:var(--ink)}
+.abz-opt{display:flex;gap:12px;align-items:flex-start;padding:13px 14px;border:1px solid #d9d6ce;border-radius:12px;cursor:pointer;background:#fff}
+.abz-opt.on{border:2px solid #3b7fd4;padding:12px 13px;background:#f3f7fd}.abz-opt input{margin:2px 0 0;width:18px;height:18px;flex:none;accent-color:#2f6fc4}
+.abz-opt .t{flex:1;min-width:0}.abz-opt .t b{display:block;font-size:14px;font-weight:600}.abz-opt .t span{display:block;font-size:13px;line-height:18px;color:var(--mut)}
+.abz-badge{font-size:11px;font-weight:700;color:#1f4f96;background:#e2ecfa;border-radius:999px;padding:3px 8px;white-space:nowrap}
+.abz-lic{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.abz-lic .abz-opt{flex-wrap:wrap;gap:8px;padding:12px}.abz-lic .abz-opt.on{padding:11px}.abz-lic .abz-opt .t span{font-size:12px;line-height:17px}
+.abz-pwrow{margin-top:2px}.abz-foot{display:flex;align-items:center;gap:8px;margin:20px -18px 0;padding:16px 18px 0;border-top:1px solid var(--line)}.abz-foot>span{flex:1}
+.abz-ok{background:#ecf8f0;border:1px solid #bfe3cb;color:#17592f;border-radius:10px;padding:10px 12px;margin:10px 0 0}.abz-warn{background:#fff8e8;border:1px solid #f0dfb5;color:#4d3a10;border-radius:10px;padding:10px 12px;margin:10px 0 0}
+@media (max-width:640px){.abz-grid{grid-template-columns:1fr}.abz label.f.abz-f0{margin-top:14px}.abz-lic{grid-template-columns:1fr}.abz-foot{flex-wrap:wrap}.abz-foot>span{flex-basis:100%}.abz-foot>.btn:first-of-type{margin-left:auto}}
 .psz{display:inline-flex;align-items:center;gap:3px;font-weight:700;color:var(--ink);background:color-mix(in srgb,var(--ink) 8%,transparent);border-radius:999px;padding:2px 8px 2px 6px;font-size:13px;font-variant-numeric:tabular-nums}
 .psz svg{width:11px;height:11px}
 .pvdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:0}
@@ -2834,40 +2842,74 @@ A.allRefresh=async()=>{let me=null;try{me=await CLOUD.ad.whoami()}catch(e){toast
  if(changed){markOpen(null);location.reload();return}ALLS.at=0;ALLS.rows=null;render();toast('Up to date')};
 A.allBiz=(el,e)=>{e&&e.preventDefault&&e.preventDefault();if($('#modal').classList.contains('show'))A.closeModal();markOpen(null);U.allBiz=String(el.dataset.id);try{sessionStorage.setItem('pv-bk-all','__biz:'+U.allBiz)}catch(x){}U.view='allsites';render()};
 A.allOpen=el=>{const id=el.dataset.id;if($('#modal').classList.contains('show'))A.closeModal();markOpen(id);U.view='parties';if(id===LOC.current){render();return}A.openSite({dataset:{id}})};
-/* "+ Add business" (master only): the business, a location with the same name and its Owner login, in one go, with no
-   email sent (ADD_BUSINESS_SPEC; as Proview Signage). The server function bk_add_business (supabase/007) does it all-or-nothing. */
+/* "+ Add business" (master only), design D (ADD_BUSINESS_D_SPEC, 11 Nov 2026): business + owner in one grid, then two choices.
+     How will they sign in?  invite (email link, they choose the password) | set a password now (no email)
+     Licence                 none yet | 3-day trial (bk_master_trial, supabase/010) | set it now (licence portal)
+   bk_add_business (supabase/007, no licence since 008) does the business, location and Owner all-or-nothing on the server.
+   For an invite the login gets a random password nobody sees and Supabase emails a set-your-password link (the app's
+   PASSWORD_RECOVERY flow, showNewPw, asks them to choose one). */
+const abRand=n=>{const a='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789',r=crypto.getRandomValues(new Uint32Array(n));return[...r].map(x=>a[x%a.length]).join('')};
+const abOpt=(name,val,title,sub,on,badge)=>`<label class="abz-opt${on?' on':''}"><input type="radio" name="${name}" value="${val}"${on?' checked':''}><span class="t"><b>${title}</b><span>${sub}</span></span>${badge?`<span class="abz-badge">${badge}</span>`:''}</label>`;
 A.addBiz=()=>{if(!isMaster())return;const m=$('#modal'),req=t=>`${t}<span class="abz-req"> *</span>`;
- m.innerHTML=`<div class="modal card abz" style="max-width:640px" role="dialog" aria-modal="true" aria-label="Add business"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Add business</h3><button class="icon-btn" data-act="closeModal" aria-label="Close">${ic('x')}</button></div><div class="pad">
-  <label class="f" style="margin-top:0" for="abBiz">${req('Business name')}</label><input class="inp" id="abBiz" placeholder="e.g. Tolians" autocomplete="off">
-  <div class="abz-cap">Owner login</div>
-  <div class="abz-grid"><div><label class="f" for="abName">${req('Name')}</label><input class="inp" id="abName" placeholder="e.g. Sam Taylor" autocomplete="off"></div>
-   <div><label class="f" for="abMob">Mobile</label><input class="inp" id="abMob" type="tel" placeholder="Optional" autocomplete="off"></div>
-   <div><label class="f" for="abEmail">${req('Email (they sign in with this)')}</label><input class="inp" id="abEmail" type="email" placeholder="name@company.com" autocomplete="off"></div>
-   <div><label class="f" for="abPw">${req('Password')}</label><div class="abz-pw"><div class="pw-wrap"><input class="inp" id="abPw" type="password" placeholder="At least 6 characters" autocomplete="new-password"><button type="button" class="pw-eye" data-act="authEye" data-f="abPw" title="Show password" aria-label="Show password">${ic('eye',18)}</button></div><button class="btn sm" type="button" data-act="addBizSuggest">Suggest</button></div></div></div>
-  <p class="small mut" style="margin:12px 0 0">The business gets a location with the same name. This person becomes its Owner / Admin. No email is sent.</p>
-  <div class="row pvdlg-f"><button class="btn" data-act="closeModal">Cancel</button><button class="btn pri" id="abGo" data-act="addBizGo">Add business</button></div></div></div>`;
- m.classList.add('show');$('#abBiz').focus()};
-A.addBizSuggest=()=>{const a='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789',r=crypto.getRandomValues(new Uint32Array(10)),i=$('#abPw');if(!i)return;
- i.value=[...r].map(n=>a[n%a.length]).join('');i.type='text';const e=document.querySelector('#modal [data-f=abPw]');if(e){e.classList.add('on');e.title='Hide password'}};
+ m.innerHTML=`<div class="modal card abz" style="max-width:660px" role="dialog" aria-modal="true" aria-label="Add business"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Add business</h3><button class="icon-btn" data-act="closeModal" aria-label="Close">${ic('x')}</button></div><div class="pad">
+  <div class="abz-grid">
+   <div><label class="f" style="margin-top:0" for="abBiz">${req('Business name')}</label><input class="inp" id="abBiz" placeholder="e.g. Tolians" autocomplete="off"></div>
+   <div><label class="f abz-f0" for="abName">${req('Owner’s name')}</label><input class="inp" id="abName" placeholder="e.g. Sam Taylor" autocomplete="off"></div>
+   <div><label class="f" for="abEmail">${req('Owner’s email')}</label><input class="inp" id="abEmail" type="email" placeholder="name@company.com" autocomplete="off"></div>
+   <div><label class="f" for="abMob">Mobile <span class="mut" style="font-weight:400">(optional)</span></label><input class="inp" id="abMob" type="tel" placeholder="07…" autocomplete="off"></div></div>
+  <fieldset class="abz-set"><legend>How will they sign in?</legend>
+   ${abOpt('abSi','invite','Email them an invite','They get an email link and choose their own password.',true,'Recommended')}
+   ${abOpt('abSi','pw','Set a password now','No email is sent. You pass the password on yourself.',false)}
+   <div class="abz-pwrow" id="abPwRow" hidden><label class="f" style="margin-top:0" for="abPw">${req('Password')}</label><div class="abz-pw"><div class="pw-wrap"><input class="inp" id="abPw" type="password" placeholder="At least 6 characters" autocomplete="new-password"><button type="button" class="pw-eye" data-act="authEye" data-f="abPw" title="Show password" aria-label="Show password">${ic('eye',18)}</button></div><button class="btn sm" type="button" data-act="addBizSuggest">Suggest</button></div></div>
+  </fieldset>
+  <fieldset class="abz-set"><legend>Licence</legend><div class="abz-lic">
+   ${abOpt('abLic','none','None yet','They buy one when they sign in.',true)}
+   ${abOpt('abLic','trial','3-day trial','Full access for 3 days, then it locks.',false)}
+   ${abOpt('abLic','set','Set it now','Then set it in the licence portal.',false)}</div>
+  </fieldset>
+  <div class="abz-foot"><span class="small mut">Adds the business and a location with the same name.</span><button class="btn" data-act="closeModal">Cancel</button><button class="btn pri" id="abGo" data-act="addBizGo">Add and send invite</button></div></div></div>`;
+ m.classList.add('show');
+ const box=m.querySelector('.abz');box.addEventListener('change',ev=>{const t=ev.target;if(!t||t.type!=='radio')return;
+  box.querySelectorAll(`input[name="${t.name}"]`).forEach(r=>r.closest('.abz-opt').classList.toggle('on',r.checked));
+  if(t.name==='abSi'){const pw=t.value==='pw';$('#abPwRow').hidden=!pw;$('#abGo').textContent=pw?'Add business':'Add and send invite';if(pw)$('#abPw').focus()}});
+ $('#abBiz').focus()};
+A.addBizSuggest=()=>{const i=$('#abPw');if(!i)return;
+ i.value=abRand(10);i.type='text';const e=document.querySelector('#modal [data-f=abPw]');if(e){e.classList.add('on');e.title='Hide password'}};
 async function addBizRefresh(){try{const me=await CLOUD.ad.whoami();if(me){CLOUD.me=me;if(LOC.cloud){LOC.list=(me.sites||[]).map(s=>({id:s.id,name:s.name,business:s.business}));try{localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(x){}}}}catch(x){console.error(x)}
  ALLS.at=0;ALLS.rows=null;if(U.view==='allsites')render()}
-A.addBizGo=async el=>{const v=id=>($('#'+id)?.value||'').trim(),need=(id,msg)=>{toast(msg);$('#'+id)?.focus()};
- const biz=v('abBiz'),name=v('abName'),e=v('abEmail').toLowerCase(),mob=v('abMob'),pw=$('#abPw')?.value||'';
+A.addBizGo=async el=>{if(!isMaster())return;const v=id=>($('#'+id)?.value||'').trim(),need=(id,msg)=>{toast(msg);$('#'+id)?.focus()};
+ const pick=n=>document.querySelector(`#modal input[name="${n}"]:checked`)?.value;
+ const biz=v('abBiz'),name=v('abName'),e=v('abEmail').toLowerCase(),mob=v('abMob'),invite=pick('abSi')!=='pw',lic=pick('abLic')||'none';
+ const pw=invite?abRand(24):($('#abPw')?.value||'');
  if(biz.length<2)return need('abBiz','Enter the business name');
  if(name.length<2)return need('abName','Enter the owner’s name');
  if(!/^\S+@\S+\.\S+$/.test(e))return need('abEmail','Enter a valid email address');
- if(pw.length<6)return need('abPw','The password needs at least 6 characters');
+ if(!invite&&pw.length<6)return need('abPw','The password needs at least 6 characters');
  if(el)el.disabled=true;let r;
  try{r=await CLOUD.ad.rpc('bk_add_business',{p_business:biz,p_name:name,p_email:e,p_mobile:mob,p_password:pw})}
  catch(x){if(el)el.disabled=false;toast(x.message||'Couldn’t add the business');return}
+ // licence: 3-day trial now (bk_master_trial never replaces a licence already set)
+ let licLine='';
+ if(lic==='trial'){let t=null,te=null;try{t=await CLOUD.ad.rpc('bk_master_trial',{p_business:r.business_id})}catch(x){te=x}
+  licLine=te?`<p class="abz-warn">The business was added, but the trial couldn’t be started: ${esc(te.message||String(te))}. Set a licence in the licence portal.</p>`
+   :t&&t.applied?`<p class="abz-ok">On a 3-day trial until ${esc(new Date(t.expires_at).toLocaleString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))}.</p>`
+   :`<p class="mut" style="margin:10px 0 0">It already had a licence, so no trial was added.</p>`}
+ else if(lic==='none')licLine=`<p class="mut" style="margin:10px 0 0">No licence yet: they buy one when they sign in.</p>`;
+ else licLine=`<p class="mut" style="margin:10px 0 0">Next, set its licence in the licence portal.</p>`;
+ // sign-in: email the invite (new logins only; an existing login keeps its password)
+ let signIn='';
+ if(r&&r.existing)signIn=`<p style="margin:0">${esc(e)} already had a PROVIEW BOOKINGS login, so they were made Owner / Admin of this business and keep the password they already use.${invite?' No invite was needed.':' The password you typed was not applied.'}</p>`;
+ else if(invite){let me=null;try{await CLOUD.ad.reset(e)}catch(x){me=x}
+  signIn=me?`<p class="abz-warn" style="margin-top:0">The business was added, but the invite email couldn’t be sent (${esc(me.message||String(me))}). They can use “Forgot password?” on the sign-in page with ${esc(e)}.</p>`
+   :`<p class="abz-ok" style="margin-top:0">Invite sent to <b>${esc(e)}</b>. They open the email link and choose their own password.</p>`}
  A.closeModal();await addBizRefresh();
  const site=location.origin+location.pathname,details=`PROVIEW BOOKINGS login\n${site}\nEmail: ${e}\nPassword: ${pw}`,m=$('#modal');
- m.innerHTML=`<div class="modal card abz" style="max-width:520px" role="dialog" aria-modal="true" aria-label="${esc(biz)} added"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>${esc(biz)} added</h3><button class="icon-btn" data-act="closeModal" aria-label="Close">${ic('x')}</button></div><div class="pad">
-  ${r&&r.existing?`<p style="margin:0">${esc(e)} already had a PROVIEW BOOKINGS login, so they were made Owner / Admin of this business and keep the password they already use. The password you typed was not applied.</p>`
-   :`<p class="mut" style="margin:0 0 10px">The owner can sign in now. No email was sent, so pass these on yourself:</p>
+ const pwCard=!(r&&r.existing)&&!invite?`<p class="mut" style="margin:0 0 10px">The owner can sign in now. No email was sent, so pass these on yourself:</p>
    <div class="notice abz-card"><div><span class="mut">Sign in at</span><b>${esc(site.replace(/^https?:\/\//,''))}</b></div><div><span class="mut">Email</span><b>${esc(e)}</b></div><div><span class="mut">Password</span><b>${esc(pw)}</b></div></div>
-   <button class="btn" type="button" style="margin-top:10px" id="abCopy" data-act="copy" data-v="${esc(details)}">${ic('copy',16)} Copy login details</button>`}
-  <div class="row pvdlg-f"><button class="btn" data-act="closeModal">Stay here</button><button class="btn pri" data-act="allOpen" data-id="${esc(r?.site_id||'')}">Open business</button></div></div></div>`;
+   <button class="btn" type="button" style="margin-top:10px" id="abCopy" data-act="copy" data-v="${esc(details)}">${ic('copy',16)} Copy login details</button>`:'';
+ m.innerHTML=`<div class="modal card abz" style="max-width:520px" role="dialog" aria-modal="true" aria-label="${esc(biz)} added"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>${esc(biz)} added</h3><button class="icon-btn" data-act="closeModal" aria-label="Close">${ic('x')}</button></div><div class="pad">
+  ${signIn}${pwCard}${licLine}
+  <div class="row pvdlg-f">${lic==='set'?`<a class="btn" style="text-decoration:none" href="${LIC_PORTAL}" target="_blank" rel="noopener">Set licence ↗</a>`:''}<button class="btn" data-act="closeModal">Stay here</button><button class="btn pri" data-act="allOpen" data-id="${esc(r?.site_id||'')}">Open business</button></div></div></div>`;
  m.classList.add('show')};
 A.openSite=el=>{const id=el.dataset.id;if(!id)return;if(id===CLOUD.vid)return;markOpen(id);save();LOC.current=id;if(!LOC.list.some(x=>x.id===id)){LOC.list.push({id,name:id})}LOC.cloud=true;localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload()};
 /* licences are managed in the Proview licence portal */
