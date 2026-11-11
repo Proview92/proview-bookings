@@ -646,11 +646,12 @@ body.v-allsites .fab{display:none!important}
 /* Bookings only: dark mode keeps the picker readable; iPad (701-900px) has the date bar too, so Dashboard shows its icon only and the date arrows are tighter */
 body.dark .top .hdr-pick select { background-color: var(--card); }
 @media (min-width: 701px) and (max-width: 900px) { #top .datenav button { padding: 6px 2px; } .top .hdr-pick select { max-width: 100%; } #top .pv-dash { width: 38px; padding: 0; justify-content: center; } #top .pv-dash span { display: none; } }
-/* master on All sites: usual pages greyed until a site is picked; the dropdown pulses when one is clicked */
-html .side .nav button.nav-dis{opacity:.45!important;cursor:not-allowed!important}
-html .side .nav button.nav-dis:hover{background:transparent!important;color:#c9c9d1!important}
-.top .hdr-pick.pulse select{animation:pvPickPulse 1s ease-out}
-@keyframes pvPickPulse{0%{box-shadow:0 0 0 0 rgba(90,141,238,.75)}100%{box-shadow:0 0 0 8px rgba(90,141,238,0)}}
+/* the Proview master inside one customer's business, opened from the licence portal (MASTER_OPEN_SPEC) */
+.pv-master-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 20px;background:#fff7e0;border-bottom:1px solid #f1dfa6;color:#5c4400;font-size:13.5px}
+.pv-master-bar b{font-weight:700}.pv-master-bar .pv-master-back{margin-left:auto;color:#5c4400;font-weight:600;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
+body.dark .pv-master-bar{background:#3a2f12;border-color:#5c4a1a;color:#f3dc9b}body.dark .pv-master-bar .pv-master-back{color:#f3dc9b}
+.pv-master-home{max-width:560px;margin:8vh auto 0}.pv-master-home a.btn{text-decoration:none}
+body.pv-nosite .fab,body.pv-nosite #nav .pv-mgrb{display:none!important}
 .biz-open{color:inherit;text-decoration:none}.biz-open:hover b{text-decoration:underline}
 /* site picker in the sidebar: same as Proview WiFi */
 .side .pv-viewing{display:block;font-size:11px;line-height:15px;letter-spacing:.06em;text-transform:uppercase;color:#8b8b95;margin:0 2px 6px;font-weight:400}
@@ -1010,207 +1011,6 @@ textarea.pv-alnote{border-color:var(--bad)}
 <button class="fab" data-act="newParty" title="Add a party" aria-label="Add a party"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="fab-l">New party</span></button>
 <div id="toast"></div>
 
-<script id="pv-addbiz-js">
-/* pv-addbiz.js: the master's "+ Add business" pop-up (design D), one copy shared byte-for-byte by all six Proview apps
-   (Signage, Bookings, Employee, Label, QR Menu, WiFi) and the licence portal, so it looks the same everywhere: size, position, colours, fonts.
-   Do not edit one app's copy: change it once and copy the same file into every app.
-   window.pvAddBiz({ onSubmit }) opens it. onSubmit(v, ui) gets
-     v  = { biz, name, email, mobile, invite, lic, password, checks, extra }
-                                                              (trimmed; email lower-cased; invite true/false;
-                                                                 lic 'none' | 'trial' | 'set'; password as typed;
-                                                                 checks { section key: [ticked values] }; extra { field key: trimmed value })
-     ui = { el, close, input(key) }                           (key: 'biz' | 'name' | 'email' | 'mobile' | 'pw', an extra field's key,
-                                                                 or a checks section's key: its first tick box)
-   and does the app's own checks and server calls. Return true to close the pop-up; anything else keeps it open.
-   The primary button is disabled while onSubmit runs.
-   Optional (all leave the six apps' pop-up exactly as it is when left out; used by the licence portal's "New customer"):
-     title, go (primary button text), hint (footer text), pwPlaceholder,
-     signin: 'password'  -> no "How will they sign in?" choice: a Password field (with Suggest and the eye) only,
-     licence: false      -> no Licence cards,
-     sections: [ { key, legend, req, optional, all: { title, sub }, checks: [ { value, title, sub } ] }      tick-box cards
-               | { key, legend, req, optional, fields: [ { key, label, type, ph, full, area, req, optional } ] } ]   field grid
-     (added after the Licence cards, in this order; labels and text are HTML). */
-(function () {
-  if (window.pvAddBiz) return;
-  var F = '"Inter", "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif';
-  var CSS = [
-    '.pv-addbiz-back{position:fixed;inset:0;z-index:55;display:flex;margin:0;padding:0;background:rgba(20,20,24,.5);overflow:hidden}',
-    '.pv-addbiz,.pv-addbiz *{box-sizing:border-box}',
-    '.pv-addbiz [hidden]{display:none!important}',
-    '.pv-addbiz{position:relative;display:block;margin:auto;width:min(680px,calc(100vw - 28px));max-width:calc(100% - 36px);max-height:calc(100% - 36px);overflow:auto;padding:24px;border:0;border-radius:18px;background:#fff;color:#17171c;box-shadow:0 30px 80px rgba(0,0,0,.3);font:400 15px/1.45 ' + F + ';letter-spacing:normal;text-align:left;text-transform:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}',
-    '.pv-addbiz .pv-ab-form{display:block;margin:0;padding:0}',
-    '.pv-addbiz .pv-ab-head{display:flex;align-items:center;justify-content:space-between;gap:0;margin:0 0 8px;padding:0;border:0}',
-    '.pv-addbiz .pv-ab-title{margin:0;padding:0;font:700 20px/1.45 ' + F + ';letter-spacing:-.015em;color:#17171c;text-transform:none}',
-    '.pv-addbiz .pv-ab-x{display:block;flex:none;width:auto;height:auto;min-width:0;min-height:0;margin:0;padding:0 4px;border:0;border-radius:0;background:none;box-shadow:none;font:400 26px/1 Arial,sans-serif;color:#8b8b95;cursor:pointer}',
-    '.pv-addbiz .pv-ab-x:hover{color:#17171c;background:none}',
-    '.pv-addbiz .pv-ab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px;margin:0;padding:0}',
-    '.pv-addbiz .pv-ab-field{display:block;min-width:0;margin:0;padding:0}',
-    '.pv-addbiz .pv-ab-label{display:block;margin:0 0 5px;padding:0;font:600 13px/1.45 ' + F + ';letter-spacing:normal;color:#55555f;text-transform:none;cursor:default}',
-    '.pv-addbiz .pv-ab-req{color:#d92d20}',
-    '.pv-addbiz .pv-ab-optl{font-weight:400;color:#55555f}',
-    '.pv-addbiz .pv-ab-inp{display:inline-block;-webkit-appearance:none;appearance:none;width:100%;min-width:0;height:auto;min-height:0;margin:0;padding:9px 11px;border:1px solid #e4e2dc;border-radius:9px;background:#fff;box-shadow:none;font:400 15px ' + F + ';letter-spacing:normal;color:#17171c;outline:0}',
-    '.pv-addbiz .pv-ab-inp::placeholder{color:#757575;opacity:1}',
-    '.pv-addbiz .pv-ab-inp:focus{outline:2px solid #4a6cd0;outline-offset:-1px;border-color:transparent;box-shadow:none}',
-    '.pv-addbiz .pv-ab-set{display:grid;gap:8px;min-width:0;margin:18px 0 0;padding:0;border:0}',
-    '.pv-addbiz .pv-ab-legend{display:block;float:none;width:auto;margin:0;padding:0 0 8px;border:0;font:600 13px/1.45 ' + F + ';letter-spacing:normal;color:#55555f;text-transform:none}',
-    '.pv-addbiz .pv-ab-card{display:flex;align-items:flex-start;gap:12px;margin:0;padding:13px 14px;border:1px solid #d9d6ce;border-radius:12px;background:#fff;box-shadow:none;font:400 15px/1.45 ' + F + ';color:#17171c;text-transform:none;cursor:pointer}',
-    '.pv-addbiz .pv-ab-card.on{padding:12px 13px;border:2px solid #3b7fd4;background:#f3f7fd}',
-    '.pv-addbiz .pv-ab-radio{display:block;flex:none;-webkit-appearance:auto;appearance:auto;width:18px;height:18px;min-width:0;min-height:0;margin:2px 0 0;padding:0;border:0;outline:0;font:inherit;color:inherit;accent-color:#2f6fc4;box-shadow:none;cursor:pointer}',
-    '.pv-addbiz .pv-ab-t{display:block;flex:1;min-width:0}',
-    '.pv-addbiz .pv-ab-tt{display:block;font:600 14px/1.45 ' + F + ';color:#17171c}',
-    '.pv-addbiz .pv-ab-ts{display:block;font:400 13px/18px ' + F + ';color:#55555f}',
-    '.pv-addbiz .pv-ab-pill{display:block;flex:none;margin:0;padding:3px 8px;border:0;border-radius:999px;background:#e2ecfa;font:700 11px/1.45 ' + F + ';letter-spacing:normal;color:#1f4f96;white-space:nowrap}',
-    '.pv-addbiz .pv-ab-lic{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}',
-    // sign-in choices side by side, styled like the licence cards
-    '.pv-addbiz .pv-ab-si{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}',
-    '.pv-addbiz .pv-ab-si .pv-ab-card{flex-wrap:wrap;gap:8px;padding:12px}',
-    '.pv-addbiz .pv-ab-si .pv-ab-card.on{padding:11px}',
-    '.pv-addbiz .pv-ab-si .pv-ab-ts{font-size:12px;line-height:17px}',
-    '.pv-addbiz .pv-ab-si .pv-ab-t{flex:1 1 calc(100% - 30px)}',
-    '.pv-addbiz .pv-ab-si .pv-ab-pill{margin-left:30px}',
-    '.pv-addbiz .pv-ab-lic .pv-ab-card{flex-wrap:wrap;gap:8px;padding:12px}',
-    '.pv-addbiz .pv-ab-lic .pv-ab-card.on{padding:11px}',
-    '.pv-addbiz .pv-ab-lic .pv-ab-ts{font-size:12px;line-height:17px}',
-    '.pv-addbiz .pv-ab-pwrow{display:block;margin:2px 0 0}',
-    '.pv-addbiz .pv-ab-pwline{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}',
-    '.pv-addbiz .pv-ab-pwwrap{position:relative;flex:1;min-width:0}',
-    '.pv-addbiz .pv-ab-pwwrap .pv-ab-inp{padding-right:44px}',
-    '.pv-addbiz .pv-ab-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:36px;height:34px;min-width:0;min-height:0;margin:0;padding:0;border:0;border-radius:8px;background:transparent;box-shadow:none;font:inherit;color:#8b8b95;cursor:pointer}',
-    '.pv-addbiz .pv-ab-eye:hover{color:#17171c;background:rgba(0,0,0,.05)}',
-    '.pv-addbiz .pv-ab-eye svg{display:block;width:18px;height:18px}',
-    '.pv-addbiz .pv-ab-foot{display:flex;align-items:center;gap:8px;margin:20px -24px 0;padding:16px 24px 0;border:0;border-top:1px solid #eceae4}',
-    '.pv-addbiz .pv-ab-hint{flex:1;font:400 12px/1.45 ' + F + ';color:#8b8b95}',
-    '.pv-addbiz .pv-ab-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;flex:none;width:auto;height:38px;min-width:0;min-height:0;margin:0;padding:0 14px;border:1px solid #e4e2dc;border-radius:10px;background:#fff;box-shadow:none;font:600 14px ' + F + ';letter-spacing:normal;color:#17171c;text-transform:none;text-decoration:none;white-space:nowrap;filter:none;opacity:1;cursor:pointer}',
-    '.pv-addbiz .pv-ab-btn:hover{border-color:#cfccc4;background:#fbfaf8}',
-    '.pv-addbiz .pv-ab-btn.pv-ab-pri{border-color:transparent;background:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);color:#fff}',
-    '.pv-addbiz .pv-ab-btn.pv-ab-pri:hover{border-color:transparent;background:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);filter:brightness(.95)}',
-    '.pv-addbiz .pv-ab-btn.pv-ab-sm{height:32px;padding:0 11px;border-radius:8px;font-size:13px}',
-    '.pv-addbiz .pv-ab-btn:disabled{opacity:.5;cursor:not-allowed;filter:none}',
-    '.pv-addbiz .pv-ab-full{grid-column:1/-1}',
-    '.pv-addbiz textarea.pv-ab-inp{display:block;resize:vertical;min-height:62px}',
-    '.pv-addbiz .pv-ab-chks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}',
-    '.pv-addbiz .pv-ab-chks .pv-ab-card{align-items:center}',
-    '.pv-addbiz .pv-ab-chks .pv-ab-radio{margin:0}',
-    '.pv-addbiz .pv-ab-chks .pv-ab-all{grid-column:1/-1}',
-    '@media (max-width:700px){.pv-addbiz .pv-ab-grid{grid-template-columns:1fr}}',
-    '@media (max-width:640px){.pv-addbiz .pv-ab-lic,.pv-addbiz .pv-ab-si{grid-template-columns:1fr}.pv-addbiz .pv-ab-chks{grid-template-columns:repeat(2,minmax(0,1fr))}.pv-addbiz .pv-ab-foot{flex-wrap:wrap}.pv-addbiz .pv-ab-hint{flex-basis:100%}}',
-    '@media (hover:none) and (pointer:coarse){.pv-addbiz .pv-ab-inp,.pv-addbiz .pv-ab-radio{font-size:16px!important}}'
-  ].join('\n');
-  var EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
-  var EYE_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6A17.4 17.4 0 0 0 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2M2 2l20 20"/></svg>';
-  var req = '<span class="pv-ab-req"> *</span>';
-  var field = function (id, label, type, ph) {
-    return '<div class="pv-ab-field"><label class="pv-ab-label" for="' + id + '">' + label + '</label><input class="pv-ab-inp" id="' + id + '" type="' + type + '" placeholder="' + ph + '" autocomplete="off"></div>';
-  };
-  var card = function (name, val, title, sub, on, pill, type, cls) {
-    return '<label class="pv-ab-card' + (cls ? ' ' + cls : '') + (on ? ' on' : '') + '"><input class="pv-ab-radio" type="' + (type || 'radio') + '" name="' + name + '" value="' + val + '"' + (on ? ' checked' : '') + '>' +
-      '<span class="pv-ab-t"><b class="pv-ab-tt">' + title + '</b>' + (sub ? '<span class="pv-ab-ts">' + sub + '</span>' : '') + '</span>' + (pill ? '<span class="pv-ab-pill">' + pill + '</span>' : '') + '</label>';
-  };
-  var optl = ' <span class="pv-ab-optl">(optional)</span>';
-  var legend = function (x) { return '<legend class="pv-ab-legend">' + x.legend + (x.req ? req : '') + (x.optional ? optl : '') + '</legend>'; };
-  var pwRow = function (o, hidden) {
-    return '<div class="pv-ab-pwrow" id="pvAbPwRow"' + (hidden ? ' hidden' : '') + '><label class="pv-ab-label" for="pvAbPw">Password' + req + '</label>' +
-        '<div class="pv-ab-pwline"><div class="pv-ab-pwwrap"><input class="pv-ab-inp" id="pvAbPw" type="password" placeholder="' + (o.pwPlaceholder || 'At least 6 characters') + '" autocomplete="new-password">' +
-        '<button type="button" class="pv-ab-eye" id="pvAbEye" tabindex="-1" aria-label="Show password" title="Show password">' + EYE + '</button></div>' +
-        '<button type="button" class="pv-ab-btn pv-ab-sm" id="pvAbSuggest">Suggest</button></div></div>';
-  };
-  var section = function (x) {
-    if (x.checks) return '<fieldset class="pv-ab-set" data-pv-ab-sec="' + x.key + '">' + legend(x) + '<div class="pv-ab-chks">' +
-      (x.all ? card('pvAbAll_' + x.key, 'all', x.all.title || 'Select all', x.all.sub || '', false, '', 'checkbox', 'pv-ab-all') : '') +
-      x.checks.map(function (c) { return card('pvAbC_' + x.key, c.value, c.title, c.sub || '', !!c.on, '', 'checkbox'); }).join('') + '</div></fieldset>';
-    return '<fieldset class="pv-ab-set" data-pv-ab-sec="' + x.key + '">' + legend(x) + '<div class="pv-ab-grid">' + (x.fields || []).map(function (f) {
-      var id = 'pvAbX_' + f.key, lab = f.label + (f.req ? req : '') + (f.optional ? optl : '');
-      if (!f.area && !f.full) return field(id, lab, f.type || 'text', f.ph || '');
-      return '<div class="pv-ab-field pv-ab-full"><label class="pv-ab-label" for="' + id + '">' + lab + '</label>' + (f.area
-        ? '<textarea class="pv-ab-inp" id="' + id + '" rows="' + (f.rows || 2) + '" placeholder="' + (f.ph || '') + '" autocomplete="off"></textarea>'
-        : '<input class="pv-ab-inp" id="' + id + '" type="' + (f.type || 'text') + '" placeholder="' + (f.ph || '') + '" autocomplete="off">') + '</div>';
-    }).join('') + '</div></fieldset>';
-  };
-  var build = function (o) {
-    var choose = o.signin !== 'password';
-    return '<div class="pv-addbiz" role="dialog" aria-modal="true" aria-labelledby="pvAbTitle"><form class="pv-ab-form" novalidate autocomplete="off">' +
-    '<div class="pv-ab-head"><h2 class="pv-ab-title" id="pvAbTitle">' + (o.title || 'Add business') + '</h2><button type="button" class="pv-ab-x" data-pv-ab-close aria-label="Close" title="Close">×</button></div>' +
-    '<div class="pv-ab-grid">' +
-      field('pvAbBiz', 'Business name' + req, 'text', 'e.g. Tolians') +
-      field('pvAbName', 'Owner’s name' + req, 'text', 'e.g. Sam Taylor') +
-      field('pvAbEmail', 'Owner’s email' + req, 'email', 'name@company.com') +
-      field('pvAbMob', 'Mobile <span class="pv-ab-optl">(optional)</span>', 'tel', '07…') +
-    '</div>' +
-    (choose ? '<fieldset class="pv-ab-set"><legend class="pv-ab-legend">How will they sign in?</legend>' +
-      '<div class="pv-ab-si">' +
-      card('pvAbSi', 'invite', 'Email them an invite', 'They get an email link and choose their own password.', true, 'Recommended') +
-      card('pvAbSi', 'pw', 'Set a password now', 'No email is sent. You pass the password on yourself.', false) +
-      '</div>' +
-      pwRow(o, true) +
-    '</fieldset>' : '<div class="pv-ab-set">' + pwRow(o, false) + '</div>') +
-    (o.licence === false ? '' : '<fieldset class="pv-ab-set"><legend class="pv-ab-legend">Licence</legend><div class="pv-ab-lic">' +
-      card('pvAbLic', 'none', 'None yet', 'They buy one when they sign in.', true) +
-      card('pvAbLic', 'trial', '3-day trial', 'Full access for 3 days, then it locks.', false) +
-      card('pvAbLic', 'set', 'Set it now', 'Then set it in the licence portal.', false) +
-    '</div></fieldset>') +
-    (o.sections || []).map(section).join('') +
-    '<div class="pv-ab-foot"><span class="pv-ab-hint">' + (o.hint || 'Adds the business and a location with the same name.') + '</span>' +
-      '<button type="button" class="pv-ab-btn" data-pv-ab-close>Cancel</button><button type="submit" class="pv-ab-btn pv-ab-pri" id="pvAbGo">' + (o.go || (choose ? 'Add and send invite' : 'Add business')) + '</button></div>' +
-    '</form></div>';
-  };
-  var rand = function (n) {
-    var a = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', r = crypto.getRandomValues(new Uint32Array(n)), s = '';
-    for (var i = 0; i < n; i++) s += a[r[i] % a.length];
-    return s;
-  };
-  window.pvAddBiz = function (o) {
-    o = o || {};
-    if (!document.getElementById('pv-addbiz-css')) { var st = document.createElement('style'); st.id = 'pv-addbiz-css'; st.textContent = CSS; document.head.appendChild(st); }
-    var old = document.querySelector('.pv-addbiz-back'); if (old && old._close) old._close();
-    var back = document.createElement('div'); back.className = 'pv-addbiz-back'; back.innerHTML = build(o); document.body.appendChild(back);
-    var q = function (s) { return back.querySelector(s); }, form = q('form'), go = q('#pvAbGo'), pw = q('#pvAbPw'), eye = q('#pvAbEye');
-    var ids = { biz: 'pvAbBiz', name: 'pvAbName', email: 'pvAbEmail', mobile: 'pvAbMob', pw: 'pvAbPw' };
-    var input = function (k) { return q('#' + (ids[k] || k)) || q('#pvAbX_' + k) || q('input[name="pvAbAll_' + k + '"]') || q('input[name="pvAbC_' + k + '"]'); };
-    var pick = function (n) { var r = q('input[name="' + n + '"]:checked'); return r ? r.value : ''; };
-    var onKey = function (e) { if (e.key === 'Escape' && document.body.contains(back)) { e.stopPropagation(); close(); } };
-    var close = function () { if (!back.parentNode) return; back.remove(); document.removeEventListener('keydown', onKey, true); if (o.onClose) o.onClose(); };
-    back._close = close;
-    document.addEventListener('keydown', onKey, true);
-    var downOnBack = false;
-    back.addEventListener('mousedown', function (e) { downOnBack = e.target === back; });
-    back.addEventListener('click', function (e) { if (e.target === back && downOnBack) close(); });
-    back.querySelectorAll('[data-pv-ab-close]').forEach(function (b) { b.addEventListener('click', close); });
-    var showPw = function (on) { pw.type = on ? 'text' : 'password'; eye.innerHTML = on ? EYE_OFF : EYE; eye.title = on ? 'Hide password' : 'Show password'; eye.setAttribute('aria-label', eye.title); };
-    eye.addEventListener('click', function () { showPw(pw.type === 'password'); pw.focus(); });
-    q('#pvAbSuggest').addEventListener('click', function () { pw.value = rand(10); showPw(true); });
-    var syncChecks = function (sec) {
-      var all = sec.querySelector('.pv-ab-all input'), cs = [].slice.call(sec.querySelectorAll('.pv-ab-card:not(.pv-ab-all) input')), on = cs.filter(function (c) { return c.checked; }).length;
-      if (all) { all.checked = on === cs.length; all.indeterminate = on > 0 && on < cs.length; }
-      sec.querySelectorAll('.pv-ab-card input').forEach(function (c) { c.closest('.pv-ab-card').classList.toggle('on', c.checked); });
-    };
-    form.addEventListener('change', function (e) {
-      var t = e.target; if (t && t.type === 'checkbox' && t.closest('[data-pv-ab-sec]')) { var sec = t.closest('[data-pv-ab-sec]');
-        if (t.value === 'all' && t.closest('.pv-ab-all')) sec.querySelectorAll('.pv-ab-card:not(.pv-ab-all) input').forEach(function (c) { c.checked = t.checked; });
-        syncChecks(sec); return; }
-      if (!t || t.type !== 'radio') return;
-      back.querySelectorAll('input[name="' + t.name + '"]').forEach(function (r) { r.closest('.pv-ab-card').classList.toggle('on', r.checked); });
-      if (t.name === 'pvAbSi') { var p = t.value === 'pw'; q('#pvAbPwRow').hidden = !p; go.textContent = p ? 'Add business' : 'Add and send invite'; if (p) pw.focus(); }
-    });
-    var ui = { el: back, close: close, input: input };
-    form.addEventListener('submit', async function (e) {
-      e.preventDefault();
-      if (go.disabled) return;
-      var v = { biz: input('biz').value.trim(), name: input('name').value.trim(), email: input('email').value.trim().toLowerCase(), mobile: input('mobile').value.trim(),
-        invite: o.signin === 'password' ? false : pick('pvAbSi') !== 'pw', lic: pick('pvAbLic') || 'none', password: pw.value, checks: {}, extra: {} };
-      (o.sections || []).forEach(function (x) {
-        if (x.checks) v.checks[x.key] = [].slice.call(back.querySelectorAll('input[name="pvAbC_' + x.key + '"]:checked')).map(function (c) { return c.value; });
-        (x.fields || []).forEach(function (f) { v.extra[f.key] = q('#pvAbX_' + f.key).value.trim(); });
-      });
-      go.disabled = true; var done = false;
-      try { done = (await (o.onSubmit ? o.onSubmit(v, ui) : true)) === true; }
-      finally { go.disabled = false; }
-      if (done) close();
-    });
-    setTimeout(function () { var f = input('biz'); if (f && back.parentNode) f.focus(); }, 30);
-    return ui;
-  };
-})();
-</script>
 <script>
 /* ================= helpers ================= */
 const $=s=>document.querySelector(s);
@@ -1495,7 +1295,7 @@ function renderTop(){
  <button class="icon-btn" data-act="notifs" title="Notifications" aria-label="Notifications">${ic('bell')}${unreadN?`<span class="badge">${unreadN>9?'9+':unreadN}</span>`:''}</button>
  <button class="btn pri" data-act="newParty" title="Add a party">${ic('plus',16)} <span class="lbl-np">New party</span></button>`;
 }
-function render(){document.body.classList.toggle('dark',!!S.settings.prefs.dark);try{localStorage.setItem('pv-splash-dark',S.settings.prefs.dark?'1':'0')}catch(e){}document.body.classList.toggle('v-allsites',U.view==='allsites');renderNav();renderTop();const c=$('#content');if(U.view==='admin')U.view='parties';c.innerHTML=licBannerHtml()+(VIEWS[U.view]||VIEWS.parties)();if(AFTER[U.view])AFTER[U.view]()}
+function render(){try{masterBar()}catch(e){}document.body.classList.toggle('dark',!!S.settings.prefs.dark);try{localStorage.setItem('pv-splash-dark',S.settings.prefs.dark?'1':'0')}catch(e){}document.body.classList.toggle('v-allsites',U.view==='allsites');renderNav();renderTop();const c=$('#content');if(U.view==='admin')U.view='parties';c.innerHTML=licBannerHtml()+(VIEWS[U.view]||VIEWS.parties)();if(AFTER[U.view])AFTER[U.view]()}
 
 /* ================= views ================= */
 const VIEWS={},AFTER={};
@@ -2440,6 +2240,7 @@ async function SupabaseAdapter(c){
   async setPw(p){const r=await sb.auth.updateUser({password:p});if(r.error)throw r.error},
   async signOut(){await sb.auth.signOut()},
   async sso(token){const r=await fetch(c.url+'/functions/v1/sso-login',{method:'POST',headers:{'content-type':'application/json',apikey:c.anonKey},body:JSON.stringify({assertion:token})});const j=await r.json().catch(()=>({}));if(!r.ok||!j.token_hash)throw new Error(j.error||'Sign-in with your Proview account failed. Please try again.');
+   setMasterOpen(j.open||null);   // the master opened a customer from the licence portal (only ever sent for the master)
    const cur=(await sb.auth.getSession()).data.session?.user;if(cur&&String(cur.email||'').toLowerCase()!==j.email)await sb.auth.signOut();
    const v=await sb.auth.verifyOtp({token_hash:j.token_hash,type:'magiclink'});if(v.error)throw v.error;return v.data.user},
   // srv: supabase/005_guest_privacy.sql is installed, so the document is read and saved through bk_venue_get/put
@@ -2468,7 +2269,19 @@ async function SupabaseAdapter(c){
   onGuests(v,cb){sb.channel('vg-'+v).on('postgres_changes',{event:'*',schema:'public',table:'bk_guests',filter:'venue=eq.'+v},cb).subscribe()},
   async invoke(name,body){const r=await sb.functions.invoke(name,{body});if(r.error)throw r.error;return r.data},
   async invite(email,v,role){const r=await sb.from('bk_staff_invites').upsert({email:email.toLowerCase(),venue:v,role});if(r.error)throw r.error},
-  async whoami(){const r=await sb.rpc('bk_whoami');if(r.error){if(r.error.code==='PGRST202'||/bk_whoami/.test(r.error.message||''))return null;throw r.error}return r.data},
+  async whoami(){const m=await sb.rpc('bk_is_master');if(!m.error&&m.data===true)return this.masterMe();   // the master: only the opened business (bk_whoami lists every one)
+   const r=await sb.rpc('bk_whoami');if(r.error){if(r.error.code==='PGRST202'||/bk_whoami/.test(r.error.message||''))return null;throw r.error}return r.data},
+  // MASTER_OPEN_SPEC: the same shape as bk_whoami, for the one business opened from the licence portal (or none)
+  async masterMe(){const u=(await sb.auth.getSession()).data.session?.user,id=masterOpenId();
+   const me={user_id:u?.id,email:(u?.email||'').toLowerCase(),is_master:true,sites:[],businesses:[],master_home:true,master_missing:false};
+   if(!id)return me;
+   const b=/^[0-9a-f-]{36}$/i.test(id)?one(await sb.from('bk_businesses').select('id,name').eq('id',id).maybeSingle()):null;
+   if(!b){me.master_missing=true;return me}
+   const [sites,keys]=await Promise.all([sb.from('bk_sites').select('id,name,business_id,license_type,license_expires_at').eq('business_id',b.id).then(one),sb.rpc('bk_feature_keys').then(one).catch(()=>[])]);
+   const fk=Array.isArray(keys)?keys:[],all=Object.fromEntries(fk.map(f=>[f,true]));
+   me.feature_keys=fk;me.businesses=[{id:b.id,name:b.name,role:'Owner',can_manage_users:true}];
+   me.sites=(sites||[]).slice().sort((x,y)=>String(x.name).toLowerCase().localeCompare(String(y.name).toLowerCase())).map(x=>({...x,business:b.name,role:'Admin',features:all}));
+   me.master_home=!me.sites.length;me.master_open=b.id;me.master_business=b.name;return me},
   async rpc(fn,args){const r=await sb.rpc(fn,args);if(r.error)throw r.error;return r.data},
   async sel(t,c){return one(await sb.from(t).select(c))},
   async ins(t,row){return one(await sb.from(t).insert(row).select().single())},
@@ -2811,6 +2624,11 @@ function licPreview(type,{extend,current,custom}={}){
  if(type==='trial')d.setDate(d.getDate()+3);else{const day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+LIC_MONTHS[type]);d.setDate(Math.min(day,new Date(d.getFullYear(),d.getMonth()+1,0).getDate()))}
  return d}
 const isMaster=()=>!!(CLOUD.me&&CLOUD.me.is_master);
+/* The Proview master has no view of every business here (MASTER_OPEN_SPEC). "Open in Bookings" in the licence portal signs them
+   in with a biz claim; sso-login answers { open: <bk_businesses id> }, kept per tab (sessionStorage) so a reload stays in it. */
+const MASTER_OPEN_KEY='pv_master_open';
+function masterOpenId(){try{return sessionStorage.getItem(MASTER_OPEN_KEY)||null}catch(e){return null}}
+function setMasterOpen(id){try{id?sessionStorage.setItem(MASTER_OPEN_KEY,String(id)):sessionStorage.removeItem(MASTER_OPEN_KEY)}catch(e){}}
 const bookUrl=id=>location.origin+location.pathname.replace(/[^/]*$/,'')+'book/?v='+encodeURIComponent(id);
 
 /* --- device cache: only the signed-in person's own sites stay on this device ---
@@ -2822,7 +2640,7 @@ function purgeCache(keep){const ok=keep?new Set(keep):null,gone=[];
  try{for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(!k)continue;
    const id=k.startsWith(VKEY)?k.slice(VKEY.length):k.startsWith(SKEY)?k.slice(SKEY.length):null;
    if(id!==null&&!(ok&&ok.has(id))){localStorage.removeItem(k);gone.push(id)}}
-  if(!ok){localStorage.removeItem(LOCKEY);localStorage.removeItem(WHOKEY);sessionStorage.removeItem('pv-bk-open');sessionStorage.removeItem('pv-bk-all');sessionStorage.removeItem('pv-bk-view');sessionStorage.removeItem('pv-newsite')}}catch(e){}
+  if(!ok){localStorage.removeItem(LOCKEY);localStorage.removeItem(WHOKEY);sessionStorage.removeItem(MASTER_OPEN_KEY);sessionStorage.removeItem('pv-bk-open');sessionStorage.removeItem('pv-bk-all');sessionStorage.removeItem('pv-bk-view');sessionStorage.removeItem('pv-newsite')}}catch(e){}
  return gone}
 async function signOutWith(msg){try{await CLOUD.ad.signOut()}catch(e){}purgeCache(null);try{if(msg)sessionStorage.setItem('pv-login-msg',msg)}catch(e){}location.reload()}
 
@@ -2836,7 +2654,7 @@ async function afterSignIn(){
  CLOUD.me=me;const sites=me.sites||[];
  purgeCache(sites.map(s=>s.id));
  if(!sites.length){
-  if(me.is_master){LOC={cloud:true,current:'',list:[]};try{localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}showMasterHome();return}
+  if(me.is_master){showMasterHome();return}   // no customer opened from the licence portal (or it has no locations): nothing loaded
   const b=(me.businesses||[])[0];
   if(b){await signOutWith(`Your login at ${b.name} doesn't have any locations yet. Ask your owner or Proview.`);return}   // added to a business, given no sites
   showBusinessSetup();return}                              // no business, no invite: set one up (no licence until bought)
@@ -2845,16 +2663,26 @@ async function afterSignIn(){
  try{localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}
  if(wasKey!=='proview-bookings-v3:'+want){location.reload();return}
  CLOUD.vid=want;CLOUD.site=sites.find(s=>s.id===want);
- if(isMaster()){let open=null;try{open=sessionStorage.getItem('pv-bk-open')}catch(e){}if(open!==want)U.view='allsites'}   // the master lands on All sites
  try{const kv=sessionStorage.getItem('pv-bk-view');sessionStorage.removeItem('pv-bk-view');if(kv&&U.view!=='allsites')U.view=kv;   // switched site: same page
   const ka=sessionStorage.getItem('pv-bk-all');if(ka){const b=ka.startsWith('__biz:')?ka.slice(6):null;U.view='allsites';U.allBiz=b&&sites.some(s=>String(s.business_id)===b)||b&&isMaster()?b:null}}catch(e){}
  if(!isMaster()&&!licWorks(CLOUD.site)){showLicenceLock();return}
  await cloudStart();
 }
-/* master with no sites on the platform: the All sites page with nothing open (no venue document, nothing synced) */
-function showMasterHome(){CLOUD.nosite=true;CLOUD.on=false;CLOUD.vid=null;CLOUD.site=null;
+/* the master signed in without opening a customer: "Open a customer from the licence portal" (no venue document, nothing synced) */
+function showMasterHome(){CLOUD.nosite=true;CLOUD.on=false;CLOUD.vid=null;CLOUD.site=null;document.body.classList.add('pv-nosite');
  S=upgrade(seed());['parties','guests','reviews','chats','notes','tasks','shifts','staff'].forEach(k=>S[k]=[]);S.venue.name='Proview';
- U.view='allsites';hideAuth();render()}
+ U.view='masterhome';hideAuth();render()}
+TITLES.masterhome='Proview Bookings';
+VIEWS.masterhome=()=>{const me=CLOUD.me||{},t=me.master_missing?'That business couldn’t be found here. It may have been deleted. Open the customer again from the licence portal.'
+  :me.master_open?`${esc(me.master_business||'That business')} has no locations yet. Add one in the licence portal, then open it again.`
+  :'As Proview you open a customer’s Bookings from their page in the licence portal (Open in Bookings). It opens here, inside that business.';
+ return`<div class="card pad pv-master-home"><h2 style="margin:0 0 8px;font-size:20px">Open a customer from the licence portal</h2><p class="mut" style="margin:0 0 14px">${t}</p><a class="btn pri" href="${LIC_PORTAL}">Go to license.proviewcrm.co.uk</a></div>`};
+/* "Viewing <Business> as Proview" under the header while the master is inside a customer's business */
+function masterBar(){let b=document.getElementById('pvMasterBar');const me=CLOUD.me,on=!!(me&&me.is_master&&me.master_open&&!CLOUD.nosite);
+ if(!on){b&&b.remove();return}
+ if(!b){b=document.createElement('div');b.id='pvMasterBar';b.className='pv-master-bar noprint';b.setAttribute('role','status');$('#top').after(b)}
+ b.innerHTML=`<span>Viewing <b>${esc(me.master_business||'this business')}</b> as Proview</span><a class="pv-master-back" href="${LIC_PORTAL}">Back to licence portal</a>`}
+addEventListener('hashchange',()=>{if(/[#&]pv_sso=/.test(location.hash))location.reload()});   // a hand-off into an open tab: run it like a fresh load
 
 /* --- online sign-up: set up the business (no free trial: it starts with no licence, then the buy screen shows) --- */
 function showBusinessSetup(msg){document.body.classList.add('gate');const a=$('#auth');
@@ -2924,17 +2752,14 @@ function licBannerHtml(){if(!CLOUD.site)return'';const s=CLOUD.site,L=licState(s
    Several sites: "All my sites (N)" plus their sites. One site: the site name in the same box, disabled.
    A whole business (opened from the All sites page) reads "<Business> (all sites)": a hidden selected option, not in the list. */
 function siteBiz(l){const m=(CLOUD.me?.sites||[]).find(x=>x.id===l.id);return{id:String(m?.business_id||l.business||m?.business||''),name:l.business||m?.business||'No business'}}
-function sitePickHtml(){const L=LOC.cloud?(LOC.list||[]):[];if(!L.length&&!isMaster())return'';
+function sitePickHtml(){const L=LOC.cloud&&!CLOUD.nosite?(LOC.list||[]):[];if(!L.length)return'';
  const wrap=sel=>`<div class="hdr-pick"><label class="sr" for="hdr-site">Location</label>${sel}</div>`;
- if(L.length===1&&!isMaster())return wrap(`<select id="hdr-site" aria-label="Choose location" title="${esc(L[0].name)}" disabled><option>${esc(L[0].name)}</option></select>`);
+ if(L.length===1)return wrap(`<select id="hdr-site" aria-label="Choose location" title="${esc(L[0].name)}" disabled><option>${esc(L[0].name)}</option></select>`);
  const by=a=>(x,y)=>String(a(x)).localeCompare(String(a(y))),all=U.view==='allsites',fb=all?(U.allBiz||null):null;
  const o=(v,t,on)=>`<option value="${esc(v)}" title="${esc(t)}" ${on?'selected':''}>${esc(t)}</option>`;
  const sorted=L.slice().sort(by(l=>l.name)),dup=n=>L.filter(x=>String(x.name).toLowerCase()===String(n).toLowerCase()).length>1;
  const sites=sorted.map(l=>o(l.id,l.name+(dup(l.name)?' · '+siteBiz(l).name:''),!all&&l.id===LOC.current)).join('');
- let h;
- if(isMaster()){const bn=fb&&((CLOUD.me?.sites||[]).find(x=>String(x.business_id)===fb)?.business||(ALLS.biz||[]).find(b=>String(b.id)===fb)?.name||'Business');
-  h=o('__all',`All locations (${L.length})`,all&&!fb)+(fb?`<option value="__biz:${esc(fb)}" selected hidden>${esc(bn)} (all locations)</option>`:'')+sites}
- else h=o('__mine',`All my locations (${L.length})`,all)+sites;
+ const h=o('__mine',`All my locations (${L.length})`,all)+sites;
  const cur=(h.match(/<option [^>]*selected[^>]*>([^<]*)<\/option>/)||[])[1]||'Switch location';
  return wrap(`<select id="hdr-site" aria-label="Choose location" title="${cur}" data-act-change="pickSite">${h}</select>`)}
 const markOpen=id=>{try{id?sessionStorage.setItem('pv-bk-open',id):sessionStorage.removeItem('pv-bk-open');sessionStorage.removeItem('pv-bk-all')}catch(e){}};
@@ -2945,9 +2770,9 @@ A.pickSite=el=>{const v=el.value;
  if(v&&v===LOC.current){U.view=keep;render();return}
  if(v){try{sessionStorage.setItem('pv-bk-view',keep)}catch(e){}U.view=keep;A.openSite({dataset:{id:v}})}};
 /* "All sites" (master admins, from the site picker): every site's licence and today's bookings at a glance */
-TITLES.allsites='Locations';Object.defineProperty(TITLES,'allsites',{get:()=>isMaster()?'Locations':'My locations',enumerable:true,configurable:true});
+TITLES.allsites='My locations';
 const ALLS={rows:null,biz:null,busy:false,at:0,err:''};
-VIEWS.allsites=()=>{if(!canView('allsites'))return VIEWS.parties();const M=isMaster();
+VIEWS.allsites=()=>{if(!canView('allsites'))return VIEWS.parties();const M=false;   // the master sees a business as its Owner does (no master view: MASTER_OPEN_SPEC)
  /* Proview Signage's Locations page (business cards, clickable summary boxes; LOCATIONS_PAGE_STANDARD). The master sees one card
     per business; a business opened from here (U.allBiz) and an owner's "My locations" show one card per location. */
  const allSites=(CLOUD.me?.sites||[]).filter(x=>!U.allBiz||siteBiz(x).id===U.allBiz),R=ALLS.rows,by=id=>R&&R[id];
@@ -2993,18 +2818,18 @@ VIEWS.allsites=()=>{if(!canView('allsites'))return VIEWS.parties();const M=isMas
  const stat=(k,v,list,tone)=>`<button type="button" class="card ov-stat${tone?' '+tone:''}" data-act="allList" data-list="${list}" title="Show the list"><div class="tiny">${k}</div><div class="ov-v">${v}</div></button>`;
  const licensed=allSites.filter(licWorks).length,attn=allSites.filter(needs).length;
  const stats=`<div class="ov-stats">${stat('Businesses',loading?'…':nBiz,'biz')}${stat('Locations',allSites.length,'loc')}${stat('Licensed',licensed,'lic',licensed?'ok':'')}${stat('Bookings today',allSites.length?sum(allSites,'b'):0,'book')}${stat('Covers today',allSites.length?sum(allSites,'c'):0,'cover')}${stat('Licences need attention',attn,'attn',attn?'bad':'')}</div>`;
- const empty=`<div class="card ov-empty-card"><div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:28px 12px;gap:10px"><h3 style="margin:0;font-size:15px;font-weight:650">No businesses yet</h3><p class="muted" style="margin:0">${M?'Add a business with its owner\'s login here. Licences are managed in the Proview licence portal.':`To add a location, call Proview on ${PROVIEW_PHONE}.`}</p><div class="pv-acts" style="justify-content:center">${M?`<button class="btn primary" data-act="addBiz">${ic('plus',16)} Add business</button><a class="btn" href="${LIC_PORTAL}" target="_blank" rel="noopener">Open licence portal ↗</a>`:''}<button class="btn" data-act="allRefresh">${ic('refresh',16)} Refresh</button></div></div></div>`;
+ const empty=`<div class="card ov-empty-card"><div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:28px 12px;gap:10px"><h3 style="margin:0;font-size:15px;font-weight:650">No businesses yet</h3><p class="muted" style="margin:0">${M?'Add a business with its owner\'s login here. Licences are managed in the Proview licence portal.':`To add a location, call Proview on ${PROVIEW_PHONE}.`}</p><div class="pv-acts" style="justify-content:center"><button class="btn" data-act="allRefresh">${ic('refresh',16)} Refresh</button></div></div></div>`;
  const bizName=U.allBiz&&(allSites[0]?.business||(ALLS.biz||[]).find(b=>String(b.id)===U.allBiz)?.name||'This business');
  const desc=M&&!U.allBiz?'Every business on the platform with its locations. Open one to see it as its team does.':U.allBiz?`Every location of ${esc(bizName)} with today's bookings. Open one to work in it.`:'Each location with today\'s bookings. Open a location to work in it.';
  return`<div class="pv-loc"><div class="pv-ph"><p class="muted">${desc}</p>
-  <div class="pv-acts"><button class="btn" data-act="allRefresh" title="Refresh">${ic('refresh',16)} Refresh</button>${M?`<a class="btn" href="${LIC_PORTAL}" target="_blank" rel="noopener">Licences ↗</a>`:''}${M&&!U.allBiz?`<button class="btn primary" data-act="addBiz">${ic('plus',16)} Add business</button>`:''}</div></div>
+  <div class="pv-acts"><button class="btn" data-act="allRefresh" title="Refresh">${ic('refresh',16)} Refresh</button></div></div>
  ${stats}
  ${ALLS.err?`<div class="notice bad" style="margin-bottom:12px">${esc(ALLS.err)}</div>`:''}
  <div class="ov-tools"><input class="ov-search" id="allQ" type="search" placeholder="Search businesses or locations" aria-label="Search businesses or locations" oninput="allFilter(this.value)"></div>
  <div class="ov-grid" id="allT">${cards.length?cards.join(''):loading?'<p class="muted" style="grid-column:1/-1;margin:0">Loading…</p>':empty}</div><p class="muted" id="allNone" hidden style="margin:0">No businesses or locations match.</p></div>`};
 function allFilter(v){const t=String(v||'').trim().toLowerCase();let n=0;document.querySelectorAll('#allT > .ov-biz').forEach(c=>{const ok=!t||c.dataset.q.includes(t);c.style.display=ok?'':'none';if(ok)n++});const e=$('#allNone');if(e){e.hidden=n>0||!t;e.textContent=`No businesses or locations match “${String(v||'').trim()}”.`}}
 /* the summary boxes: each opens the list behind its number (as Proview Signage) */
-A.allList=el=>{const k=el.dataset.list,M=isMaster(),R=ALLS.rows,n=(id,f)=>(R&&R[id]||{})[f]||0;
+A.allList=el=>{const k=el.dataset.list,M=false,R=ALLS.rows,n=(id,f)=>(R&&R[id]||{})[f]||0;
  const sites=(CLOUD.me?.sites||[]).filter(x=>!U.allBiz||siteBiz(x).id===U.allBiz).slice().sort((a,b)=>(siteBiz(a).name+a.name).localeCompare(siteBiz(b).name+b.name));
  const tone=x=>{const s=licState(x).state;return s==='none'||s==='expired'?'bad':s==='grace'||s==='expiring'?'warn':'ok'};
  const chev=`<span class="ov-chev" aria-hidden="true">›</span>`,pillOf=x=>{const s=licSummary(x);return`<span class="ov-pill ${{green:'ok',amber:'warn',red:'bad'}[s.tone]||''}">${esc(s.text)}</span>`};
@@ -3021,9 +2846,10 @@ A.allList=el=>{const k=el.dataset.list,M=isMaster(),R=ALLS.rows,n=(id,f)=>(R&&R[
  else{title='Licences needing attention';emptyT='Every licence is fine.';items=sites.filter(x=>['none','expiring','grace','expired'].includes(licState(x).state)).map(x=>siteLi(x,pillOf(x)))}
  const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:640px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>${esc(title)}</h3><button class="icon-btn" data-act="closeModal" aria-label="Close">${ic('x')}</button></div><div class="pad" style="padding-top:6px;padding-bottom:6px">${items.length?`<div class="ov-list">${items.join('')}</div>`:`<p class="muted" style="margin:10px 0">${emptyT}</p>`}</div></div>`;m.classList.add('show')};
 AFTER.allsites=async()=>{if(!canView('allsites')||ALLS.busy||!CLOUD.ad)return;if(ALLS.at&&Date.now()-ALLS.at<60e3)return;ALLS.busy=true;const errs=[];
- if(!isMaster())ALLS.biz=[];else try{ALLS.biz=(await CLOUD.ad.sel('bk_businesses','id,name')||[]).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)))}catch(e){ALLS.biz=ALLS.biz||[];errs.push('Couldn’t load businesses: '+(e.message||e))}
+ ALLS.biz=[];
  const rows={};
- if(CLOUD.ad.sb&&(CLOUD.me?.sites||[]).length){try{const r=await CLOUD.ad.sb.from('bk_venue_state').select('id,updated_at,parties:data->parties');if(r.error)throw r.error;
+ if(CLOUD.ad.sb&&(CLOUD.me?.sites||[]).length){try{let qy=CLOUD.ad.sb.from('bk_venue_state').select('id,updated_at,parties:data->parties');if(isMaster())qy=qy.in('id',CLOUD.me.sites.map(x=>x.id));   // the master: only the opened business
+   const r=await qy;if(r.error)throw r.error;
    const t=today();(r.data||[]).forEach(v=>{const ps=(Array.isArray(v.parties)?v.parties:[]).filter(p=>p&&p.date===t&&p.kind!=='enquiry'&&!['cancelled','deleted','noshow'].includes(p.status));
     rows[v.id]={b:ps.length,c:ps.reduce((n,p)=>n+(+p.size||0),0),s:ps.filter(p=>ACTIVE.includes(p.status)).length,at:v.updated_at}})}
   catch(e){errs.push('Couldn’t load today’s bookings: '+(e.message||e))}}
@@ -3034,49 +2860,6 @@ A.allRefresh=async()=>{let me=null;try{me=await CLOUD.ad.whoami()}catch(e){toast
  if(changed){markOpen(null);location.reload();return}ALLS.at=0;ALLS.rows=null;render();toast('Up to date')};
 A.allBiz=(el,e)=>{e&&e.preventDefault&&e.preventDefault();if($('#modal').classList.contains('show'))A.closeModal();markOpen(null);U.allBiz=String(el.dataset.id);try{sessionStorage.setItem('pv-bk-all','__biz:'+U.allBiz)}catch(x){}U.view='allsites';render()};
 A.allOpen=el=>{const id=el.dataset.id;if($('#modal').classList.contains('show'))A.closeModal();markOpen(id);U.view='parties';if(id===LOC.current){render();return}A.openSite({dataset:{id}})};
-/* "+ Add business" (master only), design D (ADD_BUSINESS_D_SPEC, 11 Nov 2026): business + owner in one grid, then two choices.
-     How will they sign in?  invite (email link, they choose the password) | set a password now (no email)
-     Licence                 none yet | 3-day trial (bk_master_trial, supabase/010) | set it now (licence portal)
-   bk_add_business (supabase/007, no licence since 008) does the business, location and Owner all-or-nothing on the server.
-   For an invite the login gets a random password nobody sees and Supabase emails a set-your-password link (the app's
-   PASSWORD_RECOVERY flow, showNewPw, asks them to choose one). */
-const abRand=n=>{const a='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789',r=crypto.getRandomValues(new Uint32Array(n));return[...r].map(x=>a[x%a.length]).join('')};
-A.addBiz=()=>{if(!isMaster())return;window.pvAddBiz({onSubmit:A.addBizGo})};   // the pop-up: pv-addbiz.js (inlined below), shared by all six apps
-async function addBizRefresh(){try{const me=await CLOUD.ad.whoami();if(me){CLOUD.me=me;if(LOC.cloud){LOC.list=(me.sites||[]).map(s=>({id:s.id,name:s.name,business:s.business}));try{localStorage.setItem(LOCKEY,JSON.stringify(LOC))}catch(x){}}}}catch(x){console.error(x)}
- ALLS.at=0;ALLS.rows=null;if(U.view==='allsites')render()}
-A.addBizGo=async(v,ui)=>{if(!isMaster())return;const need=(k,msg)=>{toast(msg);ui.input(k)?.focus()};
- const biz=v.biz,name=v.name,e=v.email,mob=v.mobile,invite=v.invite,lic=v.lic;
- const pw=invite?abRand(24):v.password;
- if(biz.length<2)return need('biz','Enter the business name');
- if(name.length<2)return need('name','Enter the owner’s name');
- if(!/^\S+@\S+\.\S+$/.test(e))return need('email','Enter a valid email address');
- if(!invite&&pw.length<6)return need('pw','The password needs at least 6 characters');
- let r;
- try{r=await CLOUD.ad.rpc('bk_add_business',{p_business:biz,p_name:name,p_email:e,p_mobile:mob,p_password:pw})}
- catch(x){toast(x.message||'Couldn’t add the business');return}
- // licence: 3-day trial now (bk_master_trial never replaces a licence already set)
- let licLine='';
- if(lic==='trial'){let t=null,te=null;try{t=await CLOUD.ad.rpc('bk_master_trial',{p_business:r.business_id})}catch(x){te=x}
-  licLine=te?`<p class="abz-warn">The business was added, but the trial couldn’t be started: ${esc(te.message||String(te))}. Set a licence in the licence portal.</p>`
-   :t&&t.applied?`<p class="abz-ok">On a 3-day trial until ${esc(new Date(t.expires_at).toLocaleString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))}.</p>`
-   :`<p class="mut" style="margin:10px 0 0">It already had a licence, so no trial was added.</p>`}
- else if(lic==='none')licLine=`<p class="mut" style="margin:10px 0 0">No licence yet: they buy one when they sign in.</p>`;
- else licLine=`<p class="mut" style="margin:10px 0 0">Next, set its licence in the licence portal.</p>`;
- // sign-in: email the invite (new logins only; an existing login keeps its password)
- let signIn='';
- if(r&&r.existing)signIn=`<p style="margin:0">${esc(e)} already had a PROVIEW BOOKINGS login, so they were made Owner / Admin of this business and keep the password they already use.${invite?' No invite was needed.':' The password you typed was not applied.'}</p>`;
- else if(invite){let me=null;try{await CLOUD.ad.reset(e)}catch(x){me=x}
-  signIn=me?`<p class="abz-warn" style="margin-top:0">The business was added, but the invite email couldn’t be sent (${esc(me.message||String(me))}). They can use “Forgot password?” on the sign-in page with ${esc(e)}.</p>`
-   :`<p class="abz-ok" style="margin-top:0">Invite sent to <b>${esc(e)}</b>. They open the email link and choose their own password.</p>`}
- ui.close();await addBizRefresh();
- const site=location.origin+location.pathname,details=`PROVIEW BOOKINGS login\n${site}\nEmail: ${e}\nPassword: ${pw}`,m=$('#modal');
- const pwCard=!(r&&r.existing)&&!invite?`<p class="mut" style="margin:0 0 10px">The owner can sign in now. No email was sent, so pass these on yourself:</p>
-   <div class="notice abz-card"><div><span class="mut">Sign in at</span><b>${esc(site.replace(/^https?:\/\//,''))}</b></div><div><span class="mut">Email</span><b>${esc(e)}</b></div><div><span class="mut">Password</span><b>${esc(pw)}</b></div></div>
-   <button class="btn" type="button" style="margin-top:10px" id="abCopy" data-act="copy" data-v="${esc(details)}">${ic('copy',16)} Copy login details</button>`:'';
- m.innerHTML=`<div class="modal card abz" style="max-width:520px" role="dialog" aria-modal="true" aria-label="${esc(biz)} added"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>${esc(biz)} added</h3><button class="icon-btn" data-act="closeModal" aria-label="Close">${ic('x')}</button></div><div class="pad">
-  ${signIn}${pwCard}${licLine}
-  <div class="row pvdlg-f">${lic==='set'?`<a class="btn" style="text-decoration:none" href="${LIC_PORTAL}" target="_blank" rel="noopener">Set licence ↗</a>`:''}<button class="btn" data-act="closeModal">Stay here</button><button class="btn pri" data-act="allOpen" data-id="${esc(r?.site_id||'')}">Open business</button></div></div></div>`;
- m.classList.add('show');return true};
 A.openSite=el=>{const id=el.dataset.id;if(!id)return;if(id===CLOUD.vid)return;markOpen(id);save();LOC.current=id;if(!LOC.list.some(x=>x.id===id)){LOC.list.push({id,name:id})}LOC.cloud=true;localStorage.setItem(LOCKEY,JSON.stringify(LOC));location.reload()};
 /* licences are managed in the Proview licence portal */
 const LIC_PORTAL='https://license.proviewcrm.co.uk';
@@ -3130,14 +2913,14 @@ const VIEW_FEATURE={tables:'bookings',planner:'bookings',floor:'bookings',guests
 function hasFeature(f){if(!CLOUD.on||!CLOUD.site||isMaster())return true;const F=CLOUD.site.features;if(!F)return true;return F[f]!==false}
 function myBusiness(){const b=CLOUD.site&&CLOUD.site.business_id;return b?(CLOUD.me?.businesses||[]).find(x=>x.id===b)||null:null}
 function usersOn(){return !!(CLOUD.on&&CLOUD.ad?.kind==='supabase'&&myBusiness()&&myBusiness().can_manage_users)}
-function canView(v){if(v==='allsites')return isMaster()||(!!LOC.cloud&&!CLOUD.nosite&&(CLOUD.me?.sites||[]).length>1);if(CLOUD.nosite)return v==='help';if(v==='help')return true;if(v==='users')return usersOn();
+function canView(v){if(v==='masterhome')return !!CLOUD.nosite&&isMaster();if(v==='allsites')return !!LOC.cloud&&!CLOUD.nosite&&(CLOUD.me?.sites||[]).length>1;if(CLOUD.nosite)return v==='help';if(v==='help')return true;if(v==='users')return usersOn();
  if(v==='parties')return hasFeature('bookings')||hasFeature('queue')||hasFeature('enquiries');const f=VIEW_FEATURE[v];return !f||hasFeature(f)}
-function firstView(){if(CLOUD.nosite)return'allsites';const n=NAV.find(n=>n[0]!=='sec'&&canView(n[0]));return n?n[0]:'noaccess'}
+function firstView(){if(CLOUD.nosite)return isMaster()?'masterhome':'help';const n=NAV.find(n=>n[0]!=='sec'&&canView(n[0]));return n?n[0]:'noaccess'}
 NAV.push(['users','Users','users']);SHORT.users='Users';TITLES.users='Users';TITLES.noaccess='No access';
 VIEWS.noaccess=()=>`<div class="card pad" style="max-width:560px"><b style="font-size:16px">Nothing to show</b><p class="mut">Your login doesn't have any pages switched on at ${esc(S.venue.name)}. Ask your manager or the business owner.</p></div>`;
 {const _render=render,_nav=renderNav,_top=renderTop;
  render=function(){if(!canView(U.view))U.view=firstView();if(U.view==='settings'&&U.setPage==='account'&&U.setTab==='team'&&!usersOn()&&!hasFeature('users'))U.setTab=null;return _render.apply(this,arguments)};
- renderNav=function(){const r=_nav.apply(this,arguments);const greyed=isMaster()&&U.view==='allsites'&&!U.allBiz;document.querySelectorAll('#nav [data-act=go]').forEach(b=>{if(!greyed&&!canView(b.dataset.v))b.remove()});
+ renderNav=function(){const r=_nav.apply(this,arguments);document.querySelectorAll('#nav [data-act=go]').forEach(b=>{if(!canView(b.dataset.v))b.remove()});
   document.querySelectorAll('#nav .nav-sec').forEach(sec=>{let n=sec.nextElementSibling;if(!n||n.classList.contains('nav-sec')||n.dataset.act==='help')sec.remove()});return r};
  renderTop=function(){const r=_top.apply(this,arguments);const t=$('#top');if(t){const hide={chats:'messages',enquiries:'enquiries',newParty:'bookings'};
   for(const[k,f]of Object.entries(hide))if(!hasFeature(f))t.querySelectorAll('[data-act='+k+']').forEach(e=>e.remove());if(!hasFeature('settings'))t.querySelectorAll('[data-act=goPage]').forEach(e=>e.remove());if(CLOUD.nosite)t.querySelectorAll('[data-act=goPage],[data-act=search],[data-act=chats],[data-act=enquiries],[data-act=notifs],[data-act=newParty]').forEach(e=>e.remove())}if(CLOUD.nosite){const vc=$('#venueCard');if(vc){vc.removeAttribute('data-act');vc.style.cursor='default'}}return r};
@@ -3201,20 +2984,6 @@ function netBanner(){let b=$('#offline');if(navigator.onLine){b&&b.remove();retu
 addEventListener('online',netBanner);addEventListener('offline',netBanner);netBanner();
 setInterval(()=>{if(!$('#drawer').classList.contains('open')&&!$('#modal').classList.contains('show')&&!U.editFloor&&!['settings','guests','preorders','reviews','reports'].includes(U.view)){if(U.view==='planner')U.keepScroll=$('#gwrap')?.scrollLeft||1;render()}},60000);
 
-/* master: "All sites" first in the left menu; on All sites the usual pages stay in place but greyed until a site is picked
-   (ALLSITES_MENU_STANDARD, same in all Proview apps) */
-{const _n=renderNav;renderNav=function(){const r=_n.apply(this,arguments);const nav=$('#nav');if(!nav||!isMaster()||!LOC.cloud)return r;
-  const on=U.view==='allsites',b=document.createElement('button');b.className='nav-all'+(on?' on':'');b.dataset.act='goAllSites';b.title='Locations';
-  b.innerHTML=ic('pvloc',19)+'<span class="lbl">Locations</span><span class="slbl">Locations</span>';const more=nav.querySelector('.nav-more');more?more.after(b):nav.prepend(b);
-  if(on&&!U.allBiz)nav.querySelectorAll('button[data-act=go],button[data-act=help]').forEach(x=>{x.classList.add('nav-dis');x.classList.remove('on');x.setAttribute('aria-disabled','true');x.dataset.act='needSite';x.title=(x.title||'')+' – choose a location first'});
-  return r};
- A.goAllSites=()=>{markOpen(null);U.allBiz=null;try{sessionStorage.setItem('pv-bk-all','__all')}catch(e){}U.view='allsites';render()};
- A.needSite=()=>{toast('Choose a location in the dropdown first');const s=$('#hdr-site');if(!s)return;s.focus();const w=s.closest('.hdr-pick');w.classList.remove('pulse');void w.offsetWidth;w.classList.add('pulse');setTimeout(()=>w.classList.remove('pulse'),1000)};
- // "<Business> ▸ All sites": a page opens in that business (its first site) if the loaded site belongs to another one
- const _g=A.go;A.go=el=>{if(isMaster()&&U.view==='allsites'&&U.allBiz){const cur=(LOC.list||[]).find(l=>l.id===LOC.current);
-  if(!cur||siteBiz(cur).id!==U.allBiz){const f=(LOC.list||[]).filter(l=>siteBiz(l).id===U.allBiz).sort((a,b)=>String(a.name).localeCompare(String(b.name)))[0];if(!f)return A.needSite();
-   try{sessionStorage.setItem('pv-bk-view',el.dataset.v)}catch(e){}markOpen(f.id);U.view=el.dataset.v;return A.openSite({dataset:{id:f.id}})}}return _g(el)};
-}
 </script>
 <script id="pvx-js">
 /* =====================================================================
@@ -3300,7 +3069,6 @@ function pvNavOk(v){
  nav.querySelectorAll('button[data-v]').forEach(b=>{const v=b.dataset.v;b.classList.toggle('nav-core',PV_CORE.includes(v));b.classList.toggle('nav-extra',!PV_CORE.includes(v));if(PV_SUB[v]){b.classList.add('nav-sub');if(U.view===PV_SUB[v])b.classList.add('sub-show')}});
  const M=pvMgr(true),mb=document.createElement('button');mb.className='nav-extra pv-mgrb'+(M?' on':'');mb.dataset.act='pvMgrBtn';mb.title=M?'Manager signed in: tap to lock':'Manager sign in';
  mb.innerHTML=ic(M?'unlock':'lock',19)+`<span class="lbl">${M?'Lock':'Manager'}</span><span class="slbl">${M?'Lock':'Manager'}</span>`;
- if(nav.querySelector('.nav-dis')){mb.classList.add('nav-dis');mb.classList.remove('on');mb.setAttribute('aria-disabled','true');mb.dataset.act='needSite';mb.title='Manager – choose a location first'}
  const help=nav.querySelector('[data-act=help]')||[...nav.querySelectorAll('button')].find(b=>/^\s*Help/.test(b.textContent));if(help)help.before(mb);else nav.appendChild(mb);
  const vc=$('#venueCard');if(vc&&!LOC.cloud){const s=vc.querySelector('.side-me-t span');if(s&&!/Manager|Staff/.test(s.textContent))s.insertAdjacentText('beforeend',' · '+(M?'Manager':'Staff'))}
  return r}}

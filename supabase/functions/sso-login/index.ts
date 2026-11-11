@@ -8,6 +8,9 @@
 //
 //   POST { assertion } → { token_hash, email }      (assertion mode "login", single use)
 //   POST { assertion } → { ok, reason }             (assertion mode "check": can this person sign in?)
+//   POST { assertion with biz } → { token_hash, email, open }   the Proview master opened one customer from the
+//        licence portal (MASTER_OPEN_PROTOCOL.md): biz (a bk_businesses id) is honoured only when this email is the
+//        master here (bk_master_admins, the rule behind public.bk_is_master()); for anyone else it is ignored.
 //
 // Deploy with verify_jwt = false (the caller isn't signed in yet). Only the public key lives here.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
@@ -34,7 +37,7 @@ async function verify(token: string) {
   const now = Math.floor(Date.now() / 1000);
   if (c.iss !== "proview-account" || c.aud !== APP || !c.email || !c.jti) return null;
   if (!(c.exp > now) || c.exp - c.iat > 300 || c.iat > now + 60) return null;
-  return c as { email: string; mode: string; jti: string; exp: number };
+  return c as { email: string; mode: string; jti: string; exp: number; biz?: unknown };
 }
 
 Deno.serve(async (req) => {
@@ -61,7 +64,17 @@ Deno.serve(async (req) => {
     }
     const link = await db.auth.admin.generateLink({ type: "magiclink", email: c.email });
     if (link.error) throw link.error;
-    return json({ token_hash: link.data.properties.hashed_token, email: c.email });
+    // Master opening one customer from the licence portal: tell the app which business to open.
+    let open: string | undefined;
+    const biz = typeof c.biz === "string" || typeof c.biz === "number" ? String(c.biz).trim() : "";
+    if (biz && biz.length <= 200) {
+      const uid = ent.user_id as string | undefined;   // a login created just now is never the master
+      if (uid) {
+        const { data: m } = await db.from("bk_master_admins").select("user_id").eq("user_id", uid).maybeSingle();
+        if (m?.user_id) open = biz;
+      }
+    }
+    return json({ token_hash: link.data.properties.hashed_token, email: c.email, ...(open ? { open } : {}) });
   } catch (e) {
     console.error(e);
     return json({ error: "Sign-in failed. Please try again." }, 500);
