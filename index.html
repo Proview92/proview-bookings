@@ -646,7 +646,7 @@ body.v-allsites .fab{display:none!important}
 /* Bookings only: dark mode keeps the picker readable; iPad (701-900px) has the date bar too, so Dashboard shows its icon only and the date arrows are tighter */
 body.dark .top .hdr-pick select { background-color: var(--card); }
 @media (min-width: 701px) and (max-width: 900px) { #top .datenav button { padding: 6px 2px; } .top .hdr-pick select { max-width: 100%; } #top .pv-dash { width: 38px; padding: 0; justify-content: center; } #top .pv-dash span { display: none; } }
-/* the Proview master inside one customer's business, opened from the licence portal (MASTER_OPEN_SPEC) */
+/* the Proview master inside one location's business, opened from the licence portal (MASTER_OPEN_SPEC) */
 .pv-master-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 20px;background:#fff7e0;border-bottom:1px solid #f1dfa6;color:#5c4400;font-size:13.5px}
 .pv-master-bar b{font-weight:700}.pv-master-bar .pv-master-back{margin-left:auto;color:#5c4400;font-weight:600;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
 body.dark .pv-master-bar{background:#3a2f12;border-color:#5c4a1a;color:#f3dc9b}body.dark .pv-master-bar .pv-master-back{color:#f3dc9b}
@@ -1086,8 +1086,8 @@ const ic=(n,s=18)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="no
 
 /* ================= state ================= */
 const LOCKEY='proview-locations';
-/* The Proview master inside a customer opened from the licence portal (pv_master_open, per tab): the remembered location
-   is kept per tab too, so customer A in one tab and customer B in another don't overwrite each other. Everyone else: as before. */
+/* The Proview master inside a location opened from the licence portal (pv_master_open, per tab): the remembered location
+   is kept per tab too, so location A in one tab and location B in another don't overwrite each other. Everyone else: as before. */
 const locStore=()=>{try{return sessionStorage.getItem('pv_master_open')?sessionStorage:localStorage}catch(e){return localStorage}};
 function locWrite(){try{locStore().setItem(LOCKEY,JSON.stringify(LOC))}catch(e){}}
 let LOC=null;try{LOC=JSON.parse(locStore().getItem(LOCKEY)||'null')}catch(e){}
@@ -1979,9 +1979,9 @@ A.importCsv=el=>{const f=el.files[0];if(!f)return;const r=new FileReader();r.onl
 A.showQR=el=>{const url=el.dataset.v,t=el.dataset.t||'Booking link';const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:380px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><b>${esc(t)}</b><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div class="pad" style="text-align:center"><div id="qrBox" style="display:inline-block;padding:12px;background:#fff;border-radius:12px"></div><div class="code" style="margin-top:12px">${esc(url)}</div><div class="small mut" style="margin-top:8px">Right-click or long-press the code to save it for printing.</div></div></div>`;m.classList.add('show');
  loadQR(err=>{const box=$('#qrBox');if(!box)return;if(err||!window.QRCode){box.innerHTML='<div class="small mut" style="padding:20px">QR code needs an internet connection.</div>';return}new QRCode(box,{text:url,width:220,height:220,colorDark:'#141418',colorLight:'#ffffff'});setTimeout(()=>{const c=box.querySelector('canvas'),i=box.querySelector('img');if(c&&i){i.src=c.toDataURL();i.style.display='block';c.style.display='none'}},50)})};
 A.signupTest=()=>{const n=$('#suName').value.trim(),e=$('#suEmail').value.trim().toLowerCase();if(!n||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){toast('Enter a name and a valid email');return}if(!$('#suOk').checked){toast('Tick the box to agree to marketing');return}let g=S.guests.find(x=>x.email.toLowerCase()===e);if(g){g.marketing=true}else{g={id:uid(),name:n,phone:$('#suPhone')?.value.trim()||'',email:e,tags:[],notes:'',marketing:true,created:today(),birthday:$('#suBday')?.value||''};S.guests.push(g)}S.signup.signups++;notify('user',`${shortName(n)} joined your guest list`);save();render();toast(`${n} added to your guest book`)};
-A.locations=()=>{if(LOC.cloud){const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:460px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Your locations</h3><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div style="max-height:60vh;overflow:auto">${LOC.list.map(l=>`<div class="sres" data-act="switchLoc" data-id="${esc(l.id)}"><div class="av">${initials(l.name)}</div><div style="flex:1"><b>${esc(l.name)}</b><div class="small mut">${l.id===LOC.current?'Current location':esc(l.business||'')}</div></div>${l.id===LOC.current?ic('check',16):''}</div>`).join('')}</div><div class="pad small mut" style="border-top:1px solid var(--line)">${isMaster()?'Add businesses, locations and licences in the <a href="https://license.proviewcrm.co.uk" target="_blank" rel="noopener">licence portal ↗</a>.':`To add another location, call Proview on ${PROVIEW_PHONE}.`}</div></div>`;m.classList.add('show');return}const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:460px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Your locations</h3><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div>${LOC.list.map(l=>`<div class="sres" data-act="switchLoc" data-id="${l.id}"><div class="av">${initials(l.name)}</div><div style="flex:1"><b>${esc(l.name)}</b>${l.id===LOC.current?'<div class="small mut">Current location</div>':''}</div>${l.id===LOC.current?ic('check',16):''}</div>`).join('')}</div><div class="pad row" style="border-top:1px solid var(--line)"><input class="inp" id="newLoc" placeholder="New location name" style="flex:1"><button class="btn sm pri" data-act="addLoc">${ic('plus',14)} Add</button></div></div>`;m.classList.add('show')};
+A.locations=()=>{if(LOC.cloud){const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:460px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Your locations</h3><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div style="max-height:60vh;overflow:auto">${LOC.list.map(l=>`<div class="sres" data-act="switchLoc" data-id="${esc(l.id)}"><div class="av">${initials(l.name)}</div><div style="flex:1"><b>${esc(l.name)}</b><div class="small mut">${l.id===LOC.current?'Current location':esc(l.business||'')}</div></div>${l.id===LOC.current?ic('check',16):''}</div>`).join('')}</div><div class="pad small mut" style="border-top:1px solid var(--line)">${isMaster()?'New locations, linked locations and licences are managed in the <a href="https://license.proviewcrm.co.uk" target="_blank" rel="noopener">licence portal ↗</a>.':`To link another location to this business, call Proview on ${PROVIEW_PHONE}.`}</div></div>`;m.classList.add('show');return}const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:460px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Your locations</h3><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div>${LOC.list.map(l=>`<div class="sres" data-act="switchLoc" data-id="${l.id}"><div class="av">${initials(l.name)}</div><div style="flex:1"><b>${esc(l.name)}</b>${l.id===LOC.current?'<div class="small mut">Current location</div>':''}</div>${l.id===LOC.current?ic('check',16):''}</div>`).join('')}</div><div class="pad small mut" style="border-top:1px solid var(--line)">Locations are added and linked by Proview.</div></div>`;m.classList.add('show')};
 A.switchLoc=el=>{const id=el.dataset.id;if(id===LOC.current){A.closeModal();return}save();LOC.current=id;if(CLOUD.cfg){locWrite();location.reload();return}KEY='proview-bookings-v3:'+id;load();if(!S.venue.name||S.venue.name==='Proview Kitchen'){const l=LOC.list.find(x=>x.id===id);if(l&&l.fresh){S.venue.name=l.name;delete l.fresh}}save();U.area=S.areas[0].id;U.date=today();U.view='parties';A.closeModal();render();toast('Switched to '+S.venue.name)};
-A.addLoc=()=>{const n=$('#newLoc').value.trim();if(!n){toast('Name the location');return}const id=uid();LOC.list.push({id,name:n});save();const keep=S;const s=upgrade(seed());s.venue.name=n;s.venue.area='';s.parties=[];s.guests=[];s.reviews=[];s.chats=[];s.notes=[];s.dirty={};try{localStorage.setItem('proview-bookings-v3:'+id,JSON.stringify(s))}catch(e){}S=keep;A.switchLoc({dataset:{id}})};
+// (no A.addLoc: locations are added and linked by Proview in the licence portal; LOCATIONS_LINK_SPEC)
 function seatAt(pid,tid){const p=S.parties.find(x=>x.id===pid);const t=S.tables.find(x=>x.id===tid);
  if(U.date!==today()||p.date!==today()){toast('You can only seat parties on today\'s plan');return}
  if(activeParty(tid)){toast(`${t.name} is occupied`);return}
@@ -2244,7 +2244,7 @@ async function SupabaseAdapter(c){
   async setPw(p){const r=await sb.auth.updateUser({password:p});if(r.error)throw r.error},
   async signOut(){await sb.auth.signOut()},
   async sso(token){const r=await fetch(c.url+'/functions/v1/sso-login',{method:'POST',headers:{'content-type':'application/json',apikey:c.anonKey},body:JSON.stringify({assertion:token})});const j=await r.json().catch(()=>({}));if(!r.ok||!j.token_hash)throw new Error(j.error||'Sign-in with your Proview account failed. Please try again.');
-   setMasterOpen(j.open||null);   // the master opened a customer from the licence portal (only ever sent for the master)
+   setMasterOpen(j.open||null);   // the master opened a location from the licence portal (only ever sent for the master)
    const cur=(await sb.auth.getSession()).data.session?.user;if(cur&&String(cur.email||'').toLowerCase()!==j.email)await sb.auth.signOut();
    const v=await sb.auth.verifyOtp({token_hash:j.token_hash,type:'magiclink'});if(v.error)throw v.error;return v.data.user},
   // srv: supabase/005_guest_privacy.sql is installed, so the document is read and saved through bk_venue_get/put
@@ -2657,10 +2657,10 @@ async function afterSignIn(){
  if(!me){await cloudStart();return}                      // database without sites yet: old single-venue mode
  CLOUD.me=me;const sites=me.sites||[];
  if(!me.is_master){setMasterOpen(null);try{sessionStorage.removeItem(LOCKEY)}catch(e){}}   // master-open is only ever the master's (MASTER_OPEN_SPEC)
- // the master's other tabs may be inside other customers: their offline copies stay (sign-out still clears everything)
+ // the master's other tabs may be inside other locations: their offline copies stay (sign-out still clears everything)
  if(!me.is_master)purgeCache(sites.map(s=>s.id));
  if(!sites.length){
-  if(me.is_master){showMasterHome();return}   // no customer opened from the licence portal (or it has no locations): nothing loaded
+  if(me.is_master){showMasterHome();return}   // no location opened from the licence portal (or it has no locations): nothing loaded
   const b=(me.businesses||[])[0];
   if(b){await signOutWith(`Your login at ${b.name} doesn't have any locations yet. Ask your owner or Proview.`);return}   // added to a business, given no sites
   showBusinessSetup();return}                              // no business, no invite: set one up (no licence until bought)
@@ -2674,16 +2674,16 @@ async function afterSignIn(){
  if(!isMaster()&&!licWorks(CLOUD.site)){showLicenceLock();return}
  await cloudStart();
 }
-/* the master signed in without opening a customer: "Open a customer from the licence portal" (no venue document, nothing synced) */
+/* the master signed in without opening a location: "Open a location from the licence portal" (no venue document, nothing synced) */
 function showMasterHome(){CLOUD.nosite=true;CLOUD.on=false;CLOUD.vid=null;CLOUD.site=null;document.body.classList.add('pv-nosite');
  S=upgrade(seed());['parties','guests','reviews','chats','notes','tasks','shifts','staff'].forEach(k=>S[k]=[]);S.venue.name='Proview';
  U.view='masterhome';hideAuth();render()}
 TITLES.masterhome='Proview Bookings';
-VIEWS.masterhome=()=>{const me=CLOUD.me||{},t=me.master_missing?'That business couldn’t be found here. It may have been deleted. Open the customer again from the licence portal.'
+VIEWS.masterhome=()=>{const me=CLOUD.me||{},t=me.master_missing?'That business couldn’t be found here. It may have been deleted, or linked into another location. Open the location again from the licence portal.'
   :me.master_open?`${esc(me.master_business||'That business')} has no locations yet. Add one in the licence portal, then open it again.`
-  :'As Proview you open a customer’s Bookings from their page in the licence portal (Open in Bookings). It opens here, inside that business.';
- return`<div class="card pad pv-master-home"><h2 style="margin:0 0 8px;font-size:20px">Open a customer from the licence portal</h2><p class="mut" style="margin:0 0 14px">${t}</p><a class="btn pri" href="${LIC_PORTAL}">Go to license.proviewcrm.co.uk</a></div>`};
-/* "Viewing <Business> as Proview" under the header while the master is inside a customer's business */
+  :'As Proview you open a location’s Bookings from its page in the licence portal (Open in Bookings). It opens here, inside that business.';
+ return`<div class="card pad pv-master-home"><h2 style="margin:0 0 8px;font-size:20px">Open a location from the licence portal</h2><p class="mut" style="margin:0 0 14px">${t}</p><a class="btn pri" href="${LIC_PORTAL}">Go to license.proviewcrm.co.uk</a></div>`};
+/* "Viewing <Business> as Proview" under the header while the master is inside a location's business */
 function masterBar(){let b=document.getElementById('pvMasterBar');const me=CLOUD.me,on=!!(me&&me.is_master&&me.master_open&&!CLOUD.nosite);
  if(!on){b&&b.remove();return}
  if(!b){b=document.createElement('div');b.id='pvMasterBar';b.className='pv-master-bar noprint';b.setAttribute('role','status');$('#top').after(b)}
