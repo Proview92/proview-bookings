@@ -2282,12 +2282,12 @@ async function SupabaseAdapter(c){
   async masterMe(){const u=(await sb.auth.getSession()).data.session?.user,id=masterOpenId();
    const me={user_id:u?.id,email:(u?.email||'').toLowerCase(),is_master:true,sites:[],businesses:[],master_home:true,master_missing:false};
    if(!id)return me;
-   const b=/^[0-9a-f-]{36}$/i.test(id)?one(await sb.from('bk_businesses').select('id,name').eq('id',id).maybeSingle()):null;
+   const b=/^[0-9a-f-]{36}$/i.test(id)?one(await sb.from('bk_businesses').select('id,name,suspended').eq('id',id).maybeSingle()):null;
    if(!b){me.master_missing=true;return me}
    const [sites,keys]=await Promise.all([sb.from('bk_sites').select('id,name,business_id,license_type,license_expires_at').eq('business_id',b.id).then(one),sb.rpc('bk_feature_keys').then(one).catch(()=>[])]);
    const fk=Array.isArray(keys)?keys:[],all=Object.fromEntries(fk.map(f=>[f,true]));
    me.feature_keys=fk;me.businesses=[{id:b.id,name:b.name,role:'Owner',can_manage_users:true}];
-   me.sites=(sites||[]).slice().sort((x,y)=>String(x.name).toLowerCase().localeCompare(String(y.name).toLowerCase())).map(x=>({...x,business:b.name,role:'Admin',features:all}));
+   me.sites=(sites||[]).slice().sort((x,y)=>String(x.name).toLowerCase().localeCompare(String(y.name).toLowerCase())).map(x=>({...x,business:b.name,suspended:!!b.suspended,role:'Admin',features:all}));
    me.master_home=!me.sites.length;me.master_open=b.id;me.master_business=b.name;return me},
   async rpc(fn,args){const r=await sb.rpc(fn,args);if(r.error)throw r.error;return r.data},
   async sel(t,c){return one(await sb.from(t).select(c))},
@@ -2610,7 +2610,8 @@ const licLabel=t=>(LIC_TYPES.find(x=>x[0]===t)||[0,'No licence'])[1];
 const licDate=t=>new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
 const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
 function licState(s,now=Date.now()){
- const type=s?.license_type;if(!type)return{state:'none',type};
+ const type=s?.license_type;if(s?.suspended)return{state:'suspended',type};   // paused by Proview (013)
+ if(!type)return{state:'none',type};
  if(type==='lifetime'||!s.license_expires_at)return{state:'lifetime',type};
  const exp=new Date(s.license_expires_at).getTime(),daysLeft=Math.ceil((exp-now)/DAYMS);
  if(now<exp)return{state:daysLeft<=14?'expiring':'active',type,daysLeft,expires:exp};
@@ -2618,13 +2619,13 @@ function licState(s,now=Date.now()){
  if(now<graceEnd)return{state:'grace',type,daysLeft,graceLeft:Math.ceil((graceEnd-now)/DAYMS),expires:exp};
  return{state:'expired',type,daysLeft,expires:exp}}
 function licSummary(s){const L=licState(s),trial=L.type==='trial';
- switch(L.state){case'none':return{text:'No licence',tone:'red',L};case'lifetime':return{text:'Lifetime licence',tone:'green',L};
+ switch(L.state){case'suspended':return{text:'Paused by Proview',tone:'red',L};case'none':return{text:'No licence',tone:'red',L};case'lifetime':return{text:'Lifetime licence',tone:'green',L};
   case'active':return{text:trial?`Trial – ends ${licDate(L.expires)}`:`Licensed · until ${licDate(L.expires)}`,tone:trial?'amber':'green',L};
   case'expiring':return{text:trial?`Trial – ends ${licDate(L.expires)}`:`Licence ends in ${plural(L.daysLeft,'day')}`,tone:'amber',L};
   case'grace':return{text:`Expired · ${plural(L.graceLeft,'day')} grace left`,tone:'red',L};
   default:return{text:trial?'Trial – expired':'Licence expired',tone:'red',L}}}
 const licChip=s=>{const{text,tone}=licSummary(s);return`<span class="chip ${tone}" title="${esc(licLabel(s.license_type))}">${esc(text)}</span>`};
-const licWorks=s=>!['none','expired'].includes(licState(s).state);
+const licWorks=s=>!['none','expired','suspended'].includes(licState(s).state);
 function licPreview(type,{extend,current,custom}={}){
  if(type==='lifetime')return null;if(type==='custom')return custom?new Date(custom+'T23:59:59'):undefined;
  const now=new Date(),base=extend&&current&&new Date(current)>now?new Date(current):now,d=new Date(base);
@@ -2731,12 +2732,12 @@ A.authSignOut=async(el,ev)=>{ev&&ev.preventDefault();await signOutWith()};
 function showLicenceLock(){document.body.classList.add('gate');const s=CLOUD.site,L=licState(s),a=$('#auth');const others=(LOC.list||[]).filter(x=>x.id!==s.id);
  a.innerHTML=`<div class="auth-form" style="grid-column:1/-1"><div class="lockcard">
   <div class="auth-brand"><div class="logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span></div>
-  <h1>${L.state==='none'?'No licence yet':L.type==='trial'?'Your trial has ended':'Your licence has expired'}</h1>
+  ${L.state==='suspended'?`<h1>This business is paused</h1><p class="muted"><b>${esc(s.name)}</b> has been paused by Proview. Your bookings are kept safe, but the venue can't be used and online booking is off until it's resumed.</p><div class="notice">Call Proview on <b>${PROVIEW_PHONE}</b> to reactivate it.</div>`:`<h1>${L.state==='none'?'No licence yet':L.type==='trial'?'Your trial has ended':'Your licence has expired'}</h1>
   <p class="muted">${L.state==='none'?`<b>${esc(s.name)}</b>: buy a licence to start using Proview Bookings. Until then the venue can't be used and online booking is off.`:`<b>${esc(s.name)}</b>${L.expires?` · ended ${licDate(L.expires)}`:''}. Bookings are kept safe, but this venue can't be used and online booking is paused until it's renewed.`}</p>
-  ${canBuy()?`<button class="go" type="button" data-act="buyOnline">${L.type==='trial'||L.state==='none'?'Buy a licence online':'Renew online'}</button><div class="notice">or call ${PROVIEW_PHONE}</div>`:`<div class="notice">${CLOUD.me?(L.state==='none'?'Ask your owner to buy one, or call':'Ask your manager to renew it, or call'):'Call'} Proview on <b>${PROVIEW_PHONE}</b> to ${L.type==='trial'||L.state==='none'?'buy a licence':'renew'}.</div>`}
+  ${canBuy()?`<button class="go" type="button" data-act="buyOnline">${L.type==='trial'||L.state==='none'?'Buy a licence online':'Renew online'}</button><div class="notice">or call ${PROVIEW_PHONE}</div>`:`<div class="notice">${CLOUD.me?(L.state==='none'?'Ask your owner to buy one, or call':'Ask your manager to renew it, or call'):'Call'} Proview on <b>${PROVIEW_PHONE}</b> to ${L.type==='trial'||L.state==='none'?'buy a licence':'renew'}.</div>`}`}
   ${others.length?`<label class="af">Open another location<select class="inp" style="height:44px" onchange="A.openSite({dataset:{id:this.value}})"><option value="">Choose…</option>${others.map(o=>`<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('')}</select></label>`:''}
   ${isMaster()?`<a class="small" style="text-align:center" href="${LIC_PORTAL}" target="_blank" rel="noopener">Proview licence portal ↗</a>`:''}
-  <div class="alinks"><button type="button" data-act="lockRetry">${L.state==='none'?"I've bought it — check again":"I've renewed — check again"}</button><button type="button" data-act="authSignOut">Sign out</button></div>
+  <div class="alinks"><button type="button" data-act="lockRetry">${L.state==='suspended'?'Check again':L.state==='none'?"I've bought it — check again":"I've renewed — check again"}</button><button type="button" data-act="authSignOut">Sign out</button></div>
  </div></div>`;a.hidden=false}
 A.lockRetry=()=>location.reload();
 
@@ -2760,6 +2761,7 @@ A.buyOnline=async el=>{const sid=el&&el.dataset&&el.dataset.id,s=sid?(CLOUD.me?.
 function licBannerHtml(){if(!CLOUD.site)return'';const s=CLOUD.site,L=licState(s),who=isMaster()?'Renew it at license.proviewcrm.co.uk.':canBuy()?`Renew it online, or call Proview on ${PROVIEW_PHONE}.`:`Call Proview on ${PROVIEW_PHONE} to renew.`;
  let t='';if(L.state==='grace')t=`This venue's licence expired on ${licDate(L.expires)}. It keeps working for ${plural(L.graceLeft,'more day')}, then it stops. ${who}`;
  else if(L.state==='expiring')t=`${L.type==='trial'?'Your trial':'This venue\'s licence'} ends on ${licDate(L.expires)} (${plural(L.daysLeft,'day')}). ${L.type==='trial'?(canBuy()?`Buy a licence online to keep using Proview Bookings, or call Proview on ${PROVIEW_PHONE}.`:`Call Proview on ${PROVIEW_PHONE} to keep using Proview Bookings.`):who}`;
+ else if(isMaster()&&L.state==='suspended')t=`${esc(s.name)} is paused. Staff are locked out and online booking is off until it's resumed in the licence portal.`;
  else if(isMaster()&&['expired','none'].includes(L.state))t=`${esc(s.name)} has ${L.state==='none'?'no licence':'an expired licence'}. Staff are locked out and online booking is paused. You can still open it as the Proview admin.`;
  if(!t)return'';const bad=['grace','expired','none'].includes(L.state);
  return`<div class="card pad row noprint licbar" style="margin-bottom:14px;${bad?'background:var(--badl);border-color:#f2b8be':'background:var(--warnl);border-color:#f0d08a'}">${ic('clock',16)}<span style="flex:1">${t}</span>${isMaster()?`<button class="btn sm" data-act="admLicence">Licence portal ↗</button>`:canBuy()?`<button class="btn sm pri" data-act="buyOnline">${L.type==='trial'||L.state==='none'?'Buy licence online':'Renew online'}</button>`:''}</div>`}
