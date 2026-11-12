@@ -38,7 +38,7 @@ create index if not exists bk_location_moves_from on hub_private.bk_location_mov
 create or replace function public.bk_add_site(p_business uuid, p_name text, p_license text default 'trial')
 returns public.bk_sites language plpgsql security definer set search_path = public as $$
 begin
-  raise exception 'Locations are added in the licence portal (New location), and linked there by Proview.';
+  raise exception 'Businesses are added in the licence portal (New business), and linked there by Proview.';
 end $$;
 drop policy if exists "master writes sites" on public.bk_sites;
 drop policy if exists "master updates sites" on public.bk_sites;

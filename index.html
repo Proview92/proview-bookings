@@ -631,6 +631,8 @@ body.v-allsites .fab{display:none!important}
 /* site picker: in the top header right after the page title, on every screen size (copied verbatim from Proview Signage dd5e830, web/css/app.css) */
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .top .hdr-pick { margin: 0 0 0 6px; flex: 0 1 auto; min-width: 0; }
+.pv-locbar { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
+.pv-locbar select { width: auto; min-width: 170px; max-width: 320px; height: 36px; }
 .top .hdr-pick select { display: block; width: auto; height: 38px; max-width: 320px; min-width: 170px; border-radius: 10px; border: 1px solid var(--line); background-color: #fff; color: var(--ink); font: 600 14px var(--font, "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif); padding: 0 30px 0 12px; cursor: pointer; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
 .top .hdr-pick select:focus { outline: none; border-color: var(--line); }
 .top .hdr-pick select:focus-visible { outline: 2px solid #5a8dee; outline-offset: 2px; }
@@ -996,7 +998,7 @@ textarea.pv-alnote{border-color:var(--bad)}
   <aside class="side">
     <div class="brand"><div class="logo" role="img" aria-label="Proview logo"></div><span class="wordmark">PROVIEW<span>BOOKINGS</span></span><button class="collapse-btn" data-act="collapse" title="Collapse menu"></button></div>
     <nav class="nav" id="nav"></nav>
-    <div class="venue" id="venueCard" data-act="locations" title="Switch location" style="cursor:pointer"></div>
+    <div class="venue" id="venueCard" data-act="locations" title="Your locations" style="cursor:pointer"></div>
     <div class="side-foot" id="sideFoot"></div>
   </aside>
   <main class="main">
@@ -1283,7 +1285,7 @@ function renderNav(){
  const open=isOpenNow();
  const em=(CLOUD.user?.email||S.venue.me?.email||'').toLowerCase(),stf=(S.staff||[]).find(x=>(x.email||'').toLowerCase()===em&&em),myName=(em&&(e=>String(e||'').split('@')[0].split(/[._-]+/).filter(Boolean).map(w=>w[0].toUpperCase()+w.slice(1)).join(' '))(em))||stf?.name||S.venue.me?.name||'Me';
  const myRole=isMaster()?'Proview admin':(CLOUD.site?.role||S.venue.user||'Manager');
- $('#venueCard').className='venue side-me';$('#venueCard').innerHTML=`<span class="side-av">${esc(initials(myName))}</span><span class="side-me-t"><b>${esc(myName)}</b><span>${esc(myRole)} · ${esc(S.venue.name)}</span></span>${ic('right',16)}`;$('#venueCard').dataset.act=LOC.cloud?'myAccount':'locations';$('#venueCard').title=LOC.cloud?'Your account and venue settings':'Switch location';
+ $('#venueCard').className='venue side-me';$('#venueCard').innerHTML=`<span class="side-av">${esc(initials(myName))}</span><span class="side-me-t"><b>${esc(myName)}</b><span>${esc(myRole)} · ${esc(S.venue.name)}</span></span>${ic('right',16)}`;$('#venueCard').dataset.act=LOC.cloud?'myAccount':'locations';$('#venueCard').title=LOC.cloud?'Your account and venue settings':'Your locations';
  document.querySelector('.collapse-btn').innerHTML=ic('left',18);
  $('#sideFoot').innerHTML=`<button class="sf-link" data-act="collapse" title="${$('#app').classList.contains('collapsed')?'Expand menu':'Collapse menu'}">${ic('left',14)}<span class="lbl">COLLAPSE</span></button><button class="sf-link" data-act="logout" title="Sign out" style="margin-left:auto">${ic('out',14)}<span class="lbl">SIGN OUT</span></button>`;
 }
@@ -1299,7 +1301,7 @@ function renderTop(){
  <button class="icon-btn" data-act="notifs" title="Notifications" aria-label="Notifications">${ic('bell')}${unreadN?`<span class="badge">${unreadN>9?'9+':unreadN}</span>`:''}</button>
  <button class="btn pri" data-act="newParty" title="Add a party">${ic('plus',16)} <span class="lbl-np">New party</span></button>`;
 }
-function render(){try{masterBar()}catch(e){}document.body.classList.toggle('dark',!!S.settings.prefs.dark);try{localStorage.setItem('pv-splash-dark',S.settings.prefs.dark?'1':'0')}catch(e){}document.body.classList.toggle('v-allsites',U.view==='allsites');renderNav();renderTop();const c=$('#content');if(U.view==='admin')U.view='parties';c.innerHTML=licBannerHtml()+(VIEWS[U.view]||VIEWS.parties)();if(AFTER[U.view])AFTER[U.view]()}
+function render(){try{masterBar()}catch(e){}document.body.classList.toggle('dark',!!S.settings.prefs.dark);try{localStorage.setItem('pv-splash-dark',S.settings.prefs.dark?'1':'0')}catch(e){}document.body.classList.toggle('v-allsites',U.view==='allsites');renderNav();renderTop();const c=$('#content');if(U.view==='admin')U.view='parties';c.innerHTML=licBannerHtml()+locBarHtml()+(VIEWS[U.view]||VIEWS.parties)();if(AFTER[U.view])AFTER[U.view]()}
 
 /* ================= views ================= */
 const VIEWS={},AFTER={};
@@ -1772,7 +1774,7 @@ function sugHtml(sug){return sug.length?`<div class="sug">${sug.map(x=>`<div dat
 
 /* ================= actions ================= */
 const A={};
-A.moreMenu=()=>{const m=$('#modal');const items=NAV.filter(n=>n[0]!=='sec'&&!['parties','tables','planner','floor'].includes(n[0]));m.innerHTML=`<div class="modal card" style="max-width:420px;margin-top:auto"><div class="pad row between" style="border-bottom:1px solid var(--line)"><b>${esc(S.venue.name)}</b><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div>${items.map(n=>`<div class="sres" style="padding:14px 18px" data-act="moreGo" data-v="${n[0]}">${ic(n[2],20)}<b>${n[1]}</b></div>`).join('')}<div class="sres" style="padding:14px 18px" data-act="locations">${ic('store',20)}<b>Switch location</b></div><div class="sres" style="padding:14px 18px" data-act="help">${ic('help',20)}<b>Help</b></div><div class="sres" style="padding:14px 18px" data-act="logout">${ic('out',20)}<b>Sign out</b></div></div>`;m.classList.add('show')};
+A.moreMenu=()=>{const m=$('#modal');const items=NAV.filter(n=>n[0]!=='sec'&&!['parties','tables','planner','floor'].includes(n[0]));m.innerHTML=`<div class="modal card" style="max-width:420px;margin-top:auto"><div class="pad row between" style="border-bottom:1px solid var(--line)"><b>${esc(S.venue.name)}</b><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div>${items.map(n=>`<div class="sres" style="padding:14px 18px" data-act="moreGo" data-v="${n[0]}">${ic(n[2],20)}<b>${n[1]}</b></div>`).join('')}${LOC.cloud?'':`<div class="sres" style="padding:14px 18px" data-act="locations">${ic('store',20)}<b>Your locations</b></div>`}<div class="sres" style="padding:14px 18px" data-act="help">${ic('help',20)}<b>Help</b></div><div class="sres" style="padding:14px 18px" data-act="logout">${ic('out',20)}<b>Sign out</b></div></div>`;m.classList.add('show')};
 A.moreGo=el=>{A.closeModal();A.go(el)};
 A.collapse=()=>{$('#app').classList.toggle('collapsed');renderNav()};
 A.myAccount=()=>{U.view='settings';render()};
@@ -1979,7 +1981,8 @@ A.importCsv=el=>{const f=el.files[0];if(!f)return;const r=new FileReader();r.onl
 A.showQR=el=>{const url=el.dataset.v,t=el.dataset.t||'Booking link';const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:380px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><b>${esc(t)}</b><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div class="pad" style="text-align:center"><div id="qrBox" style="display:inline-block;padding:12px;background:#fff;border-radius:12px"></div><div class="code" style="margin-top:12px">${esc(url)}</div><div class="small mut" style="margin-top:8px">Right-click or long-press the code to save it for printing.</div></div></div>`;m.classList.add('show');
  loadQR(err=>{const box=$('#qrBox');if(!box)return;if(err||!window.QRCode){box.innerHTML='<div class="small mut" style="padding:20px">QR code needs an internet connection.</div>';return}new QRCode(box,{text:url,width:220,height:220,colorDark:'#141418',colorLight:'#ffffff'});setTimeout(()=>{const c=box.querySelector('canvas'),i=box.querySelector('img');if(c&&i){i.src=c.toDataURL();i.style.display='block';c.style.display='none'}},50)})};
 A.signupTest=()=>{const n=$('#suName').value.trim(),e=$('#suEmail').value.trim().toLowerCase();if(!n||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){toast('Enter a name and a valid email');return}if(!$('#suOk').checked){toast('Tick the box to agree to marketing');return}let g=S.guests.find(x=>x.email.toLowerCase()===e);if(g){g.marketing=true}else{g={id:uid(),name:n,phone:$('#suPhone')?.value.trim()||'',email:e,tags:[],notes:'',marketing:true,created:today(),birthday:$('#suBday')?.value||''};S.guests.push(g)}S.signup.signups++;notify('user',`${shortName(n)} joined your guest list`);save();render();toast(`${n} added to your guest book`)};
-A.locations=()=>{if(LOC.cloud){const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:460px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Your locations</h3><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div style="max-height:60vh;overflow:auto">${LOC.list.map(l=>`<div class="sres" data-act="switchLoc" data-id="${esc(l.id)}"><div class="av">${initials(l.name)}</div><div style="flex:1"><b>${esc(l.name)}</b><div class="small mut">${l.id===LOC.current?'Current location':esc(l.business||'')}</div></div>${l.id===LOC.current?ic('check',16):''}</div>`).join('')}</div><div class="pad small mut" style="border-top:1px solid var(--line)">${isMaster()?'New locations, linked locations and licences are managed in the <a href="https://license.proviewcrm.co.uk" target="_blank" rel="noopener">licence portal ↗</a>.':`To link another location to this business, call Proview on ${PROVIEW_PHONE}.`}</div></div>`;m.classList.add('show');return}const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:460px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Your locations</h3><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div>${LOC.list.map(l=>`<div class="sres" data-act="switchLoc" data-id="${l.id}"><div class="av">${initials(l.name)}</div><div style="flex:1"><b>${esc(l.name)}</b>${l.id===LOC.current?'<div class="small mut">Current location</div>':''}</div>${l.id===LOC.current?ic('check',16):''}</div>`).join('')}</div><div class="pad small mut" style="border-top:1px solid var(--line)">Locations are added and linked by Proview.</div></div>`;m.classList.add('show')};
+A.locations=()=>{if(LOC.cloud){A.closeModal&&A.closeModal();   /* no Locations list (owner, 12 Nov): the header picks the business, the page's Location select the location */
+ return}const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:460px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>Your locations</h3><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div><div>${LOC.list.map(l=>`<div class="sres" data-act="switchLoc" data-id="${l.id}"><div class="av">${initials(l.name)}</div><div style="flex:1"><b>${esc(l.name)}</b>${l.id===LOC.current?'<div class="small mut">Current location</div>':''}</div>${l.id===LOC.current?ic('check',16):''}</div>`).join('')}</div><div class="pad small mut" style="border-top:1px solid var(--line)">Businesses are set up and linked by Proview.</div></div>`;m.classList.add('show')};
 A.switchLoc=el=>{const id=el.dataset.id;if(id===LOC.current){A.closeModal();return}save();LOC.current=id;if(CLOUD.cfg){locWrite();location.reload();return}KEY='proview-bookings-v3:'+id;load();if(!S.venue.name||S.venue.name==='Proview Kitchen'){const l=LOC.list.find(x=>x.id===id);if(l&&l.fresh){S.venue.name=l.name;delete l.fresh}}save();U.area=S.areas[0].id;U.date=today();U.view='parties';A.closeModal();render();toast('Switched to '+S.venue.name)};
 // (no A.addLoc: locations are added and linked by Proview in the licence portal; LOCATIONS_LINK_SPEC)
 function seatAt(pid,tid){const p=S.parties.find(x=>x.id===pid);const t=S.tables.find(x=>x.id===tid);
@@ -2664,25 +2667,34 @@ async function afterSignIn(){
   const b=(me.businesses||[])[0];
   if(b){await signOutWith(`Your login at ${b.name} doesn't have any locations yet. Ask your owner or Proview.`);return}   // added to a business, given no sites
   showBusinessSetup();return}                              // no business, no invite: set one up (no licence until bought)
- const want=LOC.cloud&&sites.some(s=>s.id===LOC.current)?LOC.current:sites[0].id;
+ // MULTI_BUSINESS_PICKER_STANDARD: the business last used (this tab's location, else the per-email memory), else the next
+ // usable business by name (a location with a working licence). Inside a business: its location as before. None usable: as before.
+ let explicit=null;try{explicit=sessionStorage.getItem('pv-bk-open')}catch(e){}
+ const here=LOC.cloud?sites.find(s=>s.id===LOC.current):null,mem=bkLast(),groups=bizList(sites);
+ const lastBiz=here?bizOf(here):mem.biz,g=groups.find(b=>b.id===lastBiz);
+ let want;
+ if(here&&(explicit===here.id||me.is_master||groups.length<2||(g&&bizUsable(g))))want=here.id;
+ else{const use=g&&bizUsable(g)?g:groups.find(bizUsable);
+  if(use){const ls=(mem.sites||{})[use.id];want=(use.sites.find(s=>s.id===ls&&siteOk(s))||(groups.length<2?null:use.sites.find(siteOk))||sites.find(s=>bizOf(s)===use.id)).id}
+  else want=here?here.id:sites[0].id}
  const wasKey=KEY;LOC={cloud:true,current:want,list:sites.map(s=>({id:s.id,name:s.name,business:s.business}))};
  locWrite()
  if(wasKey!=='proview-bookings-v3:'+want){location.reload();return}
- CLOUD.vid=want;CLOUD.site=sites.find(s=>s.id===want);
- try{const kv=sessionStorage.getItem('pv-bk-view');sessionStorage.removeItem('pv-bk-view');if(kv&&U.view!=='allsites')U.view=kv;   // switched site: same page
-  const ka=sessionStorage.getItem('pv-bk-all');if(ka){const b=ka.startsWith('__biz:')?ka.slice(6):null;U.view='allsites';U.allBiz=b&&sites.some(s=>String(s.business_id)===b)||b&&isMaster()?b:null}}catch(e){}
+ CLOUD.vid=want;CLOUD.site=sites.find(s=>s.id===want);bkRemember(want);
+ try{const kv=sessionStorage.getItem('pv-bk-view');sessionStorage.removeItem('pv-bk-view');sessionStorage.removeItem('pv-bk-all');if(kv&&kv!=='allsites')U.view=kv}catch(e){}   // switched site: same page
+ if(U.view==='allsites')U.view='parties';   // the Locations page is gone
  if(!isMaster()&&!licWorks(CLOUD.site)){showLicenceLock();return}
  await cloudStart();
 }
-/* the master signed in without opening a location: "Open a location from the licence portal" (no venue document, nothing synced) */
+/* the master signed in without opening a location: "Open a business from the licence portal" (no venue document, nothing synced) */
 function showMasterHome(){CLOUD.nosite=true;CLOUD.on=false;CLOUD.vid=null;CLOUD.site=null;document.body.classList.add('pv-nosite');
  S=upgrade(seed());['parties','guests','reviews','chats','notes','tasks','shifts','staff'].forEach(k=>S[k]=[]);S.venue.name='Proview';
  U.view='masterhome';hideAuth();render()}
 TITLES.masterhome='Proview Bookings';
-VIEWS.masterhome=()=>{const me=CLOUD.me||{},t=me.master_missing?'That business couldn’t be found here. It may have been deleted, or linked into another location. Open the location again from the licence portal.'
-  :me.master_open?`${esc(me.master_business||'That business')} has no locations yet. Add one in the licence portal, then open it again.`
-  :'As Proview you open a location’s Bookings from its page in the licence portal (Open in Bookings). It opens here, inside that business.';
- return`<div class="card pad pv-master-home"><h2 style="margin:0 0 8px;font-size:20px">Open a location from the licence portal</h2><p class="mut" style="margin:0 0 14px">${t}</p><a class="btn pri" href="${LIC_PORTAL}">Go to license.proviewcrm.co.uk</a></div>`};
+VIEWS.masterhome=()=>{const me=CLOUD.me||{},t=me.master_missing?'That business couldn’t be found here. It may have been deleted, or linked into another business. Open the business again from the licence portal.'
+  :me.master_open?`${esc(me.master_business||'That business')} has no locations yet. Businesses are set up by Proview.`
+  :'As Proview you open a business’s Bookings from its page in the licence portal (Open in Bookings). It opens here, inside that business.';
+ return`<div class="card pad pv-master-home"><h2 style="margin:0 0 8px;font-size:20px">Open a business from the licence portal</h2><p class="mut" style="margin:0 0 14px">${t}</p><a class="btn pri" href="${LIC_PORTAL}">Go to license.proviewcrm.co.uk</a></div>`};
 /* "Viewing <Business> as Proview" under the header while the master is inside a location's business */
 function masterBar(){let b=document.getElementById('pvMasterBar');const me=CLOUD.me,on=!!(me&&me.is_master&&me.master_open&&!CLOUD.nosite);
  if(!on){b&&b.remove();return}
@@ -2752,120 +2764,47 @@ function licBannerHtml(){if(!CLOUD.site)return'';const s=CLOUD.site,L=licState(s
  if(!t)return'';const bad=['grace','expired','none'].includes(L.state);
  return`<div class="card pad row noprint licbar" style="margin-bottom:14px;${bad?'background:var(--badl);border-color:#f2b8be':'background:var(--warnl);border-color:#f0d08a'}">${ic('clock',16)}<span style="flex:1">${t}</span>${isMaster()?`<button class="btn sm" data-act="admLicence">Licence portal ↗</button>`:canBuy()?`<button class="btn sm pri" data-act="buyOnline">${L.type==='trial'||L.state==='none'?'Buy licence online':'Renew online'}</button>`:''}</div>`}
 
-/* --- master admin (Proview): businesses, sites and licences are managed at license.proviewcrm.co.uk; in the app the master switches sites with the picker --- */
-/* site picker in the top header, right after the page title / date bar: the Proview standard (PICKER_STANDARD + 18:07 update).
-   Master: "All sites (N)", then every site by name (" · Business" only when two sites share a name).
-   Several sites: "All my sites (N)" plus their sites. One site: the site name in the same box, disabled.
-   A whole business (opened from the All sites page) reads "<Business> (all sites)": a hidden selected option, not in the list. */
+/* --- header: business names only (MULTI_BUSINESS_PICKER_STANDARD, owner update 07:47) ---
+   Someone in several usable businesses picks a business; it opens at the location last used there (else its first working
+   one). One business, and the master inside the business opened from the licence portal: its name, disabled. Every page
+   here is about one location: a business with more than one location gets a "Location" select at the top of the page.
+   No Locations page (owner, 12 Nov): no "All my locations", no business or location cards, no "Switch location" list. */
 function siteBiz(l){const m=(CLOUD.me?.sites||[]).find(x=>x.id===l.id);return{id:String(m?.business_id||l.business||m?.business||''),name:l.business||m?.business||'No business'}}
-function sitePickHtml(){const L=LOC.cloud&&!CLOUD.nosite?(LOC.list||[]):[];if(!L.length)return'';
- const wrap=sel=>`<div class="hdr-pick"><label class="sr" for="hdr-site">Location</label>${sel}</div>`;
- if(L.length===1)return wrap(`<select id="hdr-site" aria-label="Choose location" title="${esc(L[0].name)}" disabled><option>${esc(L[0].name)}</option></select>`);
- const by=a=>(x,y)=>String(a(x)).localeCompare(String(a(y))),all=U.view==='allsites',fb=all?(U.allBiz||null):null;
- const o=(v,t,on)=>`<option value="${esc(v)}" title="${esc(t)}" ${on?'selected':''}>${esc(t)}</option>`;
- const sorted=L.slice().sort(by(l=>l.name)),dup=n=>L.filter(x=>String(x.name).toLowerCase()===String(n).toLowerCase()).length>1;
- const sites=sorted.map(l=>o(l.id,l.name+(dup(l.name)?' · '+siteBiz(l).name:''),!all&&l.id===LOC.current)).join('');
- const h=o('__mine',`All my locations (${L.length})`,all)+sites;
- const cur=(h.match(/<option [^>]*selected[^>]*>([^<]*)<\/option>/)||[])[1]||'Switch location';
- return wrap(`<select id="hdr-site" aria-label="Choose location" title="${cur}" data-act-change="pickSite">${h}</select>`)}
+const bkBy=(a,b)=>String(a).toLowerCase().localeCompare(String(b).toLowerCase());
+const bizOf=s=>String(s.business_id||s.business||'');
+/* [{id,name,sites}] by name, each business's locations by name */
+function bizList(sites=CLOUD.me?.sites||[]){const g=new Map();sites.forEach(s=>{const id=bizOf(s);if(!g.has(id))g.set(id,{id,name:s.business||'This business',sites:[]});g.get(id).sites.push(s)});
+ const L=[...g.values()];L.forEach(b=>b.sites.sort((x,y)=>bkBy(x.name,y.name)));return L.sort((x,y)=>bkBy(x.name,y.name))}
+const siteOk=s=>isMaster()||licWorks(s);
+const bizUsable=b=>b.sites.some(siteOk);
+function curBiz(){const s=(CLOUD.me?.sites||[]).find(x=>x.id===LOC.current);return s?bizOf(s):null}
+/* the business (and its location) last used, per email: kept through sign-out (only ids) */
+const BKLAST=()=>'proview-bookings-last:'+String(CLOUD.user?.email||CLOUD.me?.email||'').toLowerCase();
+function bkLast(){try{return JSON.parse(localStorage.getItem(BKLAST())||'{}')||{}}catch(e){return{}}}
+function bkRemember(id){if(!CLOUD.me||isMaster()||!(CLOUD.user?.email||CLOUD.me?.email))return;const s=(CLOUD.me.sites||[]).find(x=>x.id===id);if(!s)return;
+ const o=bkLast();o.biz=bizOf(s);o.sites={...(o.sites||{}),[o.biz]:s.id};try{localStorage.setItem(BKLAST(),JSON.stringify(o))}catch(e){}}
+function sitePickHtml(){if(!LOC.cloud||CLOUD.nosite||!CLOUD.me)return'';const all=bizList(),cur=curBiz();if(!all.length)return'';
+ let L=all.filter(b=>bizUsable(b)||b.id===cur);if(L.length<2)L=all.filter(b=>b.id===cur);if(!L.length)L=all.slice(0,1);
+ const wrap=sel=>`<div class="hdr-pick"><label class="sr" for="hdr-biz">Business</label>${sel}</div>`;
+ if(L.length===1)return wrap(`<select id="hdr-biz" aria-label="Business" title="${esc(L[0].name)}" disabled><option>${esc(L[0].name)}</option></select>`);
+ const c=L.find(b=>b.id===cur);
+ return wrap(`<select id="hdr-biz" aria-label="Business" title="${esc(c?.name||'')}" data-act-change="pickBiz">${L.map(b=>`<option value="${esc(b.id)}" title="${esc(b.name)}" ${b.id===cur?'selected':''}>${esc(b.name)}</option>`).join('')}</select>`)}
 const markOpen=id=>{try{id?sessionStorage.setItem('pv-bk-open',id):sessionStorage.removeItem('pv-bk-open');sessionStorage.removeItem('pv-bk-all')}catch(e){}};
 const SITE_VIEWS=()=>NAV.filter(n=>n[0]!=='sec').map(n=>n[0]).concat(['help','users']);
-A.pickSite=el=>{const v=el.value;
- if(v==='__all'||v==='__mine'||v.startsWith('__biz:')){markOpen(null);U.allBiz=v.startsWith('__biz:')?v.slice(6):null;try{sessionStorage.setItem('pv-bk-all',v)}catch(e){}U.view='allsites';render();return}
- const keep=SITE_VIEWS().includes(U.view)?U.view:'parties';markOpen(v);
- if(v&&v===LOC.current){U.view=keep;render();return}
- if(v){try{sessionStorage.setItem('pv-bk-view',keep)}catch(e){}U.view=keep;A.openSite({dataset:{id:v}})}};
-/* "All sites" (master admins, from the site picker): every site's licence and today's bookings at a glance */
-TITLES.allsites='My locations';
-const ALLS={rows:null,biz:null,busy:false,at:0,err:''};
-VIEWS.allsites=()=>{if(!canView('allsites'))return VIEWS.parties();const M=false;   // the master sees a business as its Owner does (no master view: MASTER_OPEN_SPEC)
- /* Proview Signage's Locations page (business cards, clickable summary boxes; LOCATIONS_PAGE_STANDARD). The master sees one card
-    per business; a business opened from here (U.allBiz) and an owner's "My locations" show one card per location. */
- const allSites=(CLOUD.me?.sites||[]).filter(x=>!U.allBiz||siteBiz(x).id===U.allBiz),R=ALLS.rows,by=id=>R&&R[id];
- const withSites=new Set(allSites.map(x=>siteBiz(x).id)),bare=M?(ALLS.biz||[]).filter(b=>!withSites.has(String(b.id))&&(!U.allBiz||String(b.id)===U.allBiz)):[];
- const bizList=[];allSites.forEach(x=>{const b=siteBiz(x);let g=bizList.find(y=>y.id===b.id);if(!g)bizList.push(g={id:b.id,name:b.name,sites:[]});g.sites.push(x)});
- bare.forEach(b=>bizList.push({id:String(b.id),name:b.name,sites:[]}));
- bizList.forEach(g=>g.sites.sort((a,b)=>String(a.name).localeCompare(String(b.name))));bizList.sort((a,b)=>String(a.name).localeCompare(String(b.name)));
- const perLoc=!M||!!U.allBiz,loading=!allSites.length&&ALLS.biz===null;
- const n=(id,k)=>(by(id)||{})[k]||0,sum=(list,k)=>R?list.reduce((t,x)=>t+n(x.id,k),0):'…';
- const NEEDS=['none','expiring','grace','expired'],needs=x=>NEEDS.includes(licState(x).state);
- const fmtD=t=>new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
- const bookLine=list=>R?`${plural(sum(list,'b'),'booking')} today`:'Loading today’s bookings…';
- const toneOf=x=>{const s=licState(x).state;return s==='none'||s==='expired'?'bad':s==='grace'||s==='expiring'||licState(x).type==='trial'?'warn':'ok'};
- // status pill: grey nothing set up yet · red expired / no licence · amber trial, grace or ending soon · green all good
- const pill=list=>{if(!list.length)return`<span class="ov-pill">No locations yet</span>`;
-  const bad=list.filter(x=>['none','expired'].includes(licState(x).state));
-  if(bad.length)return list.length===1?`<span class="ov-pill bad">${esc(licSummary(list[0]).text)}</span>`:`<span class="ov-pill bad">${bad.length} licence${bad.length===1?' needs':'s need'} attention</span>`;
-  const tr=list.find(x=>licState(x).type==='trial');if(tr)return`<span class="ov-pill warn">Trial – ends ${esc(fmtD(licState(tr).expires))}</span>`;
-  const gr=list.find(x=>licState(x).state==='grace');if(gr)return`<span class="ov-pill warn">Expired · ${plural(licState(gr).graceLeft,'day')} grace left</span>`;
-  const ex=list.filter(x=>licState(x).state==='expiring').sort((a,b)=>licState(a).daysLeft-licState(b).daysLeft)[0];if(ex)return`<span class="ov-pill warn">Licence ends in ${plural(licState(ex).daysLeft,'day')}</span>`;
-  return`<span class="ov-pill ok">All good</span>`};
- // footer licence text, as Signage: "Licences: lifetime", "2 licences", "Trial ends 12 Nov", "Expired"
- const licText=list=>{if(!list.length)return M?'Add a location to get started':'No locations yet';
-  if(list.every(x=>licState(x).state==='lifetime'))return'Licences: lifetime';
-  const tr=list.find(x=>licState(x).type==='trial'&&licState(x).expires);if(tr)return licWorks(tr)?`Trial ends ${fmtD(licState(tr).expires)}`:'Trial expired';
-  if(list.every(x=>licState(x).state==='expired'))return'Expired';if(list.every(x=>licState(x).state==='none'))return'No licence';
-  const ok=list.filter(licWorks).length;return ok===list.length?plural(list.length,'licence'):`${ok} of ${list.length} licensed`};
- const chev=`<span class="ov-chev" aria-hidden="true">›</span>`,dot=t=>`<span class="ov-dot ${t}"></span>`;
- // owners/admins (never the master, who uses the licence portal): buy or renew a location that needs it, with the Stripe flow
- const buyBtn=x=>canBuy(x)&&(needs(x)||licState(x).type==='trial')?`<button class="btn sm" data-act="buyOnline" data-id="${esc(x.id)}">${licState(x).type==='trial'||licState(x).state==='none'?'Buy licence':'Renew'}</button>`:'';
- const openBtn=(act,id,label)=>`<button class="btn sm primary" data-act="${act}" data-id="${esc(id)}">${label}</button>`;
- const portalBtn=`<a class="btn sm" href="${LIC_PORTAL}" target="_blank" rel="noopener" title="Locations and licences are added in the licence portal">Add a location ↗</a>`;
- const q=(...a)=>esc(a.filter(Boolean).join(' ').toLowerCase());
- const bizCard=g=>{const L=g.sites,single=L.length===1;
-  const sub=single?[L[0].name!==g.name&&L[0].name,bookLine(L)].filter(Boolean).join(' · '):L.length?`${plural(L.length,'location')} · ${bookLine(L)}`:'No locations yet';
-  const rows=single?'':L.map(x=>`<button type="button" class="ov-loc" data-act="allOpen" data-id="${esc(x.id)}" title="Open this location">${dot(toneOf(x))}<span class="grow">${esc(x.name)}</span><span class="muted small">${R?`${plural(n(x.id,'b'),'booking')} · ${plural(n(x.id,'c'),'cover')}`:'…'}</span>${chev}</button>`).join('');
-  const act=!L.length?(M?portalBtn:''):single?openBtn('allOpen',L[0].id,'Open business'):openBtn('allBiz',g.id,'Open business');
-  return`<article class="card ov-biz" data-q="${q(g.name,...L.map(x=>x.name))}"><div class="ov-bh"><div class="grow"><h3>${esc(g.name)}</h3><div class="muted small">${esc(sub)}</div></div>${pill(L)}</div>${rows}<div class="ov-bf"><span class="muted small">${esc(licText(L))}</span>${act}</div></article>`};
- const locCard=x=>{const cur=x.id===LOC.current&&!CLOUD.nosite;
-  return`<article class="card ov-biz" data-q="${q(x.business,x.name)}"><div class="ov-bh"><div class="grow"><h3>${esc(x.name)}</h3><div class="muted small">${esc(R?`${plural(n(x.id,'b'),'booking')} · ${plural(n(x.id,'c'),'cover')} today`:'Loading today’s bookings…')}</div></div>${pill([x])}</div><div class="ov-bf"><span class="muted small">${esc(licText([x]))}</span>${(o=>{const bb=buyBtn(x);return bb?`<div class="pv-acts">${bb}${o}</div>`:o})(openBtn('allOpen',x.id,cur?'Back to this location':'Open location'))}</div></article>`};
- const cards=perLoc?allSites.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name))).map(locCard):bizList.map(bizCard);
- const nBiz=bizList.length,nItems=perLoc?allSites.length:nBiz;
- const stat=(k,v,list,tone)=>`<button type="button" class="card ov-stat${tone?' '+tone:''}" data-act="allList" data-list="${list}" title="Show the list"><div class="tiny">${k}</div><div class="ov-v">${v}</div></button>`;
- const licensed=allSites.filter(licWorks).length,attn=allSites.filter(needs).length;
- const stats=`<div class="ov-stats">${stat('Businesses',loading?'…':nBiz,'biz')}${stat('Locations',allSites.length,'loc')}${stat('Licensed',licensed,'lic',licensed?'ok':'')}${stat('Bookings today',allSites.length?sum(allSites,'b'):0,'book')}${stat('Covers today',allSites.length?sum(allSites,'c'):0,'cover')}${stat('Licences need attention',attn,'attn',attn?'bad':'')}</div>`;
- const empty=`<div class="card ov-empty-card"><div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:28px 12px;gap:10px"><h3 style="margin:0;font-size:15px;font-weight:650">No businesses yet</h3><p class="muted" style="margin:0">${M?'Add a business with its owner\'s login here. Licences are managed in the Proview licence portal.':`To add a location, call Proview on ${PROVIEW_PHONE}.`}</p><div class="pv-acts" style="justify-content:center"><button class="btn" data-act="allRefresh">${ic('refresh',16)} Refresh</button></div></div></div>`;
- const bizName=U.allBiz&&(allSites[0]?.business||(ALLS.biz||[]).find(b=>String(b.id)===U.allBiz)?.name||'This business');
- const desc=M&&!U.allBiz?'Every business on the platform with its locations. Open one to see it as its team does.':U.allBiz?`Every location of ${esc(bizName)} with today's bookings. Open one to work in it.`:'Each location with today\'s bookings. Open a location to work in it.';
- return`<div class="pv-loc"><div class="pv-ph"><p class="muted">${desc}</p>
-  <div class="pv-acts"><button class="btn" data-act="allRefresh" title="Refresh">${ic('refresh',16)} Refresh</button></div></div>
- ${stats}
- ${ALLS.err?`<div class="notice bad" style="margin-bottom:12px">${esc(ALLS.err)}</div>`:''}
- <div class="ov-tools"><input class="ov-search" id="allQ" type="search" placeholder="Search businesses or locations" aria-label="Search businesses or locations" oninput="allFilter(this.value)"></div>
- <div class="ov-grid" id="allT">${cards.length?cards.join(''):loading?'<p class="muted" style="grid-column:1/-1;margin:0">Loading…</p>':empty}</div><p class="muted" id="allNone" hidden style="margin:0">No businesses or locations match.</p></div>`};
-function allFilter(v){const t=String(v||'').trim().toLowerCase();let n=0;document.querySelectorAll('#allT > .ov-biz').forEach(c=>{const ok=!t||c.dataset.q.includes(t);c.style.display=ok?'':'none';if(ok)n++});const e=$('#allNone');if(e){e.hidden=n>0||!t;e.textContent=`No businesses or locations match “${String(v||'').trim()}”.`}}
-/* the summary boxes: each opens the list behind its number (as Proview Signage) */
-A.allList=el=>{const k=el.dataset.list,M=false,R=ALLS.rows,n=(id,f)=>(R&&R[id]||{})[f]||0;
- const sites=(CLOUD.me?.sites||[]).filter(x=>!U.allBiz||siteBiz(x).id===U.allBiz).slice().sort((a,b)=>(siteBiz(a).name+a.name).localeCompare(siteBiz(b).name+b.name));
- const tone=x=>{const s=licState(x).state;return s==='none'||s==='expired'?'bad':s==='grace'||s==='expiring'?'warn':'ok'};
- const chev=`<span class="ov-chev" aria-hidden="true">›</span>`,pillOf=x=>{const s=licSummary(x);return`<span class="ov-pill ${{green:'ok',amber:'warn',red:'bad'}[s.tone]||''}">${esc(s.text)}</span>`};
- const siteLi=(x,right)=>`<button type="button" class="ov-li" data-act="allOpen" data-id="${esc(x.id)}"><span class="ov-dot ${tone(x)}"></span><span class="grow"><b>${esc(x.name)}</b><span class="tiny" style="display:block">${esc(siteBiz(x).name)}</span></span>${right}${chev}</button>`;
- const counts=x=>`<span class="muted small">${R?`${plural(n(x.id,'b'),'booking')} · ${plural(n(x.id,'c'),'cover')}`:'…'}</span>`;
- let title,items,emptyT;
- if(k==='biz'){title='Businesses';emptyT='No businesses yet.';const g=new Map();sites.forEach(x=>{const b=siteBiz(x);if(!g.has(b.id))g.set(b.id,{id:b.id,name:b.name,sites:[]});g.get(b.id).sites.push(x)});
-  if(M&&!U.allBiz)(ALLS.biz||[]).forEach(b=>{if(!g.has(String(b.id)))g.set(String(b.id),{id:String(b.id),name:b.name,sites:[]})});
-  items=[...g.values()].sort((a,b)=>String(a.name).localeCompare(String(b.name))).map(b=>{const one=b.sites.length===1,act=!b.sites.length?'':one?`data-act="allOpen" data-id="${esc(b.sites[0].id)}"`:`data-act="allBiz" data-id="${esc(b.id)}"`;
-   return`<button type="button" class="ov-li" ${act}${b.sites.length?'':' disabled style="cursor:default"'}><span class="ov-dot ${!b.sites.length?'':b.sites.some(x=>tone(x)==='bad')?'bad':b.sites.some(x=>tone(x)==='warn')?'warn':'ok'}"></span><span class="grow"><b>${esc(b.name)}</b><span class="tiny" style="display:block">${plural(b.sites.length,'location')}${R?' · '+plural(b.sites.reduce((t,x)=>t+n(x.id,'b'),0),'booking')+' today':''}</span></span>${b.sites.length?chev:'<span class="muted small">No locations yet</span>'}</button>`})}
- else if(k==='loc'){title='Locations';emptyT='No locations yet.';items=sites.map(x=>siteLi(x,counts(x)))}
- else if(k==='lic'){title='Licensed locations';emptyT='No location has a working licence.';items=sites.filter(licWorks).map(x=>siteLi(x,pillOf(x)))}
- else if(k==='book'||k==='cover'){const f=k==='book'?'b':'c';title=k==='book'?'Bookings today':'Covers today';emptyT=k==='book'?'No bookings today.':'No covers today.';items=sites.filter(x=>n(x.id,f)).sort((a,b)=>n(b.id,f)-n(a.id,f)).map(x=>siteLi(x,counts(x)))}
- else{title='Licences needing attention';emptyT='Every licence is fine.';items=sites.filter(x=>['none','expiring','grace','expired'].includes(licState(x).state)).map(x=>siteLi(x,pillOf(x)))}
- const m=$('#modal');m.innerHTML=`<div class="modal card" style="max-width:640px"><div class="pad row between" style="border-bottom:1px solid var(--line)"><h3>${esc(title)}</h3><button class="icon-btn" data-act="closeModal" aria-label="Close">${ic('x')}</button></div><div class="pad" style="padding-top:6px;padding-bottom:6px">${items.length?`<div class="ov-list">${items.join('')}</div>`:`<p class="muted" style="margin:10px 0">${emptyT}</p>`}</div></div>`;m.classList.add('show')};
-AFTER.allsites=async()=>{if(!canView('allsites')||ALLS.busy||!CLOUD.ad)return;if(ALLS.at&&Date.now()-ALLS.at<60e3)return;ALLS.busy=true;const errs=[];
- ALLS.biz=[];
- const rows={};
- if(CLOUD.ad.sb&&(CLOUD.me?.sites||[]).length){try{let qy=CLOUD.ad.sb.from('bk_venue_state').select('id,updated_at,parties:data->parties');if(isMaster())qy=qy.in('id',CLOUD.me.sites.map(x=>x.id));   // the master: only the opened business
-   const r=await qy;if(r.error)throw r.error;
-   const t=today();(r.data||[]).forEach(v=>{const ps=(Array.isArray(v.parties)?v.parties:[]).filter(p=>p&&p.date===t&&p.kind!=='enquiry'&&!['cancelled','deleted','noshow'].includes(p.status));
-    rows[v.id]={b:ps.length,c:ps.reduce((n,p)=>n+(+p.size||0),0),s:ps.filter(p=>ACTIVE.includes(p.status)).length,at:v.updated_at}})}
-  catch(e){errs.push('Couldn’t load today’s bookings: '+(e.message||e))}}
- (CLOUD.me?.sites||[]).forEach(x=>{if(!rows[x.id])rows[x.id]={b:0,c:0,s:0,at:null}});ALLS.rows=rows;ALLS.at=Date.now();ALLS.err=errs.join(' · ');
- ALLS.busy=false;if(U.view==='allsites'){const q=$('#allQ')?.value;render();if(q&&$('#allQ')){$('#allQ').value=q;allFilter(q)}}};
-A.allRefresh=async()=>{let me=null;try{me=await CLOUD.ad.whoami()}catch(e){toast('Couldn’t refresh: '+(e.message||e));return}if(!me)return;
- const ids=x=>(x?.sites||[]).map(s=>s.id).join('|'),changed=ids(CLOUD.me)!==ids(me);CLOUD.me=me;
- if(changed){markOpen(null);location.reload();return}ALLS.at=0;ALLS.rows=null;render();toast('Up to date')};
-A.allBiz=(el,e)=>{e&&e.preventDefault&&e.preventDefault();if($('#modal').classList.contains('show'))A.closeModal();markOpen(null);U.allBiz=String(el.dataset.id);try{sessionStorage.setItem('pv-bk-all','__biz:'+U.allBiz)}catch(x){}U.view='allsites';render()};
-A.allOpen=el=>{const id=el.dataset.id;if($('#modal').classList.contains('show'))A.closeModal();markOpen(id);U.view='parties';if(id===LOC.current){render();return}A.openSite({dataset:{id}})};
+const keepView=()=>SITE_VIEWS().includes(U.view)?U.view:'parties';
+function goSite(id){if(!id)return;const keep=keepView();markOpen(id);if(id===LOC.current){U.view=keep;render();return}try{sessionStorage.setItem('pv-bk-view',keep)}catch(e){}U.view=keep;A.openSite({dataset:{id}})}
+A.pickBiz=el=>{const id=el.value,b=bizList().find(x=>x.id===id);if(!b||id===curBiz())return;
+ const last=(bkLast().sites||{})[id],s=b.sites.find(x=>x.id===last&&siteOk(x))||b.sites.find(siteOk)||b.sites[0];goSite(s.id)};
+/* the in-page location select, at the top of every page, for a business with more than one location */
+function locBarHtml(){if(!LOC.cloud||CLOUD.nosite||!CLOUD.me||['help','masterhome'].includes(U.view))return'';const b=bizList().find(x=>x.id===curBiz());if(!b||b.sites.length<2)return'';
+ return`<div class="pv-locbar noprint"><label class="small mut" for="pvLoc">Location</label><select id="pvLoc" class="inp" aria-label="Location" data-act-change="pickLoc">${b.sites.map(x=>`<option value="${esc(x.id)}" ${x.id===LOC.current?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div>`}
+A.pickLoc=el=>goSite(el.value);
+/* Settings home: "This location" (the location chosen above): its licence, with Buy / Renew online (the master: licence portal) */
+function thisLocHtml(){const s=CLOUD.site;if(!s||!LOC.cloud||CLOUD.nosite)return'';const L=licState(s),sum=licSummary(s);
+ const btn=isMaster()?`<button class="btn sm" data-act="admLicence">Licence portal ↗</button>`:canBuy()&&L.state!=='lifetime'?`<button class="btn sm ${['none','expired','grace','expiring'].includes(L.state)||L.type==='trial'?'pri':''}" data-act="buyOnline">${L.type==='trial'||L.state==='none'?'Buy licence online':'Renew online'}</button>`:'';
+ return`<div class="card pad pv-this-loc" style="margin-bottom:18px"><b>This location</b><div class="small mut">${esc(s.name)} · name, address and photo are under Account → Location details; opening times under Opening hours.</div>
+  <div class="setrow"><div><b>Business licence</b><div class="d">${esc(sum.text)}</div></div>${btn}</div></div>`}
+{const _s=VIEWS.settings;VIEWS.settings=function(){const o=_s.apply(this,arguments);return U.setPage?o:thisLocHtml()+o}}
 A.openSite=el=>{const id=el.dataset.id;if(!id)return;if(id===CLOUD.vid)return;markOpen(id);save();LOC.current=id;if(!LOC.list.some(x=>x.id===id)){LOC.list.push({id,name:id})}LOC.cloud=true;locWrite();location.reload()};
 /* licences are managed in the Proview licence portal */
 const LIC_PORTAL='https://license.proviewcrm.co.uk';
@@ -2878,7 +2817,7 @@ document.addEventListener('change',e=>{if(e.target.closest('.side .client-pick')
 
 function topMe(act){const t=document.getElementById('top'),vc=document.getElementById('venueCard');if(!t)return;const a=vc&&vc.querySelector('.side-av');if(!a)return;t.querySelector('.top-me')?.remove();const nm=vc.querySelector('.side-me-t b')?.textContent||'',sub=vc.querySelector('.side-me-t span')?.textContent||'';const w=document.createElement('div');w.className='top-me';w.innerHTML=`<button class="top-av" title="${esc(nm+(sub?' · '+sub:''))}" aria-label="My account" aria-haspopup="menu" aria-expanded="false">${esc(a.textContent)}</button><button class="icon-btn top-out" data-act="${act}" title="Sign out" aria-label="Sign out">${ic('out',18)}</button>`;w.querySelector('.top-av').onclick=e=>{e.stopPropagation();
   const items=[],va=vc.dataset.act;
-  if(va&&!CLOUD.nosite)items.push({label:va==='myAccount'?'Account & venue settings':'Switch location',icon:'user',run:()=>vc.click()});
+  if(va&&!CLOUD.nosite)items.push({label:va==='myAccount'?'Account & venue settings':'Your locations',icon:'user',run:()=>vc.click()});
   if(!CLOUD.nosite&&canView('users'))items.push({label:'Users & access',icon:'users',run:()=>A.go({dataset:{v:'users'}})});
   items.push({label:'Help',icon:'help',run:()=>A.help()});
   items.push({label:'Sign out',icon:'logout',run:()=>A[act](),sep:true});
@@ -2919,7 +2858,7 @@ const VIEW_FEATURE={tables:'bookings',planner:'bookings',floor:'bookings',guests
 function hasFeature(f){if(!CLOUD.on||!CLOUD.site||isMaster())return true;const F=CLOUD.site.features;if(!F)return true;return F[f]!==false}
 function myBusiness(){const b=CLOUD.site&&CLOUD.site.business_id;return b?(CLOUD.me?.businesses||[]).find(x=>x.id===b)||null:null}
 function usersOn(){return !!(CLOUD.on&&CLOUD.ad?.kind==='supabase'&&myBusiness()&&myBusiness().can_manage_users)}
-function canView(v){if(v==='masterhome')return !!CLOUD.nosite&&isMaster();if(v==='allsites')return !!LOC.cloud&&!CLOUD.nosite&&(CLOUD.me?.sites||[]).length>1;if(CLOUD.nosite)return v==='help';if(v==='help')return true;if(v==='users')return usersOn();
+function canView(v){if(v==='masterhome')return !!CLOUD.nosite&&isMaster();if(v==='allsites')return false;   /* no Locations page (owner, 12 Nov) */if(CLOUD.nosite)return v==='help';if(v==='help')return true;if(v==='users')return usersOn();
  if(v==='parties')return hasFeature('bookings')||hasFeature('queue')||hasFeature('enquiries');const f=VIEW_FEATURE[v];return !f||hasFeature(f)}
 function firstView(){if(CLOUD.nosite)return isMaster()?'masterhome':'help';const n=NAV.find(n=>n[0]!=='sec'&&canView(n[0]));return n?n[0]:'noaccess'}
 NAV.push(['users','Users','users']);SHORT.users='Users';TITLES.users='Users';TITLES.noaccess='No access';
@@ -3080,7 +3019,7 @@ function pvNavOk(v){
  return r}}
 {const _t=renderTop;renderTop=function(){if(U.view==='flow'){U.view='planner';try{_t.apply(this,arguments)}finally{U.view='flow'}const h=document.querySelector('#top .pv-tt h2');if(h)h.textContent='Flow';return}return _t.apply(this,arguments)}}
 A.moreMenu=()=>{const m=$('#modal');const items=NAV.filter(n=>n[0]!=='sec'&&!PV_CORE.includes(n[0])&&canView(n[0]));const M=pvMgr(true);
- m.innerHTML=`<div class="modal card" style="max-width:420px;margin-top:auto"><div class="pad row between" style="border-bottom:1px solid var(--line)"><b>${esc(S.venue.name)}</b><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div>${items.map(n=>`<div class="sres" style="padding:14px 18px" data-act="moreGo" data-v="${n[0]}">${ic(n[2],20)}<b>${n[1]}</b></div>`).join('')}<div class="sres" style="padding:14px 18px" data-act="pvMoreMgr">${ic(M?'unlock':'lock',20)}<b>${M?'Lock manager access':'Manager sign in'}</b></div><div class="sres" style="padding:14px 18px" data-act="locations">${ic('store',20)}<b>Switch location</b></div><div class="sres" style="padding:14px 18px" data-act="help">${ic('help',20)}<b>Help</b></div><div class="sres" style="padding:14px 18px" data-act="logout">${ic('out',20)}<b>Sign out</b></div></div>`;m.classList.add('show')};
+ m.innerHTML=`<div class="modal card" style="max-width:420px;margin-top:auto"><div class="pad row between" style="border-bottom:1px solid var(--line)"><b>${esc(S.venue.name)}</b><button class="icon-btn" data-act="closeModal">${ic('x')}</button></div>${items.map(n=>`<div class="sres" style="padding:14px 18px" data-act="moreGo" data-v="${n[0]}">${ic(n[2],20)}<b>${n[1]}</b></div>`).join('')}<div class="sres" style="padding:14px 18px" data-act="pvMoreMgr">${ic(M?'unlock':'lock',20)}<b>${M?'Lock manager access':'Manager sign in'}</b></div>${LOC.cloud?'':`<div class="sres" style="padding:14px 18px" data-act="locations">${ic('store',20)}<b>Your locations</b></div>`}<div class="sres" style="padding:14px 18px" data-act="help">${ic('help',20)}<b>Help</b></div><div class="sres" style="padding:14px 18px" data-act="logout">${ic('out',20)}<b>Sign out</b></div></div>`;m.classList.add('show')};
 A.pvMoreMgr=()=>{A.closeModal();A.pvMgrBtn()};
 
 /* ---------- permission guards on actions ---------- */

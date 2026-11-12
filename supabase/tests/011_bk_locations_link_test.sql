@@ -40,7 +40,7 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', um, 'role', 'authenticated', 'email', 'll-master-' || um || '@example.com')::text, true);
   perform set_config('request.jwt.claim.sub', um::text, true);
   begin perform public.bk_add_site(ba, 'Second site', null); msg := null; exception when others then msg := sqlerrm; end;
-  out := out || format(E'%s bk_add_site refused for the master (%s)\n', case when msg like 'Locations are added in the licence portal%' then 'PASS' else 'FAIL' end, msg);
+  out := out || format(E'%s bk_add_site refused for the master (%s)\n', case when msg like 'Businesses are added in the licence portal (New business)%' then 'PASS' else 'FAIL' end, msg);
   perform set_config('request.jwt.claims', '', true); perform set_config('request.jwt.claim.sub', '', true);
   out := out || format(E'%s nobody can insert or delete a bk_sites row through the API (no insert/delete policy or grant)\n',
     case when not exists (select 1 from pg_policies where tablename = 'bk_sites' and cmd in ('INSERT', 'DELETE', 'ALL'))
